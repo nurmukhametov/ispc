@@ -1,0 +1,40 @@
+name: Sanitizers
+
+on:
+  pull_request:
+
+env:
+  LLVM_REPO: https://github.com/ispc/ispc.dependencies
+
+jobs:
+  linux-build-ispc-llvm15-asan:
+    needs: [define-flow]
+    runs-on: ubuntu-latest
+    env:
+      LLVM_VERSION: "15.0"
+      LLVM_TAR: llvm-15.0.7-ubuntu18.04-Release+Asserts-x86.arm.wasm.tar.xz
+      ISPC_OPAQUE_PTR_MODE: "ON"
+
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        submodules: true
+
+    - name: Install dependencies
+      run: |
+        .github/workflows/scripts/install-build-deps.sh
+
+    - name: Check environment
+      run: |
+        ./check_env.py
+        which -a clang
+        which -a gcc
+        cat /proc/cpuinfo
+
+    - name: Build package
+      run: |
+          cmake -B build -DCMAKE_C_COMPILER=gcc -DCMAKE_CXX_COMPILER=g++ -DCMAKE_C_FLAGS="-fsanitize=address -O0 -g3" -DCMAKE_CXX_FLAGS="-fsanitize=address -O0 -g3"
+
+    - name: Run ASAN
+      run: |
+          ASAN_OPTIONS=detect_leaks=0 cmake --build build --target check-all
