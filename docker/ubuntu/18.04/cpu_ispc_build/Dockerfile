@@ -29,8 +29,21 @@ RUN apt-get -y update && apt-get --no-install-recommends install -y software-pro
     apt-get --no-install-recommends install -y libstdc++-9-dev && \
     rm -rf /var/lib/apt/lists/*
 
+# Install multilib dependencies needed to build clang_rt.i386 and corresponding
+RUN if [[ $(uname -m) =~ "x86" ]]; then \
+        export CROSS_LIBS="libc6-dev-i386=2.27-3ubuntu*"; \
+      else \
+        export CROSS_LIBS="libc6-dev-armhf-cross=2.27-3ubuntu*"; \
+    fi && \
+    apt-get -y update && apt-get --no-install-recommends install -y "$CROSS_LIBS" && \
+    rm -rf /var/lib/apt/lists/*
+
 # Download and install required version of cmake (3.23.5 for both x86 and aarch64) as required for superbuild preset jsons.
-RUN if [[ $(uname -m) =~ "x86" ]]; then export CMAKE_URL="https://cmake.org/files/v3.23/cmake-3.23.5-linux-x86_64.sh"; else export CMAKE_URL="https://github.com/Kitware/CMake/releases/download/v3.23.5/cmake-3.23.5-linux-aarch64.sh"; fi && \
+RUN if [[ $(uname -m) =~ "x86" ]]; then \
+        export CMAKE_URL="https://cmake.org/files/v3.23/cmake-3.23.5-linux-x86_64.sh"; \
+      else \
+        export CMAKE_URL="https://github.com/Kitware/CMake/releases/download/v3.23.5/cmake-3.23.5-linux-aarch64.sh"; \
+    fi && \
     wget -q --retry-connrefused --waitretry=5 --read-timeout=20 --timeout=15 -t 5 $CMAKE_URL && \
     sh cmake-*.sh --prefix=/usr/local --skip-license && rm -rf cmake-*.sh
 
@@ -98,8 +111,7 @@ FROM llvm_build_step2 AS ispc_build
 ARG LLVM_VERSION
 
 # Install regular ISPC dependencies
-RUN if [[ $(uname -m) =~ "x86" ]]; then export CROSS_LIBS="libc6-dev-i386=2.27-3ubuntu*"; else export CROSS_LIBS="libc6-dev-armhf-cross=2.27-3ubuntu*"; fi && \
-    apt-get -y update && apt-get --no-install-recommends install -y m4 bison flex "$CROSS_LIBS" && \
+RUN apt-get -y update && apt-get --no-install-recommends install -y m4 bison flex && \
     rm -rf /var/lib/apt/lists/*
 
 # Configure ISPC build
@@ -115,7 +127,7 @@ RUN cmake \
 
 # Build ISPC
 RUN cmake --build build_"$LLVM_VERSION" && \
-    cmake --build build_"$LLVM_VERSION" ispc-stage2-check-all && \
+    cmake --build build_"$LLVM_VERSION" --target ispc-stage2-check-all && \
     rm -rf build_"$LLVM_VERSION"
 
 #export path for ispc
