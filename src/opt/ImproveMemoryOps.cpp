@@ -763,9 +763,9 @@ static llvm::CallInst *lGSToGSBaseOffsets(llvm::CallInst *callInst) {
     struct GSInfo {
         GSInfo(const char *pgFuncName, const char *pgboFuncName, const char *pgbo32FuncName, bool ig, bool ip)
             : isGather(ig), isPrefetch(ip) {
-            func = m->module->getFunction(pgFuncName);
-            baseOffsetsFunc = m->module->getFunction(pgboFuncName);
-            baseOffsets32Func = m->module->getFunction(pgbo32FuncName);
+            func = m->InsertAndGetFunction(pgFuncName);
+            baseOffsetsFunc = m->InsertAndGetFunction(pgboFuncName);
+            baseOffsets32Func = m->InsertAndGetFunction(pgbo32FuncName);
         }
         llvm::Function *func;
         llvm::Function *baseOffsetsFunc, *baseOffsets32Func;
@@ -1341,9 +1341,9 @@ static llvm::Instruction *lGSToLoadStore(llvm::CallInst *callInst) {
     struct GatherImpInfo {
         GatherImpInfo(const char *pName, const char *lmName, const char *bmName, llvm::Type *st, int a)
             : align(a), isFactored(!g->target->useGather()) {
-            pseudoFunc = m->module->getFunction(pName);
-            loadMaskedFunc = m->module->getFunction(lmName);
-            blendMaskedFunc = m->module->getFunction(bmName);
+            pseudoFunc = m->InsertAndGetFunction(pName);
+            loadMaskedFunc = m->InsertAndGetFunction(lmName);
+            blendMaskedFunc = m->InsertAndGetFunction(bmName);
             Assert(pseudoFunc != nullptr && loadMaskedFunc != nullptr);
             scalarType = st;
             // Pseudo gather base pointer element type (the 1st argument of the intrinsic) is int8
@@ -1408,8 +1408,8 @@ static llvm::Instruction *lGSToLoadStore(llvm::CallInst *callInst) {
     struct ScatterImpInfo {
         ScatterImpInfo(const char *pName, const char *msName, llvm::Type *vpt, int a)
             : align(a), isFactored(!g->target->useScatter()) {
-            pseudoFunc = m->module->getFunction(pName);
-            maskedStoreFunc = m->module->getFunction(msName);
+            pseudoFunc = m->InsertAndGetFunction(pName);
+            maskedStoreFunc = m->InsertAndGetFunction(msName);
             vecPtrType = vpt;
             // Pseudo scatter base pointer element type (the 1st argument of the intrinsic) is int8
             // e.g. @__pseudo_scatter_base_offsets32_i8(i8 * nocapture, i32, <WIDTH x i32>, <WIDTH x i8>, <WIDTH x
@@ -1733,7 +1733,7 @@ static llvm::CallInst *lXeLoadInst(llvm::Value *ptr, llvm::Type *retType, llvm::
 static llvm::Value *lImproveMaskedStore(llvm::CallInst *callInst) {
     struct MSInfo {
         MSInfo(const char *name, const int a) : align(a) {
-            func = m->module->getFunction(name);
+            func = m->InsertAndGetFunction(name);
             Assert(func != nullptr);
         }
         llvm::Function *func;
@@ -1956,9 +1956,10 @@ llvm::PreservedAnalyses ImproveMemoryOpsPass::run(llvm::Function &F, llvm::Funct
         return llvm::PreservedAnalyses::all();
     }
 
-    llvm::PreservedAnalyses PA;
-    PA.preserveSet<llvm::CFGAnalyses>();
-    return PA;
+    // llvm::PreservedAnalyses PA;
+    // PA.preserveSet<llvm::CFGAnalyses>();
+    // return PA;
+    return llvm::PreservedAnalyses::none();;
 }
 
 } // namespace ispc

@@ -117,6 +117,7 @@ static void lPrintVersion() {
     printf("    [-MT <filename>]\t\t\tWhen used with `-M', changes the target of the rule emitted by dependency "
            "generation\n");
     printf("    [--no-omit-frame-pointer]\t\tDisable frame pointer omission. It may be useful for profiling\n");
+    printf("    [--lazy-target-load]\t\tLoad target specific functions into the translated module on-demand\n");
     printf("    [--nostdlib]\t\t\tDon't make the ispc standard library available\n");
     printf("    [--no-pragma-once]\t\t\tDon't use #pragma once in created headers\n");
     printf("    [--nocpp]\t\t\t\tDon't run the C preprocessor\n");
@@ -989,6 +990,8 @@ int main(int Argc, char *Argv[]) {
                 g->opt.disableCoherentControlFlow = true;
         } else if (!strcmp(argv[i], "-")) {
             file = argv[i];
+        } else if (!strcmp(argv[i], "--lazy-target-load")) {
+            g->lazyTargetLoad = true;
         } else if (!strcmp(argv[i], "--nostdlib"))
             g->includeStdlib = false;
         else if (!strcmp(argv[i], "--nocpp"))

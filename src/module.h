@@ -207,6 +207,8 @@ class Module {
                                 const char *hostStubFileName, const char *devStubFileName);
     static int LinkAndOutput(std::vector<std::string> linkFiles, OutputType outputType, const char *outFileName);
 
+    llvm::Function *InsertAndGetFunction(const char *name);
+
     /** Total number of errors encountered during compilation. */
     int errorCount{0};
 

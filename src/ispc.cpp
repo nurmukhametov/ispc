@@ -2289,6 +2289,7 @@ Globals::Globals() {
     mathLib = Globals::MathLib::Math_ISPC;
     codegenOptLevel = Globals::CodegenOptLevel::Aggressive;
 
+    lazyTargetLoad = false;
     includeStdlib = true;
     runCPP = true;
     onlyCPP = false;
