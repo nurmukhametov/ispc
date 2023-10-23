@@ -669,6 +669,8 @@ struct Globals {
     enum class CodegenOptLevel { None, Aggressive };
     CodegenOptLevel codegenOptLevel;
 
+    bool lazyTargetLoad;
+
     /** Records whether the ispc standard library should be made available
         to the program during compilations. (Default is true.) */
     bool includeStdlib;

@@ -2877,9 +2877,9 @@ void FunctionEmitContext::maskedStore(llvm::Value *value, llvm::Value *ptr, cons
         }
 
         if (g->target->is32Bit())
-            maskedStoreFunc = m->module->getFunction("__pseudo_masked_store_i32");
+            maskedStoreFunc = m->InsertAndGetFunction("__pseudo_masked_store_i32");
         else
-            maskedStoreFunc = m->module->getFunction("__pseudo_masked_store_i64");
+            maskedStoreFunc = m->InsertAndGetFunction("__pseudo_masked_store_i64");
     } else if (llvmValueType == LLVMTypes::Int1VectorType) {
         llvm::Value *notMask =
             BinaryOperator(llvm::Instruction::Xor, mask, LLVMMaskAllOn, WrapSemantics::None, "~mask");
@@ -2892,19 +2892,19 @@ void FunctionEmitContext::maskedStore(llvm::Value *value, llvm::Value *ptr, cons
         StoreInst(final, ptrInfo, valueType);
         return;
     } else if (llvmValueStorageType == LLVMTypes::DoubleVectorType) {
-        maskedStoreFunc = m->module->getFunction("__pseudo_masked_store_double");
+        maskedStoreFunc = m->InsertAndGetFunction("__pseudo_masked_store_double");
     } else if (llvmValueStorageType == LLVMTypes::Int64VectorType) {
-        maskedStoreFunc = m->module->getFunction("__pseudo_masked_store_i64");
+        maskedStoreFunc = m->InsertAndGetFunction("__pseudo_masked_store_i64");
     } else if (llvmValueStorageType == LLVMTypes::FloatVectorType) {
-        maskedStoreFunc = m->module->getFunction("__pseudo_masked_store_float");
+        maskedStoreFunc = m->InsertAndGetFunction("__pseudo_masked_store_float");
     } else if (llvmValueStorageType == LLVMTypes::Float16VectorType) {
-        maskedStoreFunc = m->module->getFunction("__pseudo_masked_store_half");
+        maskedStoreFunc = m->InsertAndGetFunction("__pseudo_masked_store_half");
     } else if (llvmValueStorageType == LLVMTypes::Int32VectorType) {
-        maskedStoreFunc = m->module->getFunction("__pseudo_masked_store_i32");
+        maskedStoreFunc = m->InsertAndGetFunction("__pseudo_masked_store_i32");
     } else if (llvmValueStorageType == LLVMTypes::Int16VectorType) {
-        maskedStoreFunc = m->module->getFunction("__pseudo_masked_store_i16");
+        maskedStoreFunc = m->InsertAndGetFunction("__pseudo_masked_store_i16");
     } else if (llvmValueStorageType == LLVMTypes::Int8VectorType) {
-        maskedStoreFunc = m->module->getFunction("__pseudo_masked_store_i8");
+        maskedStoreFunc = m->InsertAndGetFunction("__pseudo_masked_store_i8");
         value = SwitchBoolSize(value, llvmValueStorageType);
     }
     AssertPos(currentPos, maskedStoreFunc != nullptr);

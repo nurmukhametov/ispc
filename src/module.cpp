@@ -3632,6 +3632,23 @@ int Module::LinkAndOutput(std::vector<std::string> linkFiles, OutputType outputT
     return 1;
 }
 
+llvm::Function *Module::InsertAndGetFunction(const char *name) {
+    if (!g->lazyTargetLoad) {
+        return m->module->getFunction(name);
+    }
+
+    llvm::Function *f = m->module->getFunction(name);
+    if (f) {
+        return f;
+    }
+
+    const BitcodeLib *target =
+        g->target_registry->getISPCTargetLib(g->target->getISPCTarget(), g->target_os, g->target->getArch());
+    Assert(target);
+    AddFunctionToModule(name, target, m->module, m->symbolTable);
+    return m->module->getFunction(name);
+}
+
 void Module::clearCPPBuffer() {
     if (bufferCPP)
         bufferCPP.reset();

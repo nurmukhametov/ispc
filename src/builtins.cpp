@@ -21,6 +21,7 @@
 #include <math.h>
 #include <stdlib.h>
 
+#include <llvm/Analysis/CallGraph.h>
 #include <llvm/Bitcode/BitcodeReader.h>
 #include <llvm/IR/Attributes.h>
 #include <llvm/IR/DerivedTypes.h>
@@ -32,6 +33,7 @@
 #include <llvm/Linker/Linker.h>
 #include <llvm/Support/MemoryBuffer.h>
 #include <llvm/Target/TargetMachine.h>
+#include <llvm/Transforms/Utils/Cloning.h>
 #if ISPC_LLVM_VERSION >= ISPC_LLVM_17_0
 #include <llvm/TargetParser/Triple.h>
 #else
@@ -1009,30 +1011,6 @@ void ispc::AddBitcodeToModule(const BitcodeLib *lib, llvm::Module *module, Symbo
         llvm::Triple bcTriple(bcModule->getTargetTriple());
         Debug(SourcePos(), "module triple: %s\nbitcode triple: %s\n", mTriple.str().c_str(), bcTriple.str().c_str());
 
-        // Disable this code for cross compilation
-#if 0
-            {
-                Assert(bcTriple.getArch() == llvm::Triple::UnknownArch || mTriple.getArch() == bcTriple.getArch());
-                Assert(bcTriple.getVendor() == llvm::Triple::UnknownVendor ||
-                       mTriple.getVendor() == bcTriple.getVendor());
-
-                // We unconditionally set module DataLayout to library, but we must
-                // ensure that library and module DataLayouts are compatible.
-                // If they are not, we should recompile the library for problematic
-                // architecture and investigate what happened.
-                // Generally we allow library DataLayout to be subset of module
-                // DataLayout or library DataLayout to be empty.
-                if (!VerifyDataLayoutCompatibility(module->getDataLayoutStr(), bcModule->getDataLayoutStr())) {
-                    Warning(SourcePos(),
-                            "Module DataLayout is incompatible with "
-                            "library DataLayout:\n"
-                            "Module  DL: %s\n"
-                            "Library DL: %s\n",
-                            module->getDataLayoutStr().c_str(), bcModule->getDataLayoutStr().c_str());
-                }
-            }
-#endif
-
         bcModule->setTargetTriple(mTriple.str());
         bcModule->setDataLayout(module->getDataLayout());
 
@@ -1074,6 +1052,112 @@ void ispc::AddBitcodeToModule(const BitcodeLib *lib, llvm::Module *module, Symbo
             lAddModuleSymbols(module, symbolTable);
         lCheckModuleIntrinsics(module);
     }
+}
+
+void ispc::AddFunctionToModule(const char *functionName, const BitcodeLib *lib, llvm::Module *module, SymbolTable *symbolTable) {
+    static llvm::ValueToValueMapTy VMap;
+    // TODO! map: lib -> bcModule
+    static llvm::Module *bcModule = nullptr;
+
+    if (llvm::Function *F = module->getFunction(functionName)) {
+        return;
+    }
+
+    if (!bcModule) {
+        llvm::StringRef sb = llvm::StringRef((const char *)lib->getLib(), lib->getSize());
+        llvm::MemoryBufferRef bcBuf = llvm::MemoryBuffer::getMemBuffer(sb)->getMemBufferRef();
+
+        llvm::Expected<std::unique_ptr<llvm::Module>> ModuleOrErr = llvm::parseBitcodeFile(bcBuf, *g->ctx);
+        if (!ModuleOrErr) {
+            Error(SourcePos(), "Error parsing stdlib bitcode: %s", toString(ModuleOrErr.takeError()).c_str());
+        } else {
+            bcModule = ModuleOrErr.get().release();
+            // FIXME: this feels like a bad idea, but the issue is that when we
+            // set the llvm::Module's target triple in the ispc Module::Module
+            // constructor, we start by calling llvm::sys::getHostTriple() (and
+            // then change the arch if needed).  Somehow that ends up giving us
+            // strings like 'x86_64-apple-darwin11.0.0', while the stuff we
+            // compile to bitcode with clang has module triples like
+            // 'i386-apple-macosx10.7.0'.  And then LLVM issues a warning about
+            // linking together modules with incompatible target triples..
+            llvm::Triple mTriple(m->module->getTargetTriple());
+            llvm::Triple bcTriple(bcModule->getTargetTriple());
+            Debug(SourcePos(), "module triple: %s\nbitcode triple: %s\n", mTriple.str().c_str(), bcTriple.str().c_str());
+
+            bcModule->setTargetTriple(mTriple.str());
+            bcModule->setDataLayout(module->getDataLayout());
+
+            if (g->target->isXeTarget()) {
+                // Maybe we will use it for other targets in future,
+                // but now it is needed only by Xe. We need
+                // to update attributes because Xe intrinsics are
+                // separated from the others and it is not done by default
+                lUpdateIntrinsicsAttributes(bcModule);
+            }
+        }
+    }
+
+    llvm::CallGraph CG(*bcModule);
+
+    llvm::SmallVector<llvm::ReturnInst *, 8> Returns;
+    llvm::Function *RequestedF = bcModule->getFunction(functionName);
+
+    printf("FOUND fname: %s\n", RequestedF->getName().str().c_str());
+
+    std::list<llvm::Function *> WorkList;
+    std::vector<llvm::Function *> Funcs;
+
+    printf("CG contains:");
+    WorkList.push_back(RequestedF);
+    while (!WorkList.empty()) {
+        llvm::Function *F = WorkList.front();
+        WorkList.pop_front();
+
+        printf("%s\n", F->getName().str().c_str());
+        llvm::CallGraphNode *CGN = CG[F];
+        std::map<llvm::Function *, int> Visited;
+        for (int i = 0; i < CGN->size(); i++) {
+            llvm::Function *CF = (*CGN)[i]->getFunction();
+            if (CF && (Visited.find(CF) == Visited.end()) && !module->getFunction(CF->getName())) {
+                Visited[CF] = 1;
+                WorkList.push_back(CF);
+            }
+        }
+
+        auto NF = llvm::Function::Create(F->getFunctionType(), F->getLinkage(), F->getName(), *module);
+        NF->copyAttributesFrom(F);
+        VMap[F] = NF;
+
+        Funcs.push_back(F);
+    }
+
+    printf("\nFuncs: ");
+    for (const auto Func : Funcs) {
+        printf(" %s", Func->getName().str().c_str());
+        llvm::Function *NewFunc = llvm::cast<llvm::Function>(VMap[Func]);
+        llvm::Function::arg_iterator DestI = NewFunc->arg_begin();
+        for (const llvm::Argument &J : Func->args()) {
+            DestI->setName(J.getName());
+            VMap[&J] = &*DestI++;
+        }
+
+        llvm::CloneFunctionInto(NewFunc, Func, VMap, llvm::CloneFunctionChangeType::ClonedModule, Returns);
+
+        for (llvm::BasicBlock &BB : *NewFunc) {
+            for (llvm::Instruction &II : BB) {
+                if (llvm::isa<llvm::CallInst>(&II)) {
+                    printf("call\n");
+                    // llvm::RemapInstruction(&II, VMap, llvm::RF_IgnoreMissingLocals);
+                    // auto p = VMap[II.getOperand(2)];
+                    // if (p) {
+                    //     printf("p VMap\n");
+                    // }
+                }
+            }
+        }
+    }
+
+    printf("\n");
 }
 
 /** Utility routine that defines a constant int32 with given value, adding
@@ -1198,7 +1282,10 @@ void ispc::DefineStdlib(SymbolTable *symbolTable, llvm::LLVMContext *ctx, llvm::
     const BitcodeLib *target =
         g->target_registry->getISPCTargetLib(g->target->getISPCTarget(), g->target_os, g->target->getArch());
     Assert(target);
-    AddBitcodeToModule(target, module, symbolTable);
+
+    if (!g->lazyTargetLoad) {
+        AddBitcodeToModule(target, module, symbolTable);
+    }
 
     // define the 'programCount' builtin variable
     lDefineConstantInt("programCount", g->target->getVectorWidth(), module, symbolTable, debug_symbols);
@@ -1214,6 +1301,10 @@ void ispc::DefineStdlib(SymbolTable *symbolTable, llvm::LLVMContext *ctx, llvm::
                        debug_symbols);
     lDefineConstantInt("__math_lib_svml", (int)Globals::MathLib::Math_SVML, module, symbolTable, debug_symbols);
     lDefineConstantInt("__math_lib_system", (int)Globals::MathLib::Math_System, module, symbolTable, debug_symbols);
+
+    if (g->lazyTargetLoad) {
+        AddFunctionToModule("__fast_masked_vload", target, module, symbolTable);
+    }
     lDefineConstantIntFunc("__fast_masked_vload", (int)g->opt.fastMaskedVload, module, symbolTable, debug_symbols);
 
     lDefineConstantInt("__have_native_half_converts", g->target->hasHalfConverts(), module, symbolTable, debug_symbols);

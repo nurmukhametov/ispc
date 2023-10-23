@@ -30,6 +30,8 @@ void DefineStdlib(SymbolTable *symbolTable, llvm::LLVMContext *ctx, llvm::Module
 
 void AddBitcodeToModule(const BitcodeLib *lib, llvm::Module *module, SymbolTable *symbolTable = nullptr);
 
+void AddFunctionToModule(const char *name, const BitcodeLib *lib, llvm::Module *module, SymbolTable *symbolTable = nullptr);
+
 /** Create ISPC symbol for LLVM intrinsics and add it to the given module.
 
     @param func            llvm::Function for the intrinsic to be added
