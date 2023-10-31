@@ -298,6 +298,9 @@ class SymbolTable {
     /** Returns a random type from the symbol table. */
     const Type *RandomType();
 
+    /** Validate that no variable has undefined struct type. */
+    void Validate() const;
+
   private:
     std::vector<std::string> closestTypeMatch(const char *str, bool structsVsEnums) const;
 

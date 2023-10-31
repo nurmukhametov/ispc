@@ -419,3 +419,15 @@ const Type *SymbolTable::RandomType() {
 
     return std::next(types[randomScopeIndex].cbegin(), randomTypeIndex)->second;
 }
+
+void SymbolTable::Validate() const {
+    for (int i = (int)variables.size() - 1; i >= 0; --i) {
+        SymbolMapType &smt = *(variables[i]);
+        for (auto const& [name, sym] : smt) {
+            const Type *t = sym->type;
+            if (CastType<UndefinedStructType>(t) != nullptr) {
+                Error(sym->pos, "Global variable %s has undefined type %s\n", name.c_str(),  t->GetString().c_str());
+            }
+        }
+    }
+}

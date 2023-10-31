@@ -378,6 +378,7 @@ int Module::CompileFile() {
     }
 
     ast->Print(g->astDump);
+    m->symbolTable->Validate();
 
     if (g->NoOmitFramePointer)
         for (llvm::Function &f : *module)
