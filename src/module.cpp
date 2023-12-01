@@ -935,7 +935,8 @@ void Module::AddFunctionDeclaration(const std::string &name, const FunctionType 
         function->addFnAttr(llvm::Attribute::NoInline);
     }
 
-    if (g->target_os == TargetOS::windows) {
+    // Neon target has an issues with unwind https://github.com/ispc/ispc/issues/2713
+    if (g->target_os == TargetOS::windows && !ISPCTargetIsNeon(g->target->getISPCTarget())) {
         // Enable generation an unwind table during codegen.
         // It is needed to generate backtraces during debugging and to unwind callstack.
 #if ISPC_LLVM_VERSION <= ISPC_LLVM_14_0
