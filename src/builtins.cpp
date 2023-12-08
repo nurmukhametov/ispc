@@ -1102,18 +1102,18 @@ void ispc::AddFunctionToModule(const char *functionName, const BitcodeLib *lib, 
     llvm::SmallVector<llvm::ReturnInst *, 8> Returns;
     llvm::Function *RequestedF = bcModule->getFunction(functionName);
 
-    printf("FOUND fname: %s\n", RequestedF->getName().str().c_str());
+    // printf("FOUND fname: %s\n", RequestedF->getName().str().c_str());
 
     std::list<llvm::Function *> WorkList;
     std::vector<llvm::Function *> Funcs;
 
-    printf("CG contains:");
+    // printf("CG contains:");
     WorkList.push_back(RequestedF);
     while (!WorkList.empty()) {
         llvm::Function *F = WorkList.front();
         WorkList.pop_front();
 
-        printf("%s\n", F->getName().str().c_str());
+        // printf("%s\n", F->getName().str().c_str());
         llvm::CallGraphNode *CGN = CG[F];
         std::map<llvm::Function *, int> Visited;
         for (int i = 0; i < CGN->size(); i++) {
@@ -1131,9 +1131,9 @@ void ispc::AddFunctionToModule(const char *functionName, const BitcodeLib *lib, 
         Funcs.push_back(F);
     }
 
-    printf("\nFuncs: ");
+    // printf("\nFuncs: ");
     for (const auto Func : Funcs) {
-        printf(" %s", Func->getName().str().c_str());
+        // printf(" %s", Func->getName().str().c_str());
         llvm::Function *NewFunc = llvm::cast<llvm::Function>(VMap[Func]);
         llvm::Function::arg_iterator DestI = NewFunc->arg_begin();
         for (const llvm::Argument &J : Func->args()) {
@@ -1146,7 +1146,7 @@ void ispc::AddFunctionToModule(const char *functionName, const BitcodeLib *lib, 
         for (llvm::BasicBlock &BB : *NewFunc) {
             for (llvm::Instruction &II : BB) {
                 if (llvm::isa<llvm::CallInst>(&II)) {
-                    printf("call\n");
+                    // printf("call\n");
                     // llvm::RemapInstruction(&II, VMap, llvm::RF_IgnoreMissingLocals);
                     // auto p = VMap[II.getOperand(2)];
                     // if (p) {
@@ -1157,7 +1157,7 @@ void ispc::AddFunctionToModule(const char *functionName, const BitcodeLib *lib, 
         }
     }
 
-    printf("\n");
+    // printf("\n");
 }
 
 /** Utility routine that defines a constant int32 with given value, adding
