@@ -1,0 +1,1078 @@
+float16
+__halfbits_varying_int16(unsigned int16 a);
+uniform float16 
+__halfbits_uniform_int16(uniform int16 a);
+
+float
+__floatbits_varying_int32(unsigned int a);
+uniform float
+__floatbits_uniform_int32(uniform int a);
+
+double
+__doublebits_varying_int64(unsigned int64 a);
+uniform double
+__doublebits_uniform_int64(uniform unsigned int64 a);
+
+unsigned int16
+__intbits_varying_half(float16 a);
+uniform unsigned int16
+__intbits_uniform_half(uniform float16 a);
+
+unsigned int
+__intbits_varying_float(float a);
+uniform unsigned int
+__intbits_uniform_float(uniform float a);
+
+unsigned int64
+__intbits_varying_double(double d);
+uniform unsigned int64
+__intbits_uniform_double(uniform double d);
+
+int8
+__broadcast_i8(int8 v, uniform int i);
+int16
+__broadcast_i16(int16 v, uniform int i);
+int32
+__broadcast_i32(int32 v, uniform int i);
+int64
+__broadcast_i64(int64 v, uniform int i);
+float16
+__broadcast_half(float16 v, uniform int i);
+float 
+__broadcast_float(float v, uniform int i);
+double
+__broadcast_double(double v, uniform int i);
+
+int8
+__rotate_i8(int8 v, uniform int i);
+int16
+__rotate_i16(int16 v, uniform int i);
+int32
+__rotate_i32(int32 v, uniform int i);
+int64
+__rotate_i64(int64 v, uniform int i);
+float16
+__rotate_half(float16 v, uniform int i);
+float
+__rotate_float(float v, uniform int i);
+double
+__rotate_double(double v, uniform int i);
+
+int8
+__shift_i8(int8 v, uniform int i);
+int16
+__shift_i16(int16 v, uniform int i);
+int32
+__shift_i32(int32 v, uniform int i);
+int64
+__shift_i64(int64 v, uniform int i);
+float16
+__shift_half(float16 v, uniform int i);
+float
+__shift_float(float v, uniform int i);
+double
+__shift_double(double v, uniform int i);
+
+int8
+__shuffle_i8(int8 v, int i);
+int16
+__shuffle_i16(int16 v, int i);
+int32
+__shuffle_i32(int32 v, int i);
+int64
+__shuffle_i64(int64 v, int i);
+float16
+__shuffle_half(float16 v, int i);
+float
+__shuffle_float(float v, int i);
+double
+__shuffle_double(double v, int i);
+
+int8
+__shuffle2_i8(int8 v0, int8 v1, int i);
+int16
+__shuffle2_i16(int16 v0, int16 v1, int i);
+int32
+__shuffle2_i32(int32 v0, int32 v1, int i);
+int64
+__shuffle2_i64(int64 v0, int64 v1, int i);
+float16
+__shuffle2_half(float16 v0, float16 v1, int i);
+float
+__shuffle2_float(float v0, float v1, int i);
+double
+__shuffle2_double(double v0, double v1, int i);
+
+uniform bool
+__extract_bool(bool x, uniform int i);
+uniform int8
+__extract_int8(int8 x, uniform int i);
+uniform int16
+__extract_int16(int16 x, uniform int i);
+uniform int32
+__extract_int32(int32 x, uniform int i);
+uniform int64
+__extract_int64(int64 x, uniform int i);
+
+bool
+__insert_bool(bool x, uniform int i, uniform bool v);
+int8
+__insert_int8(int8 x, uniform int i, uniform int8 v);
+int16
+__insert_int16(int16 x, uniform int i, uniform int16 v);
+int32
+__insert_int32(int32 x, uniform int i, uniform int32 v);
+int64
+__insert_int64(int64 x, uniform int i, uniform int64 v);
+
+uniform int32
+__sext_uniform_bool(uniform bool v);
+int32
+__sext_varying_bool(bool v);
+
+uniform bool
+__any(bool v);
+uniform bool
+__all(bool v);
+uniform bool
+__none(bool v);
+
+uniform int32
+__popcnt_int32(uniform int32 v);
+uniform int64
+__popcnt_int64(uniform int64 v);
+
+uniform unsigned int64
+__movmsk(UIntMaskType m);
+
+void
+__memcpy32(void *uniform dst, void *uniform src, uniform int32 count);
+void
+__memcpy64(void *uniform dst, void *uniform src, uniform int64 count);
+void
+__memmove32(void *uniform dst, void *uniform src, uniform int32 count);
+void
+__memmove64(void *uniform dst, void *uniform src, uniform int64 count);
+void
+__memset32(void *uniform ptr, uniform int8 val, uniform int32 count);
+void
+__memset64(void *uniform ptr, uniform int8 val, uniform int64 count);
+
+uniform unsigned int32
+__count_leading_zeros_i32(uniform unsigned int32 v);
+uniform unsigned int64
+__count_leading_zeros_i64(uniform unsigned int64 v);
+uniform unsigned int32
+__count_trailing_zeros_i32(uniform unsigned int32 v);
+uniform unsigned int64
+__count_trailing_zeros_i64(uniform unsigned int64 v);
+uniform int32
+__count_leading_zeros_i32(uniform int32 v);
+uniform int64
+__count_leading_zeros_i64(uniform int64 v);
+uniform int32
+__count_trailing_zeros_i32(uniform int32 v);
+uniform int64
+__count_trailing_zeros_i64(uniform int64 v);
+
+void
+__aos_to_soa2_float(opaque_ptr_t a, opaque_ptr_t v0, opaque_ptr_t v1);
+void
+__aos_to_soa3_float(opaque_ptr_t a, opaque_ptr_t v0, opaque_ptr_t v1, opaque_ptr_t v2);
+void
+__aos_to_soa4_float(opaque_ptr_t a, opaque_ptr_t v0, opaque_ptr_t v1, opaque_ptr_t v2, opaque_ptr_t v3);
+void
+__soa_to_aos2_float(float v0, float v1, opaque_ptr_t a);
+void
+__soa_to_aos3_float(float v0, float v1, float v2, opaque_ptr_t a);
+void
+__soa_to_aos4_float(float v0, float v1, float v2, float v3, opaque_ptr_t a);
+void
+__aos_to_soa2_double(opaque_ptr_t a, opaque_ptr_t v0, opaque_ptr_t v1);
+void
+__aos_to_soa3_double(opaque_ptr_t a, opaque_ptr_t v0, opaque_ptr_t v1, opaque_ptr_t v2);
+void
+__aos_to_soa4_double(opaque_ptr_t a, opaque_ptr_t v0, opaque_ptr_t v1, opaque_ptr_t v2, opaque_ptr_t v3);
+void
+__soa_to_aos2_double(double v0, double v1, opaque_ptr_t a);
+void
+__soa_to_aos3_double(double v0, double v1, double v2, opaque_ptr_t a);
+void
+__soa_to_aos4_double(double v0, double v1, double v2, double v3, opaque_ptr_t a);
+
+void
+__prefetch_read_sized_uniform_1(opaque_ptr_t ptr, uniform int8 size);
+void
+__prefetch_read_sized_uniform_2(opaque_ptr_t ptr, uniform int8 size);
+void
+__prefetch_read_sized_uniform_3(opaque_ptr_t ptr, uniform int8 size);
+void
+__prefetch_read_sized_uniform_nt(opaque_ptr_t ptr, uniform int8 size);
+void
+__prefetch_read_uniform_1(opaque_ptr_t ptr);
+void
+__prefetch_read_uniform_2(opaque_ptr_t ptr);
+void
+__prefetch_read_uniform_3(opaque_ptr_t ptr);
+void
+__prefetch_read_uniform_nt(opaque_ptr_t ptr);
+
+void
+__prefetch_read_sized_varying_1(int64 ptr, uniform int8 size, IntMaskType mask);
+void
+__prefetch_read_sized_varying_2(int64 ptr, uniform int8 size, IntMaskType mask);
+void
+__prefetch_read_sized_varying_3(int64 ptr, uniform int8 size, IntMaskType mask);
+void
+__prefetch_read_sized_varying_nt(int64 ptr, uniform int8 size, IntMaskType mask);
+void
+__pseudo_prefetch_read_varying_1(int64 ptr, IntMaskType mask);
+void
+__pseudo_prefetch_read_varying_2(int64 ptr, IntMaskType mask);
+void
+__pseudo_prefetch_read_varying_3(int64 ptr, IntMaskType mask);
+void
+__pseudo_prefetch_read_varying_nt(int64 ptr, IntMaskType mask);
+
+void
+__prefetch_write_uniform_1(opaque_ptr_t ptr);
+void
+__prefetch_write_uniform_2(opaque_ptr_t ptr);
+void
+__prefetch_write_uniform_3(opaque_ptr_t ptr);
+
+void
+__pseudo_prefetch_write_varying_1(int64 ptr, IntMaskType mask);
+void
+__pseudo_prefetch_write_varying_2(int64 ptr, IntMaskType mask);
+void
+__pseudo_prefetch_write_varying_3(int64 ptr, IntMaskType mask);
+
+uniform int16
+__reduce_add_int8(int8 x);
+uniform int32
+__reduce_add_int16(int16 x);
+uniform int64
+__reduce_add_int32(int32 x);
+uniform int64
+__reduce_add_int64(int64 x);
+uniform float16
+__reduce_add_half(float16 x);
+uniform float
+__reduce_add_float(float x);
+uniform double
+__reduce_add_double(double x);
+
+uniform int
+__reduce_min_int32(int x);
+uniform unsigned int
+__reduce_min_uint32(int x);
+uniform int64
+__reduce_min_int64(int64 x);
+uniform unsigned int64
+__reduce_min_uint64(unsigned int64 x);
+uniform float16
+__reduce_min_half(float16 x);
+uniform float
+__reduce_min_float(float x);
+uniform double
+__reduce_min_double(double x);
+
+uniform int
+__reduce_max_int32(int x);
+uniform unsigned int
+__reduce_max_uint32(int x);
+uniform int64
+__reduce_max_int64(int64 x);
+uniform unsigned int64
+__reduce_max_uint64(unsigned int64 x);
+uniform float16
+__reduce_max_half(float16 x);
+uniform float
+__reduce_max_float(float x);
+uniform double
+__reduce_max_double(double x);
+
+uniform bool
+__reduce_equal_half(float16 v, opaque_ptr_t ptr, IntMaskType mask);
+uniform bool
+__reduce_equal_int32(int32 v, opaque_ptr_t ptr, IntMaskType mask);
+uniform bool
+__reduce_equal_float(float v, opaque_ptr_t ptr, IntMaskType mask);
+uniform bool
+__reduce_equal_int64(int64 v, opaque_ptr_t ptr, IntMaskType mask);
+uniform bool
+__reduce_equal_double(double v, opaque_ptr_t ptr, IntMaskType mask);
+
+int32
+__exclusive_scan_add_i32(int32 v, IntMaskType mask);
+int64
+__exclusive_scan_add_i64(int64 v, IntMaskType mask);
+float16
+__exclusive_scan_add_half(float16 v, IntMaskType mask);
+float
+__exclusive_scan_add_float(float v, IntMaskType mask);
+double
+__exclusive_scan_add_double(double v, IntMaskType mask);
+int32
+__exclusive_scan_and_i32(int32 v, IntMaskType mask);
+int64
+__exclusive_scan_and_i64(int64 v, IntMaskType mask);
+int32
+__exclusive_scan_or_i32(int32 v, IntMaskType mask);
+int64
+__exclusive_scan_or_i64(int64 v, IntMaskType mask);
+
+uniform int
+__packed_load_activei32(opaque_ptr_t a, opaque_ptr_t vals, UIntMaskType __mask);
+uniform int
+__packed_load_activei64(opaque_ptr_t a, opaque_ptr_t vals, UIntMaskType __mask);
+
+uniform int
+__packed_store_activei32(opaque_ptr_t a, unsigned int vals, UIntMaskType __mask);
+uniform int
+__packed_store_active2i32(opaque_ptr_t a, unsigned int vals, UIntMaskType __mask);
+uniform int
+__packed_store_activei64(opaque_ptr_t a, unsigned int vals, UIntMaskType __mask);
+uniform int
+__packed_store_active2i64(opaque_ptr_t a, unsigned int vals, UIntMaskType __mask);
+
+void
+__streaming_store_varying_i8(opaque_ptr_t a, unsigned int8 vals);
+void
+__streaming_store_varying_i16(opaque_ptr_t a, unsigned int16 vals);
+void
+__streaming_store_varying_i32(opaque_ptr_t a, unsigned int32 vals);
+void
+__streaming_store_varying_i64(opaque_ptr_t a, unsigned int64 vals);
+void
+__streaming_store_varying_half(opaque_ptr_t a, float16 vals);
+void
+__streaming_store_varying_float(opaque_ptr_t a, float vals);
+void
+__streaming_store_varying_double(opaque_ptr_t a, double vals);
+
+void
+__streaming_store_uniform_i8(opaque_ptr_t a, uniform unsigned int8 vals);
+void
+__streaming_store_uniform_i16(opaque_ptr_t a, uniform unsigned int16 vals);
+void
+__streaming_store_uniform_i32(opaque_ptr_t a, uniform unsigned int32 vals);
+void
+__streaming_store_uniform_i64(opaque_ptr_t a, uniform unsigned int64 vals);
+void
+__streaming_store_uniform_half(opaque_ptr_t a, float16 vals);
+void
+__streaming_store_uniform_float(opaque_ptr_t a, float vals);
+void
+__streaming_store_uniform_double(opaque_ptr_t a, double vals);
+
+varying int8
+__streaming_load_varying_i8(opaque_ptr_t a);
+varying int16
+__streaming_load_varying_i16(opaque_ptr_t a);
+varying int
+__streaming_load_varying_i32(opaque_ptr_t a);
+varying int64
+__streaming_load_varying_i64(opaque_ptr_t a);
+varying float16
+__streaming_load_varying_half(opaque_ptr_t a);
+varying float
+__streaming_load_varying_float(opaque_ptr_t a);
+varying double
+__streaming_load_varying_double(opaque_ptr_t a);
+uniform int8
+__streaming_load_uniform_i8(opaque_ptr_t a);
+uniform int16
+__streaming_load_uniform_i16(opaque_ptr_t a);
+uniform int
+__streaming_load_uniform_i32(opaque_ptr_t a);
+uniform int64
+__streaming_load_uniform_i64(opaque_ptr_t a);
+uniform float16
+__streaming_load_uniform_half(opaque_ptr_t a);
+uniform float
+__streaming_load_uniform_float(opaque_ptr_t a);
+uniform double
+__streaming_load_uniform_double(opaque_ptr_t a);
+
+uniform int
+__num_cores();
+uniform int64
+__clock();
+
+float16
+__round_varying_half(float16 x);
+float
+__round_varying_float(float x);
+double
+__round_varying_double(double x);
+uniform float16
+__round_uniform_half(uniform float16 x);
+uniform float
+__round_uniform_float(uniform float x);
+uniform double
+__round_uniform_double(uniform double x);
+
+float16
+__floor_varying_half(float16 x);
+float
+__floor_varying_float(float x);
+double
+__floor_varying_double(double x);
+uniform float16
+__floor_uniform_half(uniform float16 x);
+uniform float
+__floor_uniform_float(uniform float x);
+uniform double
+__floor_uniform_double(uniform double x);
+
+float16
+__ceil_varying_half(float16 x);
+float
+__ceil_varying_float(float x);
+double
+__ceil_varying_double(double x);
+uniform float16
+__ceil_uniform_half(uniform float16 x);
+uniform float
+__ceil_uniform_float(uniform float x);
+uniform double
+__ceil_uniform_double(uniform double x);
+
+float16
+__trunc_varying_half(float16 x);
+float
+__trunc_varying_float(float x);
+double
+__trunc_varying_double(double x);
+uniform float16
+__trunc_uniform_half(uniform float16 x);
+uniform float
+__trunc_uniform_float(uniform float x);
+uniform double
+__trunc_uniform_double(uniform double x);
+
+float16
+__rcp_varying_half(float16 x);
+float
+__rcp_varying_float(float x);
+double
+__rcp_varying_double(double x);
+uniform float16
+__rcp_uniform_half(uniform float16 x);
+uniform float
+__rcp_uniform_float(uniform float x);
+uniform double
+__rcp_uniform_double(uniform double x);
+float
+__rcp_fast_varying_float(float x);
+double
+__rcp_fast_varying_double(double x);
+uniform float
+__rcp_fast_uniform_float(uniform float x);
+uniform double
+__rcp_fast_uniform_double(uniform double x);
+double
+__rcp_safe_varying_double(double x);
+uniform double
+__rcp_safe_uniform_double(uniform double x);
+
+int32
+__min_varying_int32(int32 a, int32 b);
+int64
+__min_varying_int64(int64 a, int64 b);
+uint32
+__min_varying_uint32(uint32 a, uint32 b);
+uint64
+__min_varying_uint64(uint64 a, uint64 b);
+float16
+__min_varying_half(float16 a, float16 b);
+float
+__min_varying_float(float a, float b);
+double
+__min_varying_double(double a, double b);
+
+uniform int32
+__min_uniform_int32(uniform int32 a, uniform int32 b);
+uniform int64
+__min_uniform_int64(uniform int64 a, uniform int64 b);
+uniform uint32
+__min_uniform_uint32(uniform uint32 a, uniform uint32 b);
+uniform uint64
+__min_uniform_uint64(uniform uint64 a, uniform uint64 b);
+uniform float16
+__min_uniform_half(uniform float16 a, uniform float16 b);
+uniform float
+__min_uniform_float(uniform float a, uniform float b);
+uniform double
+__min_uniform_double(uniform double a, uniform double b);
+
+int32
+__max_varying_int32(int32 a, int32 b);
+int64
+__max_varying_int64(int64 a, int64 b);
+uint32
+__max_varying_uint32(uint32 a, uint32 b);
+uint64
+__max_varying_uint64(uint64 a, uint64 b);
+float16
+__max_varying_half(float16 a, float16 b);
+float
+__max_varying_float(float a, float b);
+double
+__max_varying_double(double a, double b);
+
+uniform int32
+__max_uniform_int32(uniform int32 a, uniform int32 b);
+uniform int64
+__max_uniform_int64(uniform int64 a, uniform int64 b);
+uniform uint32
+__max_uniform_uint32(uniform uint32 a, uniform uint32 b);
+uniform uint64
+__max_uniform_uint64(uniform uint64 a, uniform uint64 b);
+uniform float16
+__max_uniform_half(uniform float16 a, uniform float16 b);
+uniform float
+__max_uniform_float(uniform float a, uniform float b);
+uniform double
+__max_uniform_double(uniform double a, uniform double b);
+
+void
+__memory_barrier();
+
+int32
+__atomic_add_int32_global(opaque_ptr_t ptr, int32 v, IntMaskType mask);
+int64
+__atomic_add_int64_global(opaque_ptr_t ptr, int64 v, IntMaskType mask);
+
+int32
+__atomic_sub_int32_global(opaque_ptr_t ptr, int32 v, IntMaskType mask);
+int64
+__atomic_sub_int64_global(opaque_ptr_t ptr, int64 v, IntMaskType mask);
+
+int32
+__atomic_and_int32_global(opaque_ptr_t ptr, int32 v, IntMaskType mask);
+int64
+__atomic_and_int64_global(opaque_ptr_t ptr, int64 v, IntMaskType mask);
+
+int32
+__atomic_or_int32_global(opaque_ptr_t ptr, int32 v, IntMaskType mask);
+int64
+__atomic_or_int64_global(opaque_ptr_t ptr, int64 v, IntMaskType mask);
+
+int32
+__atomic_xor_int32_global(opaque_ptr_t ptr, int32 v, IntMaskType mask);
+int64
+__atomic_xor_int64_global(opaque_ptr_t ptr, int64 v, IntMaskType mask);
+
+uniform int32
+__atomic_add_uniform_int32_global(opaque_ptr_t ptr, uniform int32 v);
+uniform int64
+__atomic_add_uniform_int64_global(opaque_ptr_t ptr, uniform int64 v);
+
+uniform int32
+__atomic_sub_uniform_int32_global(opaque_ptr_t ptr, uniform int32 v);
+uniform int64
+__atomic_sub_uniform_int64_global(opaque_ptr_t ptr, uniform int64 v);
+
+uniform int32
+__atomic_and_uniform_int32_global(opaque_ptr_t ptr, uniform int32 v);
+uniform int64
+__atomic_and_uniform_int64_global(opaque_ptr_t ptr, uniform int64 v);
+
+uniform int32
+__atomic_or_uniform_int32_global(opaque_ptr_t ptr, uniform int32 v);
+uniform int64
+__atomic_or_uniform_int64_global(opaque_ptr_t ptr, uniform int64 v);
+
+uniform int32
+__atomic_xor_uniform_int32_global(opaque_ptr_t ptr, uniform int32 v);
+uniform int64
+__atomic_xor_uniform_int64_global(opaque_ptr_t ptr, uniform int64 v);
+
+uniform int32
+__atomic_swap_uniform_int32_global(opaque_ptr_t ptr, uniform int32 v);
+uniform int64
+__atomic_swap_uniform_int64_global(opaque_ptr_t ptr, uniform int64 v);
+uniform float
+__atomic_swap_uniform_float_global(opaque_ptr_t ptr, uniform float v);
+uniform double
+__atomic_swap_uniform_double_global(opaque_ptr_t ptr, uniform double v);
+
+uniform int32
+__atomic_min_uniform_int32_global(opaque_ptr_t ptr, uniform int32 v);
+uniform int64
+__atomic_min_uniform_int64_global(opaque_ptr_t ptr, uniform int64 v);
+
+uniform uint32
+__atomic_umin_uniform_uint32_global(opaque_ptr_t ptr, uniform uint32 v);
+uniform uint64
+__atomic_umin_uniform_uint64_global(opaque_ptr_t ptr, uniform uint64 v);
+
+uniform int32
+__atomic_max_uniform_int32_global(opaque_ptr_t ptr, uniform int32 v);
+uniform int64
+__atomic_max_uniform_int64_global(opaque_ptr_t ptr, uniform int64 v);
+
+uniform uint32
+__atomic_umax_uniform_uint32_global(opaque_ptr_t ptr, uniform uint32 v);
+uniform uint64
+__atomic_umax_uniform_uint64_global(opaque_ptr_t ptr, uniform uint64 v);
+
+int32
+__atomic_compare_exchange_int32_global(opaque_ptr_t ptr, int32 old_v, int32 new_v, IntMaskType mask);
+int64
+__atomic_compare_exchange_int64_global(opaque_ptr_t ptr, int64 old_v, int64 new_v, IntMaskType mask);
+float
+__atomic_compare_exchange_float_global(opaque_ptr_t ptr, float old_v, float new_v, IntMaskType mask);
+double
+__atomic_compare_exchange_double_global(opaque_ptr_t ptr, double old_v, double new_v, IntMaskType mask);
+
+uniform int32
+__atomic_compare_exchange_uniform_int32_global(opaque_ptr_t ptr, uniform int32 old_v, uniform int32 new_v);
+uniform int64
+__atomic_compare_exchange_uniform_int64_global(opaque_ptr_t ptr, uniform int64 old_v, uniform int64 new_v);
+uniform float
+__atomic_compare_exchange_uniform_float_global(opaque_ptr_t ptr, uniform float old_v, uniform float new_v);
+uniform double
+__atomic_compare_exchange_uniform_double_global(opaque_ptr_t ptr, uniform double old_v, uniform double new_v);
+
+float
+__svml_sqrtf(float v);
+double
+__svml_sqrtd(double v);
+float16
+__sqrt_varying_half(float16 v);
+float
+__sqrt_varying_float(float v);
+double
+__sqrt_varying_double(double v);
+uniform float16
+__sqrt_uniform_half(uniform float16 v);
+uniform float
+__sqrt_uniform_float(uniform float v);
+uniform double
+__sqrt_uniform_double(uniform double v);
+
+float
+__svml_invsqrtf(float v);
+double
+__svml_invsqrtd(double v);
+float16
+__rsqrt_varying_half(float16 v);
+float
+__rsqrt_varying_float(float v);
+double
+__rsqrt_varying_double(double v);
+float
+__rsqrt_fast_varying_float(float v);
+double
+__rsqrt_fast_varying_double(double v);
+uniform float16
+__rsqrt_uniform_half(uniform float16 v);
+uniform float
+__rsqrt_uniform_float(uniform float v);
+uniform double
+__rsqrt_uniform_double(uniform double v);
+uniform float
+__rsqrt_fast_uniform_float(uniform float v);
+uniform double
+__rsqrt_fast_uniform_double(uniform double v);
+
+float16
+__sin_varying_half(float16 v);
+float
+__sin_varying_float(float v);
+double
+__sin_varying_double(double v);
+float
+__svml_sinf(float v);
+double
+__svml_sind(double v);
+uniform float
+__stdlib_sinf(uniform float v);
+uniform double
+__stdlib_sin(uniform double v);
+uniform float16
+__sin_uniform_half(uniform float16 v);
+uniform float
+__sin_uniform_float(uniform float v);
+uniform double
+__sin_uniform_double(uniform double v);
+
+float16
+__asin_varying_half(float16 v);
+float
+__asin_varying_float(float v);
+double
+__asin_varying_double(double v);
+float
+__svml_asinf(float v);
+double
+__svml_asind(double v);
+float
+__stdlib_asinf(float v);
+uniform float
+__stdlib_asinf(uniform float v);
+uniform double
+__stdlib_asin(uniform double v);
+uniform float16
+__asin_uniform_half(uniform float16 v);
+uniform float
+__asin_uniform_float(uniform float v);
+uniform double
+__asin_uniform_double(uniform double v);
+
+float16
+__cos_varying_half(float16 v);
+float
+__cos_varying_float(float v);
+double
+__cos_varying_double(double v);
+float
+__svml_cosf(float v);
+double
+__svml_cosd(double v);
+float
+__stdlib_cosf(float v);
+uniform float
+__stdlib_cosf(uniform float v);
+uniform double
+__stdlib_cos(uniform double v);
+uniform float16
+__cos_uniform_half(uniform float16 v);
+uniform float
+__cos_uniform_float(uniform float v);
+uniform double
+__cos_uniform_double(uniform double v);
+
+float16
+__acos_varying_half(float16 v);
+float
+__acos_varying_float(float v);
+double
+__acos_varying_double(double v);
+float
+__svml_acosf(float v);
+double
+__svml_acosd(double v);
+float
+__stdlib_acosf(float v);
+uniform float
+__stdlib_acosf(uniform float v);
+uniform float16
+__acos_uniform_half(uniform float16 v);
+uniform float
+__acos_uniform_float(uniform float v);
+uniform double
+__acos_uniform_double(uniform double v);
+
+float16
+__sincos_varying_half(float16 v, opaque_ptr_t sin_ptr, opaque_ptr_t cos_ptr);
+float
+__sincos_varying_float(float v, opaque_ptr_t sin_ptr, opaque_ptr_t cos_ptr);
+double
+__sincos_varying_double(double v, opaque_ptr_t sin_ptr, opaque_ptr_t cos_ptr);
+float
+__svml_sincosf(float v, opaque_ptr_t sin_ptr, opaque_ptr_t cos_ptr);
+double
+__svml_sincosd(double v, opaque_ptr_t sin_ptr, opaque_ptr_t cos_ptr);
+float
+__stdlib_sincosf(float v, opaque_ptr_t sin_ptr, opaque_ptr_t cos_ptr);
+uniform float
+__stdlib_sincosf(uniform float v, opaque_ptr_t sin_ptr, opaque_ptr_t cos_ptr);
+uniform double
+__stdlib_sincos(uniform double v, opaque_ptr_t sin_ptr, opaque_ptr_t cos_ptr);
+uniform float16
+__sincos_uniform_half(uniform float16 v, opaque_ptr_t sin_ptr, opaque_ptr_t cos_ptr);
+uniform float
+__sincos_uniform_float(uniform float v, opaque_ptr_t sin_ptr, opaque_ptr_t cos_ptr);
+uniform double
+__sincos_uniform_double(uniform double v, opaque_ptr_t sin_ptr, opaque_ptr_t cos_ptr);
+
+float16
+__tan_varying_half(float16 v);
+float
+__tan_varying_float(float v);
+double
+__tan_varying_double(double v);
+float
+__svml_tanf(float v);
+double
+__svml_tand(double v);
+float
+__stdlib_tanf(float v);
+uniform float
+__stdlib_tanf(uniform float v);
+uniform double
+__stdlib_tan(uniform double v);
+uniform float16
+__tan_uniform_half(uniform float16 v);
+uniform float
+__tan_uniform_float(uniform float v);
+uniform double
+__tan_uniform_double(uniform double v);
+
+float16
+__atan_varying_half(float16 v);
+float
+__atan_varying_float(float v);
+double
+__atan_varying_double(double v);
+float
+__svml_atanf(float v);
+float
+__stdlib_atanf(float v);
+uniform float
+__stdlib_atanf(uniform float v);
+uniform double
+__stdlib_atan(uniform double v);
+uniform float16
+__atan_uniform_half(uniform float16 v);
+uniform float
+__atan_uniform_float(uniform float v);
+uniform double
+__atan_uniform_double(uniform double v);
+
+float16
+__atan2_varying_half(float16 y, float16 x);
+float
+__atan2_varying_float(float y, float x);
+double
+__atan2_varying_double(double y, double x);
+float
+__svml_atan2f(float y, float x);
+double
+__svml_atan2d(double y, double x);
+float
+__stdlib_atan2f(float y, float x);
+double
+__stdlib_atan2d(double y, double x);
+uniform float
+__stdlib_atan2f(uniform float y, uniform float x);
+uniform double
+__stdlib_atan2(uniform double y, uniform double x);
+uniform float16
+__atan2_uniform_half(uniform float16 y, uniform float16 x);
+uniform float
+__atan2_uniform_float(uniform float y, uniform float x);
+uniform double
+__atan2_uniform_double(uniform double y, uniform double x);
+
+float16
+__exp_varying_half(float16 v);
+float
+__exp_varying_float(float v);
+double
+__exp_varying_double(double v);
+float
+__svml_expf(float v);
+double
+__svml_expd(double v);
+float
+__stdlib_expf(float v);
+uniform float
+__stdlib_expf(uniform float v);
+uniform double
+__stdlib_exp(uniform double v);
+uniform float16
+__exp_uniform_half(uniform float16 v);
+uniform float
+__exp_uniform_float(uniform float v);
+uniform double
+__exp_uniform_double(uniform double v);
+
+float16
+__log_varying_half(float16 v);
+float
+__log_varying_float(float v);
+double
+__log_varying_double(double v);
+float
+__svml_logf(float v);
+double
+__svml_logd(double v);
+float
+__stdlib_logf(float v);
+uniform float
+__stdlib_logf(uniform float v);
+uniform double
+__stdlib_log(uniform double v);
+uniform float16
+__log_uniform_half(uniform float16 v);
+uniform float
+__log_uniform_float(uniform float v);
+uniform double
+__log_uniform_double(uniform double v);
+
+float16
+__pow_varying_half(float16 y, float16 x);
+float
+__pow_varying_float(float y, float x);
+double
+__pow_varying_double(double y, double x);
+float
+__svml_powf(float y, float x);
+double
+__svml_powd(double y, double x);
+float
+__stdlib_powf(float y, float x);
+uniform float
+__stdlib_powf(uniform float y, uniform float x);
+uniform double
+__stdlib_pow(uniform double y, uniform double x);
+uniform float16
+__pow_uniform_half(uniform float16 y, uniform float16 x);
+uniform float
+__pow_uniform_float(uniform float y, uniform float x);
+uniform double
+__pow_uniform_double(uniform double y, uniform double x);
+
+uniform float
+__half_to_float_uniform(uniform unsigned int16 h);
+float
+__half_to_float_varying(unsigned int16 h);
+uniform int16
+__float_to_half_uniform(uniform float f);
+int16
+__float_to_half_varying(float f);
+
+void
+__fastmath();
+
+uniform int8
+__padds_ui8(uniform int8 a, uniform int8 b);
+uniform int16
+__padds_ui16(uniform int16 a, uniform int16 b);
+uniform int32
+__padds_ui32(uniform int32 a, uniform int32 b);
+uniform int64
+__padds_ui64(uniform int64 a, uniform int64 b);
+
+varying int8
+__padds_vi8(varying int8 a, varying int8 b);
+varying int16
+__padds_vi16(varying int16 a, varying int16 b);
+varying int32
+__padds_vi32(varying int32 a, varying int32 b);
+varying int64
+__padds_vi64(varying int64 a, varying int64 b);
+
+uniform unsigned int8
+__paddus_ui8(uniform unsigned int8 a, uniform unsigned int8 b);
+uniform unsigned int16
+__paddus_ui16(uniform unsigned int16 a, uniform unsigned int16 b);
+uniform unsigned int32
+__paddus_ui32(uniform unsigned int32 a, uniform unsigned int32 b);
+uniform unsigned int64
+__paddus_ui64(uniform unsigned int64 a, uniform unsigned int64 b);
+
+varying unsigned int8
+__paddus_vi8(varying unsigned int8 a, varying unsigned int8 b);
+varying unsigned int16
+__paddus_vi16(varying unsigned int16 a, varying unsigned int16 b);
+varying unsigned int32
+__paddus_vi32(varying unsigned int32 a, varying unsigned int32 b);
+varying unsigned int64
+__paddus_vi64(varying unsigned int64 a, varying unsigned int64 b);
+
+uniform int8
+__psubs_ui8(uniform int8 a, uniform int8 b);
+uniform int16
+__psubs_ui16(uniform int16 a, uniform int16 b);
+uniform int32
+__psubs_ui32(uniform int32 a, uniform int32 b);
+uniform int64
+__psubs_ui64(uniform int64 a, uniform int64 b);
+
+varying int8
+__psubs_vi8(varying int8 a, varying int8 b);
+varying int16
+__psubs_vi16(varying int16 a, varying int16 b);
+varying int32
+__psubs_vi32(varying int32 a, varying int32 b);
+varying int64
+__psubs_vi64(varying int64 a, varying int64 b);
+
+uniform unsigned int8
+__psubus_ui8(uniform unsigned int8 a, uniform unsigned int8 b);
+uniform unsigned int16
+__psubus_ui16(uniform unsigned int16 a, uniform unsigned int16 b);
+uniform unsigned int32
+__psubus_ui32(uniform unsigned int32 a, uniform unsigned int32 b);
+uniform unsigned int64
+__psubus_ui64(uniform unsigned int64 a, uniform unsigned int64 b);
+
+varying unsigned int8
+__psubus_vi8(varying unsigned int8 a, varying unsigned int8 b);
+varying unsigned int16
+__psubus_vi16(varying unsigned int16 a, varying unsigned int16 b);
+varying unsigned int32
+__psubus_vi32(varying unsigned int32 a, varying unsigned int32 b);
+varying unsigned int64
+__psubus_vi64(varying unsigned int64 a, varying unsigned int64 b);
+
+uniform int8
+__pmuls_ui8(uniform int8 a, uniform int8 b);
+uniform int16
+__pmuls_ui16(uniform int16 a, uniform int16 b);
+uniform int32
+__pmuls_ui32(uniform int32 a, uniform int32 b);
+uniform int64
+__pmuls_ui64(uniform int64 a, uniform int64 b);
+
+varying int8
+__pmuls_vi8(varying int8 a, varying int8 b);
+varying int16
+__pmuls_vi16(varying int16 a, varying int16 b);
+varying int32
+__pmuls_vi32(varying int32 a, varying int32 b);
+varying int64
+__pmuls_vi64(varying int64 a, varying int64 b);
+
+uniform unsigned int8
+__pmulus_ui8(uniform unsigned int8 a, uniform unsigned int8 b);
+uniform unsigned int16
+__pmulus_ui16(uniform unsigned int16 a, uniform unsigned int16 b);
+uniform unsigned int32
+__pmulus_ui32(uniform unsigned int32 a, uniform unsigned int32 b);
+uniform unsigned int64
+__pmulus_ui64(uniform unsigned int64 a, uniform unsigned int64 b);
+
+varying unsigned int8
+__pmulus_vi8(varying unsigned int8 a, varying unsigned int8 b);
+varying unsigned int16
+__pmulus_vi16(varying unsigned int16 a, varying unsigned int16 b);
+varying unsigned int32
+__pmulus_vi32(varying unsigned int32 a, varying unsigned int32 b);
+varying unsigned int64
+__pmulus_vi64(varying unsigned int64 a, varying unsigned int64 b);
+
+uniform bool
+__rdrand_i16(opaque_ptr_t irand);
+uniform bool
+__rdrand_i32(opaque_ptr_t irand);
+uniform bool
+__rdrand_i64(opaque_ptr_t irand);
+
+unmasked unsigned int8
+__avg_up_uint8(unsigned int8 a, unsigned int8 b);
+unmasked unsigned int16
+__avg_up_uint16(unsigned int16 a, unsigned int16 b);
+unmasked int8
+__avg_up_int8(int8 a, int8 b);
+unmasked int16
+__avg_up_int16(int16 a, int16 b);
+
+unmasked unsigned int8
+__avg_down_uint8(unsigned int8 a, unsigned int8 b);
+unmasked unsigned int16
+__avg_down_uint16(unsigned int16 a, unsigned int16 b);
+unmasked int8
+__avg_down_int8(int8 a, int8 b);
+unmasked int16
+__avg_down_int16(int16 a, int16 b);
+
+void
+__do_assume_uniform(uniform bool test);
