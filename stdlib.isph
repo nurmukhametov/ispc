@@ -131,11 +131,17 @@ int32
 __sext_varying_bool(bool v);
 
 uniform bool
-__any(bool v);
+__any(UIntMaskType v);
 uniform bool
-__all(bool v);
+__any(IntMaskType v);
 uniform bool
-__none(bool v);
+__all(UIntMaskType v);
+uniform bool
+__all(IntMaskType v);
+uniform bool
+__none(UIntMaskType v);
+uniform bool
+__none(IntMaskType v);
 
 uniform int32
 __popcnt_int32(uniform int32 v);
@@ -144,6 +150,8 @@ __popcnt_int64(uniform int64 v);
 
 uniform unsigned int64
 __movmsk(UIntMaskType m);
+uniform int64
+__movmsk(IntMaskType m);
 
 void
 __memcpy32(void *uniform dst, void *uniform src, uniform int32 count);
