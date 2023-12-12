@@ -28,12 +28,12 @@ bool ReplaceStdlibShiftPass::replaceStdlibShiftBuiltin(llvm::BasicBlock &bb) {
     bool modifiedAny = false;
 
     llvm::Function *shifts[6];
-    shifts[0] = m->module->getFunction("shift___vytuni");
-    shifts[1] = m->module->getFunction("shift___vysuni");
-    shifts[2] = m->module->getFunction("shift___vyiuni");
-    shifts[3] = m->module->getFunction("shift___vyIuni");
-    shifts[4] = m->module->getFunction("shift___vyfuni");
-    shifts[5] = m->module->getFunction("shift___vyduni");
+    shifts[0] = m->InsertAndGetFunction("shift___vytuni");
+    shifts[1] = m->InsertAndGetFunction("shift___vysuni");
+    shifts[2] = m->InsertAndGetFunction("shift___vyiuni");
+    shifts[3] = m->InsertAndGetFunction("shift___vyIuni");
+    shifts[4] = m->InsertAndGetFunction("shift___vyfuni");
+    shifts[5] = m->InsertAndGetFunction("shift___vyduni");
 
     // Note: we do modify instruction list during the traversal, so the iterator
     // is moved forward before the instruction is processed.

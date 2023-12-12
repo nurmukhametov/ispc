@@ -18,35 +18,35 @@ bool IntrinsicsOpt::optimizeIntrinsics(llvm::BasicBlock &bb) {
     // compiling for AVX, we may still encounter the regular 4-wide SSE
     // MOVMSK instruction.
     if (llvm::Function *ssei8Movmsk =
-            m->module->getFunction(llvm::Intrinsic::getName(llvm::Intrinsic::x86_sse2_pmovmskb_128))) {
+            m->InsertAndGetFunction(llvm::Intrinsic::getName(llvm::Intrinsic::x86_sse2_pmovmskb_128).data())) {
         maskInstructions.push_back(ssei8Movmsk);
     }
     if (llvm::Function *sseFloatMovmsk =
-            m->module->getFunction(llvm::Intrinsic::getName(llvm::Intrinsic::x86_sse_movmsk_ps))) {
+            m->InsertAndGetFunction(llvm::Intrinsic::getName(llvm::Intrinsic::x86_sse_movmsk_ps).data())) {
         maskInstructions.push_back(sseFloatMovmsk);
     }
-    if (llvm::Function *__movmsk = m->module->getFunction("__movmsk")) {
+    if (llvm::Function *__movmsk = m->InsertAndGetFunction("__movmsk")) {
         maskInstructions.push_back(__movmsk);
     }
     if (llvm::Function *avxFloatMovmsk =
-            m->module->getFunction(llvm::Intrinsic::getName(llvm::Intrinsic::x86_avx_movmsk_ps_256))) {
+            m->InsertAndGetFunction(llvm::Intrinsic::getName(llvm::Intrinsic::x86_avx_movmsk_ps_256).data())) {
         maskInstructions.push_back(avxFloatMovmsk);
     }
 
     // And all of the blend instructions
     blendInstructions.push_back(BlendInstruction(
-        m->module->getFunction(llvm::Intrinsic::getName(llvm::Intrinsic::x86_sse41_blendvps)), 0xf, 0, 1, 2));
+        m->InsertAndGetFunction(llvm::Intrinsic::getName(llvm::Intrinsic::x86_sse41_blendvps).data()), 0xf, 0, 1, 2));
     blendInstructions.push_back(BlendInstruction(
-        m->module->getFunction(llvm::Intrinsic::getName(llvm::Intrinsic::x86_avx_blendv_ps_256)), 0xff, 0, 1, 2));
+        m->InsertAndGetFunction(llvm::Intrinsic::getName(llvm::Intrinsic::x86_avx_blendv_ps_256).data()), 0xff, 0, 1, 2));
 
     llvm::Function *avxMaskedLoad32 =
-        m->module->getFunction(llvm::Intrinsic::getName(llvm::Intrinsic::x86_avx_maskload_ps_256));
+        m->InsertAndGetFunction(llvm::Intrinsic::getName(llvm::Intrinsic::x86_avx_maskload_ps_256).data());
     llvm::Function *avxMaskedLoad64 =
-        m->module->getFunction(llvm::Intrinsic::getName(llvm::Intrinsic::x86_avx_maskload_pd_256));
+        m->InsertAndGetFunction(llvm::Intrinsic::getName(llvm::Intrinsic::x86_avx_maskload_pd_256).data());
     llvm::Function *avxMaskedStore32 =
-        m->module->getFunction(llvm::Intrinsic::getName(llvm::Intrinsic::x86_avx_maskstore_ps_256));
+        m->InsertAndGetFunction(llvm::Intrinsic::getName(llvm::Intrinsic::x86_avx_maskstore_ps_256).data());
     llvm::Function *avxMaskedStore64 =
-        m->module->getFunction(llvm::Intrinsic::getName(llvm::Intrinsic::x86_avx_maskstore_pd_256));
+        m->InsertAndGetFunction(llvm::Intrinsic::getName(llvm::Intrinsic::x86_avx_maskstore_pd_256).data());
 
     bool modifiedAny = false;
 

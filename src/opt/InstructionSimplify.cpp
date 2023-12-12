@@ -87,7 +87,7 @@ static bool lSimplifyCall(llvm::CallInst *callInst, llvm::BasicBlock::iterator i
 
     // Turn a __movmsk call with a compile-time constant vector into the
     // equivalent scalar value.
-    if (calledFunc == nullptr || calledFunc != m->module->getFunction("__movmsk"))
+    if (calledFunc == nullptr || calledFunc != m->InsertAndGetFunction("__movmsk"))
         return false;
 
     uint64_t mask;

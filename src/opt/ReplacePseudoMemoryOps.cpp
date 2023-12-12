@@ -42,9 +42,9 @@ static bool lIsSafeToBlend(llvm::Value *lvalue) {
 static bool lReplacePseudoMaskedStore(llvm::CallInst *callInst) {
     struct LMSInfo {
         LMSInfo(const char *pname, const char *bname, const char *msname) {
-            pseudoFunc = m->module->getFunction(pname);
-            blendFunc = m->module->getFunction(bname);
-            maskedStoreFunc = m->module->getFunction(msname);
+            pseudoFunc = m->InsertAndGetFunction(pname);
+            blendFunc = m->InsertAndGetFunction(bname);
+            maskedStoreFunc = m->InsertAndGetFunction(msname);
             Assert(pseudoFunc != nullptr && blendFunc != nullptr && maskedStoreFunc != nullptr);
         }
         llvm::Function *pseudoFunc;
@@ -93,8 +93,8 @@ static bool lReplacePseudoMaskedStore(llvm::CallInst *callInst) {
 static bool lReplacePseudoGS(llvm::CallInst *callInst) {
     struct LowerGSInfo {
         LowerGSInfo(const char *pName, const char *aName, bool ig, bool ip) : isGather(ig), isPrefetch(ip) {
-            pseudoFunc = m->module->getFunction(pName);
-            actualFunc = m->module->getFunction(aName);
+            pseudoFunc = m->InsertAndGetFunction(pName);
+            actualFunc = m->InsertAndGetFunction(aName);
         }
         llvm::Function *pseudoFunc;
         llvm::Function *actualFunc;

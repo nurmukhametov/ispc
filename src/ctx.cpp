@@ -1443,7 +1443,7 @@ llvm::Value *FunctionEmitContext::MasksAllEqual(llvm::Value *v1, llvm::Value *v2
     return All(cmp);
 #else
     if (g->target->getArch() == Arch::wasm32 || g->target->getArch() == Arch::wasm64) {
-        llvm::Function *fmm = m->module->getFunction("__wasm_cmp_msk_eq");
+        llvm::Function *fmm = m->InsertAndGetFunction("__wasm_cmp_msk_eq");
         return CallInst(fmm, nullptr, {v1, v2},
                         ((llvm::Twine("wasm_cmp_msk_eq_") + v1->getName()) + "_") + v2->getName());
     }
@@ -1537,7 +1537,7 @@ void FunctionEmitContext::AddInstrumentationPoint(const char *note) {
     // arg 4: current mask, movmsk'ed down to an int64
     args.push_back(LaneMask(GetFullMask()));
 
-    llvm::Function *finst = m->module->getFunction("ISPCInstrument");
+    llvm::Function *finst = m->InsertAndGetFunction("ISPCInstrument");
     CallInst(finst, nullptr, args, "");
 }
 
@@ -2621,7 +2621,7 @@ llvm::Value *FunctionEmitContext::gather(llvm::Value *ptr, const PointerType *pt
         funcName = g->target->is32Bit() ? "__pseudo_gather32_i8" : "__pseudo_gather64_i8";
     }
 
-    llvm::Function *gatherFunc = m->module->getFunction(funcName);
+    llvm::Function *gatherFunc = m->InsertAndGetFunction(funcName);
     AssertPos(currentPos, gatherFunc != nullptr);
 #ifdef ISPC_XE_ENABLED
     if (emitXeHardwareMask()) {
@@ -3019,7 +3019,7 @@ void FunctionEmitContext::scatter(llvm::Value *value, llvm::Value *ptr, const Ty
         funcName = g->target->is32Bit() ? "__pseudo_scatter32_i8" : "__pseudo_scatter64_i8";
     }
 
-    llvm::Function *scatterFunc = m->module->getFunction(funcName);
+    llvm::Function *scatterFunc = m->InsertAndGetFunction(funcName);
     AssertPos(currentPos, scatterFunc != nullptr);
 
     AddInstrumentationPoint("scatter");
@@ -3533,7 +3533,7 @@ llvm::Value *FunctionEmitContext::CallInst(llvm::Value *func, const FunctionType
             // Figure out the first lane that still needs its function
             // pointer to be called.
             llvm::Value *currentMask = LoadInst(maskPtrInfo);
-            llvm::Function *cttz = m->module->getFunction("__count_trailing_zeros_i64");
+            llvm::Function *cttz = m->InsertAndGetFunction("__count_trailing_zeros_i64");
             AssertPos(currentPos, cttz != nullptr);
             llvm::Value *firstLane64 = CallInst(cttz, nullptr, LaneMask(currentMask), "first_lane64");
             llvm::Value *firstLane = TruncInst(firstLane64, LLVMTypes::Int32Type, "first_lane32");
@@ -3710,7 +3710,7 @@ llvm::Value *FunctionEmitContext::LaunchInst(llvm::Value *callee, std::vector<ll
     llvm::StructType *argStructType = llvm::StructType::get(*g->ctx, llvmArgTypes);
     AssertPos(currentPos, argStructType != nullptr);
 
-    llvm::Function *falloc = m->module->getFunction("ISPCAlloc");
+    llvm::Function *falloc = m->InsertAndGetFunction("ISPCAlloc");
     AssertPos(currentPos, falloc != nullptr);
     llvm::Value *structSize = g->target->SizeOf(argStructType, bblock);
     if (structSize->getType() != LLVMTypes::Int64Type)
@@ -3746,7 +3746,7 @@ llvm::Value *FunctionEmitContext::LaunchInst(llvm::Value *callee, std::vector<ll
     // a pointer to the task function being called and a pointer to the
     // argument block we just filled in
     llvm::Value *fptr = BitCastInst(callee, LLVMTypes::VoidPointerType);
-    llvm::Function *flaunch = m->module->getFunction("ISPCLaunch");
+    llvm::Function *flaunch = m->InsertAndGetFunction("ISPCLaunch");
     AssertPos(currentPos, flaunch != nullptr);
     std::vector<llvm::Value *> args;
     args.push_back(launchGroupHandleAddressInfo->getPointer());
@@ -3772,7 +3772,7 @@ void FunctionEmitContext::SyncInst() {
     BranchInst(bSync, bPostSync, nonNull);
 
     SetCurrentBasicBlock(bSync);
-    llvm::Function *fsync = m->module->getFunction("ISPCSync");
+    llvm::Function *fsync = m->InsertAndGetFunction("ISPCSync");
     if (fsync == nullptr)
         FATAL("Couldn't find ISPCSync declaration?!");
     CallInst(fsync, nullptr, launchGroupHandle, "");

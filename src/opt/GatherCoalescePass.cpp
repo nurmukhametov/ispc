@@ -850,10 +850,10 @@ bool GatherCoalescePass::coalesceGathersFactored(llvm::BasicBlock &bb) {
     DEBUG_START_BB("GatherCoalescePass");
 
     llvm::Function *gatherFuncs[] = {
-        m->module->getFunction("__pseudo_gather_factored_base_offsets32_i32"),
-        m->module->getFunction("__pseudo_gather_factored_base_offsets32_float"),
-        m->module->getFunction("__pseudo_gather_factored_base_offsets64_i32"),
-        m->module->getFunction("__pseudo_gather_factored_base_offsets64_float"),
+        m->InsertAndGetFunction("__pseudo_gather_factored_base_offsets32_i32"),
+        m->InsertAndGetFunction("__pseudo_gather_factored_base_offsets32_float"),
+        m->InsertAndGetFunction("__pseudo_gather_factored_base_offsets64_i32"),
+        m->InsertAndGetFunction("__pseudo_gather_factored_base_offsets64_float"),
     };
     int nGatherFuncs = sizeof(gatherFuncs) / sizeof(gatherFuncs[0]);
 

@@ -1119,8 +1119,8 @@ static llvm::CallInst *lGSBaseOffsetsGetMoreConst(llvm::CallInst *callInst) {
     struct GSBOInfo {
         GSBOInfo(const char *pgboFuncName, const char *pgbo32FuncName, bool ig, bool ip)
             : isGather(ig), isPrefetch(ip) {
-            baseOffsetsFunc = m->module->getFunction(pgboFuncName);
-            baseOffsets32Func = m->module->getFunction(pgbo32FuncName);
+            baseOffsetsFunc = m->InsertAndGetFunction(pgboFuncName);
+            baseOffsets32Func = m->InsertAndGetFunction(pgbo32FuncName);
         }
         llvm::Function *baseOffsetsFunc, *baseOffsets32Func;
         const bool isGather;
@@ -1644,7 +1644,7 @@ static llvm::Function *lXeMaskedInst(llvm::Instruction *inst, bool isStore, llvm
         callInst->getCalledFunction()->getName().contains(maskedFuncName)) {
         return nullptr;
     }
-    return m->module->getFunction("__" + maskedFuncName);
+    return m->InsertAndGetFunction("__" + maskedFuncName);
 }
 
 static llvm::CallInst *lXeStoreInst(llvm::Value *val, llvm::Value *ptr, llvm::Instruction *inst) {
@@ -1826,7 +1826,7 @@ static llvm::Value *lImproveMaskedStore(llvm::CallInst *callInst) {
 static llvm::Value *lImproveMaskedLoad(llvm::CallInst *callInst, llvm::BasicBlock::iterator iter) {
     struct MLInfo {
         MLInfo(const char *name, const int a) : align(a) {
-            func = m->module->getFunction(name);
+            func = m->InsertAndGetFunction(name);
             Assert(func != nullptr);
         }
         llvm::Function *func;

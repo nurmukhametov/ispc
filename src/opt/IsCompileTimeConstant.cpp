@@ -11,9 +11,9 @@ namespace ispc {
 bool IsCompileTimeConstantPass::lowerCompileTimeConstant(llvm::BasicBlock &bb) {
     DEBUG_START_BB("IsCompileTimeConstantPass");
 
-    llvm::Function *funcs[] = {m->module->getFunction("__is_compile_time_constant_mask"),
-                               m->module->getFunction("__is_compile_time_constant_uniform_int32"),
-                               m->module->getFunction("__is_compile_time_constant_varying_int32")};
+    llvm::Function *funcs[] = {m->InsertAndGetFunction("__is_compile_time_constant_mask"),
+                               m->InsertAndGetFunction("__is_compile_time_constant_uniform_int32"),
+                               m->InsertAndGetFunction("__is_compile_time_constant_varying_int32")};
 
     bool modifiedAny = false;
 

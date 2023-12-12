@@ -642,8 +642,6 @@ int main(int Argc, char *Argv[]) {
 
     ArgErrors errorHandler;
 
-    g->lazyTargetLoad = true;
-
     // If the first argument is "link"
     // ISPC will be used in a linkage mode
     if (argc > 1 && !strncmp(argv[1], "link", 4)) {
