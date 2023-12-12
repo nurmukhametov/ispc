@@ -31,6 +31,10 @@
 #endif
 
 typedef uniform int8 *uniform opaque_ptr_t;
+
+// This is effectively the interface of builtins
+#include "stdlib.isph"
+
 ///////////////////////////////////////////////////////////////////////////
 /* Limits of integral types. */
 #ifndef INT8_MAX
