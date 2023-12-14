@@ -697,6 +697,8 @@ int main(int Argc, char *Argv[]) {
         return ret;
     }
 
+    g->lazyTargetLoad = true;
+
     for (int i = 1; i < argc; ++i) {
         if (!strcmp(argv[i], "--help")) {
             usage(0);

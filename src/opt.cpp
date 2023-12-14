@@ -378,6 +378,11 @@ void ispc::Optimize(llvm::Module *module, int optLevel) {
         module->print(llvm::errs(), nullptr);
     }
     DebugModulePassManager optPM(*module, optLevel);
+    if (g->lazyTargetLoad) {
+        // optPM.initFunctionPassManager();
+        // optPM.addFunctionPass(LazyLinkTargetBuiltins()); // llvm.matrix
+        // optPM.commitFunctionToModulePassManager();
+    }
     if (g->enableLLVMIntrinsics) {
         // Required for matrix intrinsics. This needs to happen before VerifierPass.
         // TODO : Limit pass to only when llvm.matrix.* intrinsics are used.

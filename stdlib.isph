@@ -13,19 +13,19 @@ __doublebits_varying_int64(unsigned int64 a);
 uniform double
 __doublebits_uniform_int64(uniform unsigned int64 a);
 
-unsigned int16
+int16
 __intbits_varying_half(float16 a);
-uniform unsigned int16
+uniform int16
 __intbits_uniform_half(uniform float16 a);
 
-unsigned int
+int
 __intbits_varying_float(float a);
-uniform unsigned int
+uniform int
 __intbits_uniform_float(uniform float a);
 
-unsigned int64
+int64
 __intbits_varying_double(double d);
-uniform unsigned int64
+uniform int64
 __intbits_uniform_double(uniform double d);
 
 int8
@@ -258,9 +258,9 @@ __pseudo_prefetch_write_varying_3(int64 ptr, IntMaskType mask);
 
 uniform int16
 __reduce_add_int8(int8 x);
-uniform int32
+uniform int16
 __reduce_add_int16(int16 x);
-uniform int64
+uniform int32
 __reduce_add_int32(int32 x);
 uniform int64
 __reduce_add_int64(int64 x);
@@ -273,7 +273,7 @@ __reduce_add_double(double x);
 
 uniform int
 __reduce_min_int32(int x);
-uniform unsigned int
+uniform int
 __reduce_min_uint32(int x);
 uniform int64
 __reduce_min_int64(int64 x);
@@ -288,7 +288,7 @@ __reduce_min_double(double x);
 
 uniform int
 __reduce_max_int32(int x);
-uniform unsigned int
+uniform int
 __reduce_max_uint32(int x);
 uniform int64
 __reduce_max_int64(int64 x);
@@ -776,27 +776,27 @@ __acos_uniform_float(uniform float v);
 uniform double
 __acos_uniform_double(uniform double v);
 
-float16
+void
 __sincos_varying_half(float16 v, opaque_ptr_t sin_ptr, opaque_ptr_t cos_ptr);
-float
+void
 __sincos_varying_float(float v, opaque_ptr_t sin_ptr, opaque_ptr_t cos_ptr);
-double
+void
 __sincos_varying_double(double v, opaque_ptr_t sin_ptr, opaque_ptr_t cos_ptr);
-float
+void
 __svml_sincosf(float v, opaque_ptr_t sin_ptr, opaque_ptr_t cos_ptr);
-double
+void
 __svml_sincosd(double v, opaque_ptr_t sin_ptr, opaque_ptr_t cos_ptr);
-float
+void
 __stdlib_sincosf(float v, opaque_ptr_t sin_ptr, opaque_ptr_t cos_ptr);
-uniform float
+void
 __stdlib_sincosf(uniform float v, opaque_ptr_t sin_ptr, opaque_ptr_t cos_ptr);
-uniform double
+void
 __stdlib_sincos(uniform double v, opaque_ptr_t sin_ptr, opaque_ptr_t cos_ptr);
-uniform float16
+void
 __sincos_uniform_half(uniform float16 v, opaque_ptr_t sin_ptr, opaque_ptr_t cos_ptr);
-uniform float
+void
 __sincos_uniform_float(uniform float v, opaque_ptr_t sin_ptr, opaque_ptr_t cos_ptr);
-uniform double
+void
 __sincos_uniform_double(uniform double v, opaque_ptr_t sin_ptr, opaque_ptr_t cos_ptr);
 
 float16
@@ -1064,22 +1064,22 @@ __rdrand_i32(opaque_ptr_t irand);
 uniform bool
 __rdrand_i64(opaque_ptr_t irand);
 
-unmasked unsigned int8
+unsigned int8
 __avg_up_uint8(unsigned int8 a, unsigned int8 b);
-unmasked unsigned int16
+unsigned int16
 __avg_up_uint16(unsigned int16 a, unsigned int16 b);
-unmasked int8
+int8
 __avg_up_int8(int8 a, int8 b);
-unmasked int16
+int16
 __avg_up_int16(int16 a, int16 b);
 
-unmasked unsigned int8
+unsigned int8
 __avg_down_uint8(unsigned int8 a, unsigned int8 b);
-unmasked unsigned int16
+unsigned int16
 __avg_down_uint16(unsigned int16 a, unsigned int16 b);
-unmasked int8
+int8
 __avg_down_int8(int8 a, int8 b);
-unmasked int16
+int16
 __avg_down_int16(int16 a, int16 b);
 
 void

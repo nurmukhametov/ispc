@@ -23,3 +23,4 @@
 #include "ReplaceStdlibShiftPass.h"
 #include "XeGatherCoalescePass.h"
 #include "XeReplaceLLVMIntrinsics.h"
+#include "LazyLinkTargetBuiltins.h"

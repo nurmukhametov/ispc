@@ -187,7 +187,7 @@ llvm::PreservedAnalyses MakeInternalFuncsStaticPass::run(llvm::Module &M, llvm::
         "__prefetch_write_varying_1",
         "__prefetch_write_varying_2",
         "__prefetch_write_varying_3",
-        "__keep_funcs_live",
+//        "__keep_funcs_live",
 #ifdef ISPC_XE_ENABLED
         "__masked_load_blend_i8",
         "__masked_load_blend_i16",

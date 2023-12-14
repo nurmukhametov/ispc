@@ -31,4 +31,6 @@ target_sources(${PROJECT_NAME}
         "XeGatherCoalescePass.h"
         "XeReplaceLLVMIntrinsics.cpp"
         "XeReplaceLLVMIntrinsics.h"
+        "LazyLinkTargetBuiltins.cpp"
+        "LazyLinkTargetBuiltins.h"
 )

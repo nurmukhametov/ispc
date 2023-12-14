@@ -1031,6 +1031,7 @@ void ispc::AddBitcodeToModule(const BitcodeLib *lib, llvm::Module *module, Symbo
                 // Declarations with uses will be moved by Linker.
                 if (f.getNumUses() > 0)
                     continue;
+                // llvm::errs() << "Moved declaration: " << f.getName() << "\n";
                 module->getOrInsertFunction(f.getName(), f.getFunctionType(), f.getAttributes());
             }
         }
@@ -1054,13 +1055,13 @@ void ispc::AddBitcodeToModule(const BitcodeLib *lib, llvm::Module *module, Symbo
     }
 }
 
-void ispc::AddFunctionToModule(const char *functionName, const BitcodeLib *lib, llvm::Module *module, SymbolTable *symbolTable) {
+llvm::Function *ispc::AddFunctionToModule(const char *functionName, const BitcodeLib *lib, llvm::Module *module, SymbolTable *symbolTable) {
     static llvm::ValueToValueMapTy VMap;
     // TODO! map: lib -> bcModule
     static llvm::Module *bcModule = nullptr;
 
     if (llvm::Function *F = module->getFunction(functionName)) {
-        return;
+        return F;
     }
 
     if (!bcModule) {
@@ -1094,6 +1095,21 @@ void ispc::AddFunctionToModule(const char *functionName, const BitcodeLib *lib, 
                 // separated from the others and it is not done by default
                 lUpdateIntrinsicsAttributes(bcModule);
             }
+
+            // Remove ?
+            // A hack to move over declaration, which have no definition.
+            // New linker is kind of smart and think it knows better what to do, so
+            // it removes unused declarations without definitions.
+            // This trick should be legal, as both modules use the same LLVMContext.
+            // for (llvm::Function &f : *bcModule) {
+            //     if (f.isDeclaration()) {
+            //         // Declarations with uses will be moved by Linker.
+            //         if (f.getNumUses() > 0)
+            //             continue;
+            //         llvm::errs() << "Moved declaration: " << f.getName() << "\n";
+            //         module->getOrInsertFunction(f.getName(), f.getFunctionType(), f.getAttributes());
+            //     }
+            // }
         }
     }
 
@@ -1102,25 +1118,51 @@ void ispc::AddFunctionToModule(const char *functionName, const BitcodeLib *lib, 
     llvm::SmallVector<llvm::ReturnInst *, 8> Returns;
     llvm::Function *RequestedF = bcModule->getFunction(functionName);
 
-    // printf("FOUND fname: %s\n", RequestedF->getName().str().c_str());
+    if (!RequestedF) {
+        return nullptr;
+    }
+
+    // llvm::errs() << "\tFOUND fname: " << RequestedF->getName() << "\n";
 
     std::list<llvm::Function *> WorkList;
     std::vector<llvm::Function *> Funcs;
 
-    // printf("CG contains:");
+    // llvm::errs() << "\t\tCG contains: ";
     WorkList.push_back(RequestedF);
     while (!WorkList.empty()) {
         llvm::Function *F = WorkList.front();
         WorkList.pop_front();
 
-        // printf("%s\n", F->getName().str().c_str());
         llvm::CallGraphNode *CGN = CG[F];
+        // llvm::errs() << F->getName() << " " << "CG size: " << CGN->size() << " ";
         std::map<llvm::Function *, int> Visited;
         for (int i = 0; i < CGN->size(); i++) {
             llvm::Function *CF = (*CGN)[i]->getFunction();
+            // llvm::errs() << (size_t) CF <<  " " << 
+            //     (size_t) (CF && (Visited.find(CF) == Visited.end())) << " " <<
+            //     (size_t) (CF && (Visited.find(CF) == Visited.end()) && !module->getFunction(CF->getName())) << " ";
             if (CF && (Visited.find(CF) == Visited.end()) && !module->getFunction(CF->getName())) {
                 Visited[CF] = 1;
                 WorkList.push_back(CF);
+            }
+        }
+
+        // WHY call graph is not correct for some functions!?
+        if (CGN->size() == 0) {
+            // llvm::errs() << "\n\t\tCGN 0: ";
+            for (llvm::BasicBlock &BB : *F) {
+                for (llvm::Instruction &II : BB) {
+                    if (llvm::isa<llvm::CallInst>(&II)) {
+                        llvm::CallInst *call = llvm::dyn_cast<llvm::CallInst>(&II);
+                        llvm::Function *CF = call->getCalledFunction();
+                        const char *funcName = call->getCalledFunction()->getName().data();
+                        // llvm::errs() << funcName << " " << CF << " ";
+                        if (CF && (Visited.find(CF) == Visited.end()) && !module->getFunction(CF->getName())) {
+                            Visited[CF] = 1;
+                            WorkList.push_back(CF);
+                        }
+                    }
+                }
             }
         }
 
@@ -1130,10 +1172,11 @@ void ispc::AddFunctionToModule(const char *functionName, const BitcodeLib *lib, 
 
         Funcs.push_back(F);
     }
+    // llvm::errs() << "\n";
 
-    // printf("\nFuncs: ");
+    // llvm::errs() << "\t\tFuncs: ";
     for (const auto Func : Funcs) {
-        // printf(" %s", Func->getName().str().c_str());
+        // llvm::errs() << Func->getName() << " ";
         llvm::Function *NewFunc = llvm::cast<llvm::Function>(VMap[Func]);
         llvm::Function::arg_iterator DestI = NewFunc->arg_begin();
         for (const llvm::Argument &J : Func->args()) {
@@ -1143,21 +1186,23 @@ void ispc::AddFunctionToModule(const char *functionName, const BitcodeLib *lib, 
 
         llvm::CloneFunctionInto(NewFunc, Func, VMap, llvm::CloneFunctionChangeType::ClonedModule, Returns);
 
-        for (llvm::BasicBlock &BB : *NewFunc) {
-            for (llvm::Instruction &II : BB) {
-                if (llvm::isa<llvm::CallInst>(&II)) {
-                    // printf("call\n");
-                    // llvm::RemapInstruction(&II, VMap, llvm::RF_IgnoreMissingLocals);
-                    // auto p = VMap[II.getOperand(2)];
-                    // if (p) {
-                    //     printf("p VMap\n");
-                    // }
-                }
-            }
-        }
+        // Remove
+        // for (llvm::BasicBlock &BB : *NewFunc) {
+        //     for (llvm::Instruction &II : BB) {
+        //         if (llvm::isa<llvm::CallInst>(&II)) {
+        //             // printf("call\n");
+        //             // llvm::RemapInstruction(&II, VMap, llvm::RF_IgnoreMissingLocals);
+        //             // auto p = VMap[II.getOperand(2)];
+        //             // if (p) {
+        //             //     printf("p VMap\n");
+        //             // }
+        //         }
+        //     }
+        // }
     }
 
-    // printf("\n");
+    // llvm::errs() << "\n";
+    return RequestedF;
 }
 
 /** Utility routine that defines a constant int32 with given value, adding
