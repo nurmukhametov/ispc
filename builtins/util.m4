@@ -2374,22 +2374,22 @@ define(`ctlztz', `
 declare_count_zeros()
 
 define i32 @__count_trailing_zeros_i32(i32) nounwind readnone alwaysinline {
-  %c = call i32 @llvm.cttz.i32(i32 %0)
+  %c = call i32 @llvm.cttz.i32(i32 %0, i1 false)
   ret i32 %c
 }
 
 define i64 @__count_trailing_zeros_i64(i64) nounwind readnone alwaysinline {
-  %c = call i64 @llvm.cttz.i64(i64 %0)
+  %c = call i64 @llvm.cttz.i64(i64 %0, i1 false)
   ret i64 %c
 }
 
 define i32 @__count_leading_zeros_i32(i32) nounwind readnone alwaysinline {
-  %c = call i32 @llvm.ctlz.i32(i32 %0)
+  %c = call i32 @llvm.ctlz.i32(i32 %0, i1 false)
   ret i32 %c
 }
 
 define i64 @__count_leading_zeros_i64(i64) nounwind readnone alwaysinline {
-  %c = call i64 @llvm.ctlz.i64(i64 %0)
+  %c = call i64 @llvm.ctlz.i64(i64 %0, i1 false)
   ret i64 %c
 }
 ')
@@ -7657,10 +7657,10 @@ define(`packed_load_and_store', `
 define(`declare_count_zeros', `
 ifelse(count_zeros_are_defined, true, `',
 `
-declare i32 @llvm.ctlz.i32(i32)
-declare i64 @llvm.ctlz.i64(i64)
-declare i32 @llvm.cttz.i32(i32)
-declare i64 @llvm.cttz.i64(i64)
+declare i32 @llvm.ctlz.i32(i32 %src, i1 %is_zero_poison)
+declare i64 @llvm.ctlz.i64(i64 %src, i1 %is_zero_poison)
+declare i32 @llvm.cttz.i32(i32 %src, i1 %is_zero_poison)
+declare i64 @llvm.cttz.i64(i64 %src, i1 %is_zero_poison)
 
 define(`count_zeros_are_defined', true)
 ')
@@ -7679,7 +7679,7 @@ entry:
 
 domixed:
   ; First, figure out which lane is the first active one
-  %first = call i64 @llvm.cttz.i64(i64 %mm)
+  %first = call i64 @llvm.cttz.i64(i64 %mm, i1 false)
   %first32 = trunc i64 %first to i32
   %baseval = extractelement <$1 x $2> %v, i32 %first32
   %basev1 = insertelement <$1 x $2> undef, $2 %baseval, i32 0

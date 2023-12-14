@@ -6131,8 +6131,8 @@ ifelse(count_zeros_are_defined, true, `',
 `
 declare i32 @llvm.genx.lzd.i32(i32)
 declare i32 @llvm.genx.bfrev.i32(i32)
-declare i32 @llvm.cttz.i32(i32)
-declare i64 @llvm.cttz.i64(i64)
+declare i32 @llvm.cttz.i32(i32 %src, i1 %is_zero_posion)
+declare i64 @llvm.cttz.i64(i64 %src, i1 %is_zero_posion)
 
 define(`count_zeros_are_defined', true)
 ')
