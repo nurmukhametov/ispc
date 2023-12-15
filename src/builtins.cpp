@@ -21,17 +21,25 @@
 #include <math.h>
 #include <stdlib.h>
 
+#include <llvm/ADT/StringMap.h>
 #include <llvm/Bitcode/BitcodeReader.h>
 #include <llvm/IR/Attributes.h>
 #include <llvm/IR/DerivedTypes.h>
 #include <llvm/IR/Instructions.h>
 #include <llvm/IR/Intrinsics.h>
 #include <llvm/IR/LLVMContext.h>
+#include <llvm/IR/LegacyPassManager.h>
 #include <llvm/IR/Module.h>
 #include <llvm/IR/Type.h>
 #include <llvm/Linker/Linker.h>
+#include <llvm/Passes/PassBuilder.h>
+#include <llvm/Support/FileSystem.h>
 #include <llvm/Support/MemoryBuffer.h>
+#include <llvm/Support/Path.h>
+#include <llvm/Support/raw_ostream.h>
 #include <llvm/Target/TargetMachine.h>
+#include <llvm/Transforms/IPO.h>
+#include <llvm/Transforms/IPO/GlobalDCE.h>
 #if ISPC_LLVM_VERSION >= ISPC_LLVM_17_0
 #include <llvm/TargetParser/Triple.h>
 #else
@@ -273,12 +281,7 @@ Symbol *ispc::CreateISPCSymbolForLLVMIntrinsic(llvm::Function *func, SymbolTable
 /** Given an LLVM module, create ispc symbols for the functions in the
     module.
  */
-static void lAddModuleSymbols(llvm::Module *module, SymbolTable *symbolTable) {
-#if 0
-    // FIXME: handle globals?
-    Assert(module->global_empty());
-#endif
-
+void ispc::AddModuleSymbols(llvm::Module *module, SymbolTable *symbolTable) {
     llvm::Module::iterator iter;
     for (iter = module->begin(); iter != module->end(); ++iter) {
         llvm::Function *func = &*iter;
@@ -308,36 +311,6 @@ static void lUpdateIntrinsicsAttributes(llvm::Module *module) {
         }
     }
 #endif
-}
-
-/** In many of the builtins-*.ll files, we have declarations of various LLVM
-    intrinsics that are then used in the implementation of various target-
-    specific functions.  This function loops over all of the intrinsic
-    declarations and makes sure that the signature we have in our .ll file
-    matches the signature of the actual intrinsic.
-*/
-static void lCheckModuleIntrinsics(llvm::Module *module) {
-    llvm::Module::iterator iter;
-    for (iter = module->begin(); iter != module->end(); ++iter) {
-        llvm::Function *func = &*iter;
-        if (!func->isIntrinsic())
-            continue;
-
-        const std::string funcName = func->getName().str();
-        // Work around http://llvm.org/bugs/show_bug.cgi?id=10438; only
-        // check the llvm.x86.* intrinsics for now...
-        if (!strncmp(funcName.c_str(), "llvm.x86.", 9)) {
-            llvm::Intrinsic::ID id = (llvm::Intrinsic::ID)func->getIntrinsicID();
-            if (id == 0) {
-                std::string error_message = "Intrinsic is not found: ";
-                error_message += funcName;
-                FATAL(error_message.c_str());
-            }
-            llvm::Type *intrinsicType = llvm::Intrinsic::getType(*g->ctx, id);
-            intrinsicType = llvm::PointerType::get(intrinsicType, 0);
-            Assert(func->getType() == intrinsicType);
-        }
-    }
 }
 
 /** We'd like to have all of these functions declared as 'internal' in
@@ -978,23 +951,53 @@ static void lSetInternalFunctions(llvm::Module *module) {
     }
 }
 
-/** This utility function takes serialized binary LLVM bitcode and adds its
-    definitions to the given module.  Functions in the bitcode that can be
-    mapped to ispc functions are also added to the symbol table.
+static void lSetAsInternal(llvm::Module *module, llvm::StringMap<int> &functions) {
+    for (llvm::Function &F : module->functions()) {
+        if (!F.isDeclaration() && functions.find(F.getName()) != functions.end()) {
+            F.setLinkage(llvm::GlobalValue::InternalLinkage);
+        }
+    }
+}
 
-    @param lib         Pointer to BitcodeLib class representing LLVM bitcode (e.g. the contents of a *.bc file)
-    @param module      Module to link the bitcode into
-    @param symbolTable Symbol table to add definitions to
- */
-void ispc::AddBitcodeToModule(const BitcodeLib *lib, llvm::Module *module, SymbolTable *symbolTable) {
-    llvm::StringRef sb = llvm::StringRef((const char *)lib->getLib(), lib->getSize());
-    llvm::MemoryBufferRef bcBuf = llvm::MemoryBuffer::getMemBuffer(sb)->getMemBufferRef();
-
-    llvm::Expected<std::unique_ptr<llvm::Module>> ModuleOrErr = llvm::parseBitcodeFile(bcBuf, *g->ctx);
-    if (!ModuleOrErr) {
-        Error(SourcePos(), "Error parsing stdlib bitcode: %s", toString(ModuleOrErr.takeError()).c_str());
+void ispc::AddBitcodeToModule(llvm::Module *bcModule, llvm::Module *module) {
+    if (!bcModule) {
+        Error(SourcePos(), "Error library module is nullptr");
     } else {
-        llvm::Module *bcModule = ModuleOrErr.get().release();
+        if (g->target->isXeTarget()) {
+            // Maybe we will use it for other targets in future,
+            // but now it is needed only by Xe. We need
+            // to update attributes because Xe intrinsics are
+            // separated from the others and it is not done by default
+            lUpdateIntrinsicsAttributes(bcModule);
+        }
+
+        for (llvm::Function &f : *bcModule) {
+            if (f.isDeclaration()) {
+                // Declarations with uses will be moved by Linker.
+                if (f.getNumUses() > 0)
+                    continue;
+                // Declarations with 0 uses are moved by hands.
+                module->getOrInsertFunction(f.getName(), f.getFunctionType(), f.getAttributes());
+            }
+        }
+
+        // Remove clang ID metadata from the bitcode module, as we don't need it.
+        llvm::NamedMDNode *identMD = bcModule->getNamedMetadata("llvm.ident");
+        if (identMD) {
+            identMD->eraseFromParent();
+        }
+
+        std::unique_ptr<llvm::Module> M(bcModule);
+        if (llvm::Linker::linkModules(*module, std::move(M), llvm::Linker::Flags::LinkOnlyNeeded)) {
+            Error(SourcePos(), "Error linking stdlib bitcode.");
+        }
+    }
+}
+
+void ispc::AddDeclarationsToModule(llvm::Module *bcModule, llvm::Module *module) {
+    if (!bcModule) {
+        Error(SourcePos(), "Error library module is nullptr");
+    } else {
         // FIXME: this feels like a bad idea, but the issue is that when we
         // set the llvm::Module's target triple in the ispc Module::Module
         // constructor, we start by calling llvm::sys::getHostTriple() (and
@@ -1007,30 +1010,6 @@ void ispc::AddBitcodeToModule(const BitcodeLib *lib, llvm::Module *module, Symbo
         llvm::Triple bcTriple(bcModule->getTargetTriple());
         Debug(SourcePos(), "module triple: %s\nbitcode triple: %s\n", mTriple.str().c_str(), bcTriple.str().c_str());
 
-        // Disable this code for cross compilation
-#if 0
-            {
-                Assert(bcTriple.getArch() == llvm::Triple::UnknownArch || mTriple.getArch() == bcTriple.getArch());
-                Assert(bcTriple.getVendor() == llvm::Triple::UnknownVendor ||
-                       mTriple.getVendor() == bcTriple.getVendor());
-
-                // We unconditionally set module DataLayout to library, but we must
-                // ensure that library and module DataLayouts are compatible.
-                // If they are not, we should recompile the library for problematic
-                // architecture and investigate what happened.
-                // Generally we allow library DataLayout to be subset of module
-                // DataLayout or library DataLayout to be empty.
-                if (!VerifyDataLayoutCompatibility(module->getDataLayoutStr(), bcModule->getDataLayoutStr())) {
-                    Warning(SourcePos(),
-                            "Module DataLayout is incompatible with "
-                            "library DataLayout:\n"
-                            "Module  DL: %s\n"
-                            "Library DL: %s\n",
-                            module->getDataLayoutStr().c_str(), bcModule->getDataLayoutStr().c_str());
-                }
-            }
-#endif
-
         bcModule->setTargetTriple(mTriple.str());
         bcModule->setDataLayout(module->getDataLayout());
 
@@ -1042,235 +1021,123 @@ void ispc::AddBitcodeToModule(const BitcodeLib *lib, llvm::Module *module, Symbo
             lUpdateIntrinsicsAttributes(bcModule);
         }
 
-        // A hack to move over declaration, which have no definition.
-        // New linker is kind of smart and think it knows better what to do, so
-        // it removes unused declarations without definitions.
-        // This trick should be legal, as both modules use the same LLVMContext.
         for (llvm::Function &f : *bcModule) {
-            if (f.isDeclaration()) {
-                // Declarations with uses will be moved by Linker.
-                if (f.getNumUses() > 0)
-                    continue;
-                module->getOrInsertFunction(f.getName(), f.getFunctionType(), f.getAttributes());
-            }
+            module->getOrInsertFunction(f.getName(), f.getFunctionType(), f.getAttributes());
+        }
+    }
+}
+
+void removeUnused(llvm::Module *M) {
+    // llvm::legacy::PassManager PM;
+    // PM.add(llvm::createGlobalDCEPass());
+    // PM.run(*M);
+    llvm::FunctionAnalysisManager FAM;
+    llvm::ModuleAnalysisManager MAM;
+    llvm::ModulePassManager PM;
+    llvm::PassBuilder PB;
+    PB.registerModuleAnalyses(MAM);
+    PM.addPass(llvm::GlobalDCEPass());
+    PM.run(*M, MAM);
+}
+
+void ispc::debugDumpModule(llvm::Module *module, std::string name) {
+    if (g->dumpFile && !g->dumpFilePath.empty()) {
+        std::error_code EC;
+        llvm::SmallString<128> path(g->dumpFilePath);
+
+        if (!llvm::sys::fs::exists(path)) {
+            llvm::sys::fs::create_directories(g->dumpFilePath);
         }
 
-        // Remove clang ID metadata from the bitcode module, as we don't need it.
-        llvm::NamedMDNode *identMD = bcModule->getNamedMetadata("llvm.ident");
-        if (identMD) {
-            identMD->eraseFromParent();
+        if (!g->singleTargetCompilation) {
+            name += std::string("_") + g->target->GetISAString();
+        }
+        llvm::sys::path::append(path, name);
+        llvm::raw_fd_ostream OS(path, EC);
+
+        if (EC) {
+            llvm::errs() << "Error: " << EC.message();
+            return;
         }
 
-        std::unique_ptr<llvm::Module> M(bcModule);
-        if (llvm::Linker::linkModules(*module, std::move(M))) {
-            Error(SourcePos(), "Error linking stdlib bitcode.");
-        }
-
-        lSetInternalFunctions(module);
-
-        if (symbolTable != nullptr)
-            lAddModuleSymbols(module, symbolTable);
-        lCheckModuleIntrinsics(module);
+        module->print(OS, nullptr);
+        OS.flush();
     }
 }
 
-/** Utility routine that defines a constant int32 with given value, adding
-    the symbol to both the ispc symbol table and the given LLVM module.
- */
-static void lDefineConstantInt(const char *name, int val, llvm::Module *module, SymbolTable *symbolTable,
-                               std::vector<llvm::Constant *> &dbg_sym) {
-    Symbol *sym = new Symbol(name, SourcePos(), AtomicType::UniformInt32->GetAsConstType(), SC_STATIC);
-    sym->constValue = new ConstExpr(sym->type, val, SourcePos());
-    llvm::Type *ltype = LLVMTypes::Int32Type;
-    llvm::Constant *linit = LLVMInt32(val);
-    auto GV = new llvm::GlobalVariable(*module, ltype, true, llvm::GlobalValue::InternalLinkage, linit, name);
-    dbg_sym.push_back(GV);
-    sym->storageInfo = new AddressInfo(GV, GV->getValueType());
-    symbolTable->AddVariable(sym);
+void ispc::LinkDispatcher(llvm::Module *module) {
+    const BitcodeLib *dispatch = g->target_registry->getDispatchLib(g->target_os);
+    Assert(dispatch);
+    llvm::Module *dispatchBCModule = dispatch->getLLVMModule();
+    AddDeclarationsToModule(dispatchBCModule, module);
+    AddBitcodeToModule(dispatchBCModule, module);
+}
 
-    if (m->diBuilder != nullptr) {
-        llvm::DIFile *file = m->diCompileUnit->getFile();
-        llvm::DICompileUnit *cu = m->diCompileUnit;
-        llvm::DIType *diType = sym->type->GetDIType(file);
-        // FIXME? DWARF says that this (and programIndex below) should
-        // have the DW_AT_artifical attribute.  It's not clear if this
-        // matters for anything though.
-        llvm::GlobalVariable *sym_GV_storagePtr = llvm::dyn_cast<llvm::GlobalVariable>(sym->storageInfo->getPointer());
-        Assert(sym_GV_storagePtr);
-        llvm::DIGlobalVariableExpression *var =
-            m->diBuilder->createGlobalVariableExpression(cu, name, name, file, 0 /* line */, diType, true /* static */);
-        sym_GV_storagePtr->addDebugInfo(var);
-        /*#if ISPC_LLVM_VERSION <= ISPC_LLVM_3_6
-                Assert(var.Verify());
-        #else // LLVM 3.7+
-              // coming soon
-        #endif*/
+void ispc::LinkCommonBuiltins(SymbolTable *symbolTable, llvm::Module *module) {
+    const BitcodeLib *builtins = g->target_registry->getBuiltinsCLib(g->target_os, g->target->getArch());
+    Assert(builtins);
+    llvm::Module *builtinsBCModule = builtins->getLLVMModule();
+
+    llvm::StringMap<int> commonBuiltins;
+    for (llvm::Function &F : builtinsBCModule->functions()) {
+        commonBuiltins[F.getName()] = 1;
     }
-}
-
-static void lDefineConstantIntFunc(const char *name, int val, llvm::Module *module, SymbolTable *symbolTable,
-                                   std::vector<llvm::Constant *> &dbg_sym) {
-    llvm::SmallVector<const Type *, 8> args;
-    FunctionType *ft = new FunctionType(AtomicType::UniformInt32, args, SourcePos());
-    Symbol *sym = new Symbol(name, SourcePos(), ft, SC_STATIC);
-
-    llvm::Function *func = module->getFunction(name);
-    dbg_sym.push_back(func);
-    Assert(func != nullptr); // it should be declared already...
-    func->addFnAttr(llvm::Attribute::AlwaysInline);
-    llvm::BasicBlock *bblock = llvm::BasicBlock::Create(*g->ctx, "entry", func, 0);
-    llvm::ReturnInst::Create(*g->ctx, LLVMInt32(val), bblock);
-
-    sym->function = func;
-    symbolTable->AddVariable(sym);
-}
-
-static void lDefineProgramIndex(llvm::Module *module, SymbolTable *symbolTable,
-                                std::vector<llvm::Constant *> &dbg_sym) {
-    Symbol *sym = new Symbol("programIndex", SourcePos(), AtomicType::VaryingInt32->GetAsConstType(), SC_STATIC);
-
-    int pi[ISPC_MAX_NVEC];
-    for (int i = 0; i < g->target->getVectorWidth(); ++i)
-        pi[i] = i;
-    sym->constValue = new ConstExpr(sym->type, pi, SourcePos());
-
-    llvm::Type *ltype = LLVMTypes::Int32VectorType;
-    llvm::Constant *linit = LLVMInt32Vector(pi);
-
-    auto GV =
-        new llvm::GlobalVariable(*module, ltype, true, llvm::GlobalValue::InternalLinkage, linit, sym->name.c_str());
-    dbg_sym.push_back(GV);
-    sym->storageInfo = new AddressInfo(GV, GV->getValueType());
-    symbolTable->AddVariable(sym);
-
-    if (m->diBuilder != nullptr) {
-        llvm::DIFile *file = m->diCompileUnit->getFile();
-        llvm::DICompileUnit *cu = m->diCompileUnit;
-        llvm::DIType *diType = sym->type->GetDIType(file);
-        llvm::GlobalVariable *sym_GV_storagePtr = llvm::dyn_cast<llvm::GlobalVariable>(sym->storageInfo->getPointer());
-        Assert(sym_GV_storagePtr);
-        llvm::DIGlobalVariableExpression *var = m->diBuilder->createGlobalVariableExpression(
-            cu, sym->name.c_str(), sym->name.c_str(), file, 0 /* line */, diType, false /* static */);
-        sym_GV_storagePtr->addDebugInfo(var);
-        /*#if ISPC_LLVM_VERSION <= ISPC_LLVM_3_6
-                Assert(var.Verify());
-        #else // LLVM 3.7+
-              // coming soon
-        #endif*/
-    }
-}
-
-static void emitLLVMUsed(llvm::Module &module, std::vector<llvm::Constant *> &list) {
-    // Convert list to what ConstantArray needs.
-    llvm::SmallVector<llvm::Constant *, 8> UsedArray;
-    UsedArray.reserve(list.size());
-    for (auto c : list) {
-        UsedArray.push_back(llvm::ConstantExpr::getPointerBitCastOrAddrSpaceCast(llvm::cast<llvm::Constant>(c),
-                                                                                 LLVMTypes::Int8PointerType));
-    }
-
-    llvm::ArrayType *ATy = llvm::ArrayType::get(LLVMTypes::Int8PointerType, UsedArray.size());
-
-    auto *GV = new llvm::GlobalVariable(module, ATy, false, llvm::GlobalValue::AppendingLinkage,
-                                        llvm::ConstantArray::get(ATy, UsedArray), "llvm.used");
-
-    GV->setSection("llvm.metadata");
-}
-
-void ispc::DefineStdlib(SymbolTable *symbolTable, llvm::LLVMContext *ctx, llvm::Module *module,
-                        bool includeStdlibISPC) {
-    // debug_symbols are symbols that supposed to be preserved in debug information.
-    // They will be referenced in llvm.used intrinsic to prevent they removal from
-    // the object file.
-    std::vector<llvm::Constant *> debug_symbols;
 
     // Unlike regular builtins and dispatch module, which don't care about mangling of external functions,
     // so they only differentiate Windows/Unix and 32/64 bit, builtins-c need to take care about mangling.
     // Hence, different version for all potentially supported OSes.
-    const BitcodeLib *builtins = g->target_registry->getBuiltinsCLib(g->target_os, g->target->getArch());
-    Assert(builtins);
-    AddBitcodeToModule(builtins, module, symbolTable);
+    AddBitcodeToModule(builtinsBCModule, module);
+    lSetAsInternal(module, commonBuiltins);
+}
 
-    // Next, add the target's custom implementations of the various needed
-    // builtin functions (e.g. __masked_store_32(), etc).
+void ispc::LinkTargetBuiltins(SymbolTable *symbolTable, llvm::Module *module) {
     const BitcodeLib *target =
         g->target_registry->getISPCTargetLib(g->target->getISPCTarget(), g->target_os, g->target->getArch());
     Assert(target);
-    AddBitcodeToModule(target, module, symbolTable);
+    llvm::Module *targetBCModule = target->getLLVMModule();
 
-    // define the 'programCount' builtin variable
-    lDefineConstantInt("programCount", g->target->getVectorWidth(), module, symbolTable, debug_symbols);
-
-    // define the 'programIndex' builtin
-    lDefineProgramIndex(module, symbolTable, debug_symbols);
-
-    // Define __math_lib stuff.  This is used by stdlib.ispc, for example, to
-    // figure out which math routines to end up calling...
-    lDefineConstantInt("__math_lib", (int)g->mathLib, module, symbolTable, debug_symbols);
-    lDefineConstantInt("__math_lib_ispc", (int)Globals::MathLib::Math_ISPC, module, symbolTable, debug_symbols);
-    lDefineConstantInt("__math_lib_ispc_fast", (int)Globals::MathLib::Math_ISPCFast, module, symbolTable,
-                       debug_symbols);
-    lDefineConstantInt("__math_lib_svml", (int)Globals::MathLib::Math_SVML, module, symbolTable, debug_symbols);
-    lDefineConstantInt("__math_lib_system", (int)Globals::MathLib::Math_System, module, symbolTable, debug_symbols);
-    lDefineConstantIntFunc("__fast_masked_vload", (int)g->opt.fastMaskedVload, module, symbolTable, debug_symbols);
-
-    lDefineConstantInt("__have_native_half_converts", g->target->hasHalfConverts(), module, symbolTable, debug_symbols);
-    lDefineConstantInt("__have_native_half_full_support", g->target->hasHalfFullSupport(), module, symbolTable,
-                       debug_symbols);
-    lDefineConstantInt("__have_native_rand", g->target->hasRand(), module, symbolTable, debug_symbols);
-    lDefineConstantInt("__have_native_transcendentals", g->target->hasTranscendentals(), module, symbolTable,
-                       debug_symbols);
-    lDefineConstantInt("__have_native_trigonometry", g->target->hasTrigonometry(), module, symbolTable, debug_symbols);
-    lDefineConstantInt("__have_native_rsqrtd", g->target->hasRsqrtd(), module, symbolTable, debug_symbols);
-    lDefineConstantInt("__have_native_rcpd", g->target->hasRcpd(), module, symbolTable, debug_symbols);
-    lDefineConstantInt("__have_saturating_arithmetic", g->target->hasSatArith(), module, symbolTable, debug_symbols);
-#ifdef ISPC_XE_ENABLED
-    lDefineConstantInt("__have_xe_prefetch", g->target->hasXePrefetch(), module, symbolTable, debug_symbols);
-#else
-    lDefineConstantInt("__have_xe_prefetch", false, module, symbolTable, debug_symbols);
-#endif
-    lDefineConstantInt("__is_xe_target", (int)(g->target->isXeTarget()), module, symbolTable, debug_symbols);
-
-    if (g->forceAlignment != -1) {
-        llvm::GlobalVariable *alignment = module->getGlobalVariable("memory_alignment", true);
-        alignment->setInitializer(LLVMInt32(g->forceAlignment));
-    }
-
-    // IGC cannot deal with global references, so to keep debug capabilities
-    // on Xe target, ISPC should not generate any global relocations.
-    // When llvm.used is not generated, all previously defined global debug contants will be eliminated,
-    // so there will not be any global relocations passed to IGC.
-    if (!g->target->isXeTarget() && g->generateDebuggingSymbols) {
-        emitLLVMUsed(*module, debug_symbols);
-    }
-
-    if (includeStdlibISPC) {
-        // If the user wants the standard library to be included, parse the
-        // serialized version of the stdlib.ispc file to get its
-        // definitions added.
-        extern const char stdlib_mask1_code[], stdlib_mask8_code[];
-        extern const char stdlib_mask16_code[], stdlib_mask32_code[], stdlib_mask64_code[];
-        YY_BUFFER_STATE strbuf;
-        switch (g->target->getMaskBitCount()) {
-        case 1:
-            strbuf = yy_scan_string(stdlib_mask1_code);
-            break;
-        case 8:
-            strbuf = yy_scan_string(stdlib_mask8_code);
-            break;
-        case 16:
-            strbuf = yy_scan_string(stdlib_mask16_code);
-            break;
-        case 32:
-            strbuf = yy_scan_string(stdlib_mask32_code);
-            break;
-        case 64:
-            strbuf = yy_scan_string(stdlib_mask64_code);
-            break;
-        default:
-            FATAL("Unhandled mask bit size for stdlib.ispc");
+    llvm::StringMap<int> targetBuiltins;
+    for (llvm::Function &F : targetBCModule->functions()) {
+        if (!F.getName().startswith("llvm") && !F.getName().startswith("__gather") && !F.getName().startswith("__scatter") && !F.getName().startswith("__prefetch") && !F.getName().startswith("__pseudo") && !F.getName().startswith("__keep_func") && !F.getName().startswith("__masked_load") && !F.getName().startswith("__masked_store")) {
+            targetBuiltins[F.getName()] = 1;
+            // printf("%s\n", F.getName().str().c_str());
         }
-        yyparse();
-        yy_delete_buffer(strbuf);
     }
+
+    // TODO! it is to suppress warning about mismatch datalayout
+    targetBCModule->setDataLayout(g->target->getDataLayout()->getStringRepresentation());
+
+    // Next, add the target's custom implementations of the various needed
+    // builtin functions (e.g. __masked_store_32(), etc).
+    AddBitcodeToModule(targetBCModule, module);
+
+    AddModuleSymbols(module, symbolTable);
+    // lSetInternalFunctions(module);
+    lSetAsInternal(module, targetBuiltins);
+}
+
+void ispc::LinkStdlib(SymbolTable *symbolTable, llvm::Module *module) {
+    const BitcodeLib *stdlib =
+        g->target_registry->getISPCStdLib(g->target->getISPCTarget(), g->target_os, g->target->getArch());
+    Assert(stdlib);
+    llvm::Module *stdlibBCModule = stdlib->getLLVMModule();
+
+    if (!g->singleTargetCompilation) {
+        for (llvm::Function &F : stdlibBCModule->functions()) {
+            if (!F.isDeclaration() && !F.getName().startswith("llvm")) {
+                F.setName(F.getName() + "_" + g->target->GetISAString());
+            }
+        }
+    }
+
+    llvm::StringMap<int> stdlibFunctions;
+    for (llvm::Function &F : stdlibBCModule->functions()) {
+        stdlibFunctions[F.getName()] = 1;
+    }
+
+    removeUnused(module);
+
+    // TODO! add dump/debug functionality
+    AddBitcodeToModule(stdlibBCModule, module);
+    lSetAsInternal(module, stdlibFunctions);
 }

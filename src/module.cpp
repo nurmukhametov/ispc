@@ -210,6 +210,171 @@ static void lSetCodeModel(llvm::Module *module) {
     }
 }
 
+/** In many of the builtins-*.ll files, we have declarations of various LLVM
+    intrinsics that are then used in the implementation of various target-
+    specific functions.  This function loops over all of the intrinsic
+    declarations and makes sure that the signature we have in our .ll file
+    matches the signature of the actual intrinsic.
+*/
+static void lCheckModuleIntrinsics(llvm::Module *module) {
+    llvm::Module::iterator iter;
+    for (iter = module->begin(); iter != module->end(); ++iter) {
+        llvm::Function *func = &*iter;
+        if (!func->isIntrinsic())
+            continue;
+
+        const std::string funcName = func->getName().str();
+        const std::string llvm_x86 = "llvm.x86.";
+        // Work around http://llvm.org/bugs/show_bug.cgi?id=10438; only
+        // check the llvm.x86.* intrinsics for now...
+        if (funcName.length() >= llvm_x86.length() && !funcName.compare(0, llvm_x86.length(), llvm_x86)) {
+            llvm::Intrinsic::ID id = (llvm::Intrinsic::ID)func->getIntrinsicID();
+            if (id == 0) {
+                std::string error_message = "Intrinsic is not found: ";
+                error_message += funcName;
+                FATAL(error_message.c_str());
+            }
+            llvm::Type *intrinsicType = llvm::Intrinsic::getType(*g->ctx, id);
+            intrinsicType = llvm::PointerType::get(intrinsicType, 0);
+            Assert(func->getType() == intrinsicType);
+        }
+    }
+}
+
+static void lDefineConstantIntFunc(const char *name, int val, llvm::Module *module, SymbolTable *symbolTable,
+                                   std::vector<llvm::Constant *> &dbg_sym) {
+    llvm::SmallVector<const Type *, 8> args;
+    FunctionType *ft = new FunctionType(AtomicType::UniformInt32, args, SourcePos());
+    Symbol *sym = new Symbol(name, SourcePos(), ft, SC_STATIC);
+
+    llvm::Function *func = module->getFunction(name);
+    dbg_sym.push_back(func);
+    Assert(func != nullptr); // it should be declared already...
+    func->addFnAttr(llvm::Attribute::AlwaysInline);
+    llvm::BasicBlock *bblock = llvm::BasicBlock::Create(*g->ctx, "entry", func, 0);
+    llvm::ReturnInst::Create(*g->ctx, LLVMInt32(val), bblock);
+
+    sym->function = func;
+    symbolTable->AddVariable(sym);
+}
+
+/** Utility routine that defines a constant int32 with given value, adding
+    the symbol to both the ispc symbol table and the given LLVM module.
+ */
+static void lDefineConstantInt(const char *name, int val, llvm::Module *module, SymbolTable *symbolTable,
+                               std::vector<llvm::Constant *> &dbg_sym) {
+    Symbol *sym = new Symbol(name, SourcePos(), AtomicType::UniformInt32->GetAsConstType(), SC_STATIC);
+    sym->constValue = new ConstExpr(sym->type, val, SourcePos());
+    llvm::Type *ltype = LLVMTypes::Int32Type;
+    llvm::Constant *linit = LLVMInt32(val);
+    auto GV = new llvm::GlobalVariable(*module, ltype, true, llvm::GlobalValue::InternalLinkage, linit, name);
+    dbg_sym.push_back(GV);
+    sym->storageInfo = new AddressInfo(GV, GV->getValueType());
+    symbolTable->AddVariable(sym);
+
+    if (m->diBuilder != nullptr) {
+        llvm::DIFile *file = m->diCompileUnit->getFile();
+        llvm::DICompileUnit *cu = m->diCompileUnit;
+        llvm::DIType *diType = sym->type->GetDIType(file);
+        // FIXME? DWARF says that this (and programIndex below) should
+        // have the DW_AT_artifical attribute.  It's not clear if this
+        // matters for anything though.
+        llvm::GlobalVariable *sym_GV_storagePtr = llvm::dyn_cast<llvm::GlobalVariable>(sym->storageInfo->getPointer());
+        Assert(sym_GV_storagePtr);
+        llvm::DIGlobalVariableExpression *var =
+            m->diBuilder->createGlobalVariableExpression(cu, name, name, file, 0 /* line */, diType, true /* static */);
+        sym_GV_storagePtr->addDebugInfo(var);
+    }
+}
+
+static void lEmitLLVMUsed_1(llvm::Module &module, std::vector<llvm::Constant *> &list) {
+    // Convert list to what ConstantArray needs.
+    llvm::SmallVector<llvm::Constant *, 8> UsedArray;
+    UsedArray.reserve(list.size());
+    for (auto c : list) {
+        UsedArray.push_back(llvm::ConstantExpr::getPointerBitCastOrAddrSpaceCast(llvm::cast<llvm::Constant>(c),
+                                                                                 LLVMTypes::Int8PointerType));
+    }
+
+    llvm::ArrayType *ATy = llvm::ArrayType::get(LLVMTypes::Int8PointerType, UsedArray.size());
+
+    auto *GV = new llvm::GlobalVariable(module, ATy, false, llvm::GlobalValue::AppendingLinkage,
+                                        llvm::ConstantArray::get(ATy, UsedArray), "llvm.used");
+
+    GV->setSection("llvm.metadata");
+}
+
+static void lEmitLLVMUsed(llvm::Module *module, std::vector<llvm::Constant *> &list) {
+    // IGC cannot deal with global references, so to keep debug capabilities
+    // on Xe target, ISPC should not generate any global relocations.
+    // When llvm.used is not generated, all previously defined global debug contants will be eliminated,
+    // so there will not be any global relocations passed to IGC.
+    if (!g->target->isXeTarget() && g->generateDebuggingSymbols) {
+        lEmitLLVMUsed_1(*module, list);
+    }
+}
+
+void lDefineConstants(llvm::Module *module, SymbolTable *symbolTable) {
+    // TODO! define them in stdlib.isph with value set by preprocessor with g-> vars.
+
+    // debug_symbols are symbols that supposed to be preserved in debug information.
+    // They will be referenced in llvm.used intrinsic to prevent they removal from
+    // the object file.
+    std::vector<llvm::Constant *> debug_symbols;
+
+    // Define __math_lib stuff.  This is used by stdlib.ispc, for example, to
+    // figure out which math routines to end up calling...
+    lDefineConstantInt("__math_lib", (int)g->mathLib, module, symbolTable, debug_symbols);
+    lDefineConstantInt("__math_lib_ispc", (int)Globals::MathLib::Math_ISPC, module, symbolTable, debug_symbols);
+    lDefineConstantInt("__math_lib_ispc_fast", (int)Globals::MathLib::Math_ISPCFast, module, symbolTable,
+                       debug_symbols);
+    lDefineConstantInt("__math_lib_svml", (int)Globals::MathLib::Math_SVML, module, symbolTable, debug_symbols);
+    lDefineConstantInt("__math_lib_system", (int)Globals::MathLib::Math_System, module, symbolTable, debug_symbols);
+
+    lDefineConstantInt("__have_native_half_converts", g->target->hasHalfConverts(), module, symbolTable, debug_symbols);
+    lDefineConstantInt("__have_native_half_full_support", g->target->hasHalfFullSupport(), module, symbolTable,
+                       debug_symbols);
+    lDefineConstantInt("__have_native_rand", g->target->hasRand(), module, symbolTable, debug_symbols);
+    lDefineConstantInt("__have_native_transcendentals", g->target->hasTranscendentals(), module, symbolTable,
+                       debug_symbols);
+    lDefineConstantInt("__have_native_trigonometry", g->target->hasTrigonometry(), module, symbolTable, debug_symbols);
+    lDefineConstantInt("__have_native_rsqrtd", g->target->hasRsqrtd(), module, symbolTable, debug_symbols);
+    lDefineConstantInt("__have_native_rcpd", g->target->hasRcpd(), module, symbolTable, debug_symbols);
+    lDefineConstantInt("__have_saturating_arithmetic", g->target->hasSatArith(), module, symbolTable, debug_symbols);
+#ifdef ISPC_XE_ENABLED
+    lDefineConstantInt("__have_xe_prefetch", g->target->hasXePrefetch(), module, symbolTable, debug_symbols);
+#else
+    lDefineConstantInt("__have_xe_prefetch", false, module, symbolTable, debug_symbols);
+#endif
+    lDefineConstantInt("__is_xe_target", (int)(g->target->isXeTarget()), module, symbolTable, debug_symbols);
+
+    lEmitLLVMUsed(module, debug_symbols);
+}
+
+void lDefineConstantFunc(llvm::Module *module, SymbolTable *symbolTable) {
+    std::vector<llvm::Constant *> debug_symbols;
+    std::string fastMaskedLoadName = "__fast_masked_vload";
+
+    lDefineConstantIntFunc(fastMaskedLoadName.c_str(), (int)g->opt.fastMaskedVload, module, symbolTable, debug_symbols);
+    lEmitLLVMUsed(module, debug_symbols);
+}
+
+void lDefineBuiltinDeclarations(SymbolTable *symbolTable, llvm::Module *module) {
+    const BitcodeLib *target =
+        g->target_registry->getISPCTargetLib(g->target->getISPCTarget(), g->target_os, g->target->getArch());
+    Assert(target);
+    llvm::Module *targetBCModule = target->getLLVMModule();
+    AddDeclarationsToModule(targetBCModule, module);
+
+    // TODO!
+    const BitcodeLib *builtins = g->target_registry->getBuiltinsCLib(g->target_os, g->target->getArch());
+    Assert(builtins);
+    llvm::Module *builtinsBCModule = builtins->getLLVMModule();
+    AddDeclarationsToModule(builtinsBCModule, module);
+
+    AddModuleSymbols(module, symbolTable);
+}
+
 ///////////////////////////////////////////////////////////////////////////
 // Module
 
@@ -314,14 +479,23 @@ int Module::CompileFile() {
         "CompileFile", llvm::StringRef(filename + ("_" + std::string(g->target->GetISAString()))));
     ParserInit();
 
-    // FIXME: it'd be nice to do this in the Module constructor, but this
-    // function ends up calling into routines that expect the global
-    // variable 'm' to be initialized and available (which it isn't until
-    // the Module constructor returns...)
-    {
-        llvm::TimeTraceScope TimeScope("DefineStdlib");
-        DefineStdlib(symbolTable, g->ctx, module, g->includeStdlib);
+    debugDumpModule(module, "construct_0_Empty.ll");
+
+    lDefineConstants(module, symbolTable);
+
+    if (g->forceAlignment != -1) {
+        llvm::GlobalVariable *alignment = module->getGlobalVariable("memory_alignment", true);
+        alignment->setInitializer(LLVMInt32(g->forceAlignment));
     }
+
+    debugDumpModule(module, "construct_1_DefineConstants.ll");
+
+    {
+        llvm::TimeTraceScope TimeScope("DefineBuiltinsDeclarations");
+        lDefineBuiltinDeclarations(symbolTable, module);
+    }
+
+    debugDumpModule(module, "construct_2_DefineBuiltinsDeclarations.ll");
 
     bool runPreprocessor = g->runCPP;
 
@@ -386,11 +560,37 @@ int Module::CompileFile() {
         g->target->markFuncWithTargetAttr(&f);
     ast->GenerateIR();
 
+    debugDumpModule(module, "construct_3_GenerateIR.ll");
+
+    if (!g->genStdlib) {
+        llvm::TimeTraceScope TimeScope("DefineStdlib");
+        if (g->includeStdlib) {
+            LinkStdlib(symbolTable, module);
+            debugDumpModule(module, "construct_4_LinkStdlib.ll");
+        }
+        LinkCommonBuiltins(symbolTable, module);
+        debugDumpModule(module, "construct_5_LinkCommonBuiltins.ll");
+
+        LinkTargetBuiltins(symbolTable, module);
+        debugDumpModule(module, "construct_6_LinkTargetBuiltins.ll");
+
+        lDefineConstantFunc(module, symbolTable);
+        lCheckModuleIntrinsics(module);
+    }
+
+    for (llvm::Function &f : *module)
+        g->target->markFuncWithTargetAttr(&f);
+
     if (diBuilder)
         diBuilder->finalize();
-    llvm::TimeTraceScope TimeScope("Optimize");
-    if (errorCount == 0)
-        Optimize(module, g->opt.level);
+
+    // Skip optimization for stdlib. We need to consider shipping optimized
+    // stdlibs library but at the moment it is not so.
+    if (!g->genStdlib) {
+        llvm::TimeTraceScope TimeScope("Optimize");
+        if (errorCount == 0)
+            Optimize(module, g->opt.level);
+    }
 
     return errorCount;
 }
@@ -2867,6 +3067,8 @@ static void lInitializePreprocessor(clang::Preprocessor &PP, const clang::Prepro
             lDefineBuiltinMacro(Builder, InitOpts.Macros[i].first, PP.getDiagnostics());
     }
 
+    Builder.append(llvm::Twine("#include \"stdlib.isph\""));
+
     // Copy PredefinedBuffer into the Preprocessor.
     PP.setPredefines(std::move(PredefineBuffer));
 }
@@ -2895,6 +3097,10 @@ static void lSetPreprocessorOptions(const std::shared_ptr<clang::PreprocessorOpt
     opts->addMacroDef("ISPC");
     opts->addMacroDef("PI=3.1415926535");
 
+    if (g->includeStdlib) {
+        opts->addMacroDef("ISPC_INCLUDE_STDLIB");
+    }
+
     if (g->enableLLVMIntrinsics) {
         opts->addMacroDef("ISPC_LLVM_INTRINSICS_ENABLED");
     }
@@ -2922,6 +3128,10 @@ static void lSetPreprocessorOptions(const std::shared_ptr<clang::PreprocessorOpt
     opts->addMacroDef(TARGET_ELEMENT_WIDTH);
 
     opts->addMacroDef(targetMacro);
+
+    // Define mask bits
+    std::string ispc_mask_bits = "ISPC_MASK_BITS=" + std::to_string(g->target->getMaskBitCount());
+    opts->addMacroDef(ispc_mask_bits);
 
     if (g->target->is32Bit())
         opts->addMacroDef("ISPC_POINTER_SIZE=32");
@@ -3288,10 +3498,10 @@ static llvm::Module *lInitDispatchModule() {
     // DataLayout information supposed to be managed in single place in Target class.
     module->setDataLayout(g->target->getDataLayout()->getStringRepresentation());
 
-    // First, link in the definitions from the builtins-dispatch.ll file.
-    const BitcodeLib *dispatch = g->target_registry->getDispatchLib(g->target_os);
-    Assert(dispatch);
-    AddBitcodeToModule(dispatch, module);
+    if (!g->genStdlib) {
+        // First, link in the definitions from the builtins-dispatch.ll file.
+        LinkDispatcher(module);
+    }
 
     lSetCodeModel(module);
 
@@ -3422,6 +3632,8 @@ int Module::CompileAndOutput(const char *srcFile, Arch arch, const char *cpu, st
         if (!g->target->isValid())
             return 1;
 
+        g->singleTargetCompilation = true;
+
         m = new Module(srcFile);
         const int compileResult = m->CompileFile();
 
@@ -3513,6 +3725,7 @@ int Module::CompileAndOutput(const char *srcFile, Arch arch, const char *cpu, st
         // Make sure that the function names for 'export'ed functions have
         // the target ISA appended to them.
         g->mangleFunctionsWithTarget = true;
+        g->singleTargetCompilation = false;
 
         // Array initialized with all false
         bool compiledTargets[Target::NUM_ISAS] = {};

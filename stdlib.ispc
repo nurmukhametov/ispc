@@ -1,6 +1,6 @@
 // -*- mode: c++ -*-
 /*
-  Copyright (c) 2010-2023, Intel Corporation
+  Copyright (c) 2010-2024, Intel Corporation
 
   SPDX-License-Identifier: BSD-3-Clause
 */
@@ -10,6 +10,8 @@
     @brief Portion of the ispc standard library implementation that's in
            ispc code
 */
+
+// TODO! include stdlib.isph explicitly
 
 #if (ISPC_MASK_BITS == 1)
 #define IntMaskType bool
@@ -30,7 +32,6 @@
 #error Unknown value of ISPC_MASK_BITS
 #endif
 
-typedef uniform int8 *uniform opaque_ptr_t;
 ///////////////////////////////////////////////////////////////////////////
 /* Limits of integral types. */
 #ifndef INT8_MAX
