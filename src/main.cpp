@@ -27,6 +27,7 @@
 #include <llvm/Support/CommandLine.h>
 #include <llvm/Support/Debug.h>
 #include <llvm/Support/FileSystem.h>
+#include <llvm/Support/Path.h>
 #include <llvm/Support/Signals.h>
 #if ISPC_LLVM_VERSION >= ISPC_LLVM_14_0
 #include <llvm/MC/TargetRegistry.h>
@@ -211,6 +212,7 @@ static void lPrintVersion() {
     printf("    [--[no-]discard-value-names]\tDo not discard/Discard value names when generating LLVM IR\n");
     printf("    [--dump-file[=<path>]]\t\tDump module IR to file(s) in "
            "current directory, or to <path> if specified\n");
+    printf("    [--gen-stdlib]\t\tEnable special compilation mode to generate LLVM IR for stdlib.ispc.");
     printf("    [--fuzz-seed=<value>]\t\tSeed value for RNG for fuzz testing\n");
     printf("    [--fuzz-test]\t\t\tRandomly perturb program input to test error conditions\n");
     printf("    [--off-phase=<value>]\t\tSwitch off optimization phases. --off-phase=first,210:220,300,305,310:last\n");
@@ -1060,7 +1062,9 @@ int main(int Argc, char *Argv[]) {
         } else if (strncmp(argv[i], "--dump-file", 11) == 0) {
             g->dumpFile = true;
         }
-
+        else if(strncmp(argv[i], "--gen-stdlib", 12) == 0) {
+            g->genStdlib = true;
+        }
         else if (strncmp(argv[i], "--off-phase=", 12) == 0) {
             g->off_stages = ParsingPhases(argv[i] + strlen("--off-phase="), errorHandler);
 #ifdef ISPC_XE_ENABLED
@@ -1086,6 +1090,16 @@ int main(int Argc, char *Argv[]) {
             }
         }
     }
+
+    std::string ISPCExecutableAbsPath = llvm::sys::fs::getMainExecutable(argv[0], (void *)(intptr_t)main);
+    llvm::SmallString<128> includeDir(ISPCExecutableAbsPath);
+    llvm::sys::path::remove_filename(includeDir);
+    llvm::sys::path::remove_filename(includeDir);
+    llvm::SmallString<128> shareDir(includeDir);
+    llvm::sys::path::append(includeDir, "include");
+    lParseInclude(includeDir.c_str());
+    llvm::sys::path::append(shareDir, "share", "ispc");
+    g->shareDirPath = shareDir.str();
 
     // Emit accumulted errors and warnings, if any.
     // All the rest of errors and warnigns will be processed in regullar way.

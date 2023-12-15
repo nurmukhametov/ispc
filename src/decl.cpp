@@ -258,6 +258,12 @@ void Declarator::Print() const {
 void Declarator::Print(Indent &indent) const {
     indent.Print("Declarator", pos);
 
+    if (type) {
+        printf("[type: %s] ", type->GetString().c_str());
+    } else {
+        printf("[type: none] ");
+    }
+
     printf("[");
     lPrintTypeQualifiers(typeQualifiers);
     printf("%s ", lGetStorageClassName(storageClass));

@@ -1,5 +1,5 @@
 #
-#  Copyright (c) 2018-2023, Intel Corporation
+#  Copyright (c) 2018-2024, Intel Corporation
 #
 #  SPDX-License-Identifier: BSD-3-Clause
 
@@ -423,12 +423,20 @@ message(STATUS "ISPC opaque pointers mode is " ${ISPC_OPAQUE_PTR_MODE})
 get_llvm_libfiles(LLVM_LIBRARY_LIST ${LLVM_COMPONENTS})
 get_llvm_cppflags(LLVM_CPP_FLAGS)
 
-generate_target_builtins(BUILTIN_FILES ${ISPC_TARGETS})
-generate_common_builtins(BUILTIN_CPP_FILES)
-generate_stdlib(STDLIB_FILES ${ISPC_MASKS})
+set(TARGET_LIBS_FILE "${CMAKE_BINARY_DIR}/target_libs.cpp")
+set(BITCODE_FOLDER ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_CFG_INTDIR}/share/ispc)
+file(MAKE_DIRECTORY ${BITCODE_FOLDER})
 
-add_executable(${PROJECT_NAME} ${BUILTIN_FILES} ${BUILTIN_CPP_FILES}
-               ${STDLIB_FILES} ${BISON_CPP_OUTPUT} ${FLEX_OUTPUT}
+generate_target_builtins(TARGET_BUILTINS_FILES DISPATCH_FILES
+    TARGET_BUILTINS_BCLIB_INITIALIZER DISPATCH_BCLIB_INITIALIZER ${ISPC_TARGETS})
+generate_common_builtins(COMMON_BUILTINS_FILES COMMON_BUILTINS_BCLIB_INITIALIZER)
+
+add_executable(${PROJECT_NAME}
+               ${TARGET_LIBS_FILE}
+               ${DISPATCH_FILES}
+               ${COMMON_BUILTINS_FILES}
+               ${TARGET_BUILTINS_FILES}
+               ${BISON_CPP_OUTPUT} ${FLEX_OUTPUT}
                ${CMAKE_CURRENT_SOURCE_DIR}/stdlib.ispc
                ${CMAKE_CURRENT_SOURCE_DIR}/common/version.rc)
 
@@ -473,7 +481,13 @@ target_sources(${PROJECT_NAME}
         "src/parse.yy"
         "src/lex.ll"
         "common/version.h"
+        "src/target_libs.cpp.in"
 )
+
+create_stdlib_commands(STDLIB_BCLIB_INITIALIZER)
+
+message(STATUS "Configure target registry lists of bitcode libraries ${TARGET_LIBS_FILE}")
+configure_file("src/target_libs.cpp.in" ${TARGET_LIBS_FILE} @ONLY)
 
 # ISPC passes
 add_subdirectory(src/opt)
@@ -483,6 +497,11 @@ if (WIN32)
     set_source_files_properties("${CMAKE_CURRENT_SOURCE_DIR}/stdlib.ispc" PROPERTIES HEADER_FILE_ONLY TRUE)
     source_group("ISPC" FILES "${CMAKE_CURRENT_SOURCE_DIR}/stdlib.ispc")
 endif()
+
+add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+                   COMMAND ${CMAKE_COMMAND} -E copy
+                           ${CMAKE_SOURCE_DIR}/stdlib.isph
+                           $<TARGET_FILE_DIR:${PROJECT_NAME}>/../include/stdlib.isph)
 
 # Build definitions
 string(TIMESTAMP BUILD_DATE "%Y%m%d" UTC)
@@ -763,6 +782,10 @@ endif()
 
 # Install
 install (TARGETS ${PROJECT_NAME} DESTINATION bin)
+install(FILES stdlib.isph
+        DESTINATION ${CMAKE_INSTALL_PREFIX}/include)
+install(DIRECTORY ${BITCODE_FOLDER}
+        DESTINATION share)
 if (ISPC_PREPARE_PACKAGE)
     if (ISPC_PACKAGE_EXAMPLES)
         if (XE_ENABLED)

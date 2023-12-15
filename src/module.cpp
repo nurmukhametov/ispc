@@ -314,13 +314,15 @@ int Module::CompileFile() {
         "CompileFile", llvm::StringRef(filename + ("_" + std::string(g->target->GetISAString()))));
     ParserInit();
 
-    // FIXME: it'd be nice to do this in the Module constructor, but this
-    // function ends up calling into routines that expect the global
-    // variable 'm' to be initialized and available (which it isn't until
-    // the Module constructor returns...)
-    {
-        llvm::TimeTraceScope TimeScope("DefineStdlib");
-        DefineStdlib(symbolTable, g->ctx, module, g->includeStdlib);
+    if (g->genStdlib) {
+        // FIXME: it'd be nice to do this in the Module constructor, but this
+        // function ends up calling into routines that expect the global
+        // variable 'm' to be initialized and available (which it isn't until
+        // the Module constructor returns...)
+        {
+            llvm::TimeTraceScope TimeScope("DefineStdlib");
+            DefineStdlib(symbolTable, g->ctx, module, g->includeStdlib);
+        }
     }
 
     bool runPreprocessor = g->runCPP;
@@ -377,6 +379,15 @@ int Module::CompileFile() {
         fclose(f);
     }
 
+    if (!g->genStdlib) {
+        {
+            llvm::TimeTraceScope TimeScope("DefineStdlib");
+            g->genStdlib = true;
+            DefineStdlib(symbolTable, g->ctx, module, g->includeStdlib);
+            g->genStdlib = false;
+        }
+    }
+
     ast->Print(g->astDump);
 
     if (g->NoOmitFramePointer)
@@ -386,11 +397,22 @@ int Module::CompileFile() {
         g->target->markFuncWithTargetAttr(&f);
     ast->GenerateIR();
 
+    if (!g->genStdlib) {
+        {
+            llvm::TimeTraceScope TimeScope("DefineStdlib");
+            DefineStdlib(symbolTable, g->ctx, module, g->includeStdlib);
+        }
+    }
+    for (llvm::Function &f : *module)
+        g->target->markFuncWithTargetAttr(&f);
+
     if (diBuilder)
         diBuilder->finalize();
     llvm::TimeTraceScope TimeScope("Optimize");
-    if (errorCount == 0)
-        Optimize(module, g->opt.level);
+    if (!g->genStdlib) {
+        if (errorCount == 0)
+            Optimize(module, g->opt.level);
+    }
 
     return errorCount;
 }
@@ -2790,6 +2812,8 @@ static void lInitializePreprocessor(clang::Preprocessor &PP, const clang::Prepro
             lDefineBuiltinMacro(Builder, InitOpts.Macros[i].first, PP.getDiagnostics());
     }
 
+    Builder.append(llvm::Twine("#include \"stdlib.isph\""));
+
     // Copy PredefinedBuffer into the Preprocessor.
     PP.setPredefines(std::move(PredefineBuffer));
 }
@@ -2818,6 +2842,10 @@ static void lSetPreprocessorOptions(const std::shared_ptr<clang::PreprocessorOpt
     opts->addMacroDef("ISPC");
     opts->addMacroDef("PI=3.1415926535");
 
+    if (g->includeStdlib) {
+        opts->addMacroDef("ISPC_INCLUDE_STDLIB");
+    }
+
     if (g->enableLLVMIntrinsics) {
         opts->addMacroDef("ISPC_LLVM_INTRINSICS_ENABLED");
     }
@@ -2845,6 +2873,10 @@ static void lSetPreprocessorOptions(const std::shared_ptr<clang::PreprocessorOpt
     opts->addMacroDef(TARGET_ELEMENT_WIDTH);
 
     opts->addMacroDef(targetMacro);
+
+    // Define mask bits
+    std::string ispc_mask_bits = "ISPC_MASK_BITS=" + std::to_string(g->target->getMaskBitCount());
+    opts->addMacroDef(ispc_mask_bits);
 
     if (g->target->is32Bit())
         opts->addMacroDef("ISPC_POINTER_SIZE=32");
@@ -3211,10 +3243,14 @@ static llvm::Module *lInitDispatchModule() {
     // DataLayout information supposed to be managed in single place in Target class.
     module->setDataLayout(g->target->getDataLayout()->getStringRepresentation());
 
-    // First, link in the definitions from the builtins-dispatch.ll file.
-    const BitcodeLib *dispatch = g->target_registry->getDispatchLib(g->target_os);
-    Assert(dispatch);
-    AddBitcodeToModule(dispatch, module);
+    if (!g->genStdlib) {
+        // First, link in the definitions from the builtins-dispatch.ll file.
+        const BitcodeLib *dispatch = g->target_registry->getDispatchLib(g->target_os);
+        Assert(dispatch);
+        llvm::Module *dispatchBCModule = dispatch->getLLVMModule();
+        AddDeclarationsToModule(dispatchBCModule, module);
+        AddBitcodeToModule(dispatchBCModule, module);
+    }
 
     lSetCodeModel(module);
 
@@ -3345,6 +3381,9 @@ int Module::CompileAndOutput(const char *srcFile, Arch arch, const char *cpu, st
         if (!g->target->isValid())
             return 1;
 
+        g->singleTargetCompilation = true;
+        // g->mangleFunctionsWithTarget = true;
+
         m = new Module(srcFile);
         const int compileResult = m->CompileFile();
 
@@ -3436,6 +3475,7 @@ int Module::CompileAndOutput(const char *srcFile, Arch arch, const char *cpu, st
         // Make sure that the function names for 'export'ed functions have
         // the target ISA appended to them.
         g->mangleFunctionsWithTarget = true;
+        g->singleTargetCompilation = false;
 
         // Array initialized with all false
         bool compiledTargets[Target::NUM_ISAS] = {};
