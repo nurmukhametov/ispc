@@ -484,6 +484,11 @@ if (WIN32)
     source_group("ISPC" FILES "${CMAKE_CURRENT_SOURCE_DIR}/stdlib.ispc")
 endif()
 
+add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+                   COMMAND ${CMAKE_COMMAND} -E copy
+                           ${CMAKE_SOURCE_DIR}/stdlib.isph
+                           $<TARGET_FILE_DIR:${PROJECT_NAME}>/../include/stdlib.isph)
+
 # Build definitions
 string(TIMESTAMP BUILD_DATE "%Y%m%d")
 target_compile_definitions(${PROJECT_NAME} PRIVATE BUILD_DATE=\"${BUILD_DATE}\"
@@ -763,6 +768,8 @@ endif()
 
 # Install
 install (TARGETS ${PROJECT_NAME} DESTINATION bin)
+install(FILES stdlib.isph
+        DESTINATION ${CMAKE_INSTALL_PREFIX}/include)
 if (ISPC_PREPARE_PACKAGE)
     if (ISPC_PACKAGE_EXAMPLES)
         if (XE_ENABLED)

@@ -19,13 +19,15 @@
 #include <iterator>
 #include <stdio.h>
 
+#include <llvm/IR/Module.h>
+
 using namespace ispc;
 
 ///////////////////////////////////////////////////////////////////////////
 // Symbol
 
 Symbol::Symbol(const std::string &n, SourcePos p, const Type *t, StorageClass sc)
-    : pos(p), name(n), storageInfo(nullptr), function(nullptr), exportedFunction(nullptr), type(t), constValue(nullptr),
+    : pos(p), name(n), storageInfo(nullptr), bitcodeName(), function(nullptr), exportedFunction(nullptr), type(t), constValue(nullptr),
       storageClass(sc), varyingCFDepth(0), parentFunction(nullptr) {}
 
 ///////////////////////////////////////////////////////////////////////////
@@ -373,8 +375,14 @@ void SymbolTable::Print() {
     while (fiter != functions.end()) {
         fprintf(stderr, "%s\n", fiter->first.c_str());
         std::vector<Symbol *> &syms = fiter->second;
-        for (unsigned int j = 0; j < syms.size(); ++j)
+        for (unsigned int j = 0; j < syms.size(); ++j) {
             fprintf(stderr, "    %s\n", syms[j]->type->GetString().c_str());
+            //if (syms[j]->name.c_str())
+            //fprintf(stderr, "    %s\n", syms[j]->name.c_str());
+            //fprintf(stderr, "    %s->%p\n", syms[j]->name.c_str(), syms[j]->function);
+            //if (syms[j]->function && syms[j]->function->getName().data())
+            //fprintf(stderr, "    %s\n", syms[j]->function->getName().data());
+        }
         ++fiter;
     }
 
@@ -387,6 +395,29 @@ void SymbolTable::Print() {
         }
         fprintf(stderr, "\n");
         depth += 4;
+    }
+}
+
+void SymbolTable::UpdateBitcodeName() {
+    FunctionMapType::iterator fiter = functions.begin();
+    while (fiter != functions.end()) {
+        std::vector<Symbol *> &syms = fiter->second;
+        for (unsigned int j = 0; j < syms.size(); ++j) {
+            syms[j]->bitcodeName = syms[j]->function->getName().str();
+        }
+        ++fiter;
+    }
+}
+
+void SymbolTable::UpdatePointers(llvm::Module *module) {
+    FunctionMapType::iterator fiter = functions.begin();
+    while (fiter != functions.end()) {
+        std::vector<Symbol *> &syms = fiter->second;
+        for (unsigned int j = 0; j < syms.size(); ++j) {
+            syms[j]->function = module->getFunction(syms[j]->bitcodeName);
+            // TODO! exportedFunction
+        }
+        ++fiter;
     }
 }
 

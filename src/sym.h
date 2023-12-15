@@ -48,6 +48,7 @@ class Symbol : public Traceable {
                                    them (i.e. variables but not functions),
                                    this member stores an address info: pointer to
                                    its location in memory and its element type.) */
+    std::string bitcodeName;
     llvm::Function *function; /*!< For symbols that represent functions,
                                    this stores the LLVM Function value for
                                    the symbol once it has been created. */
@@ -290,6 +291,9 @@ class SymbolTable {
     /** Prints out the entire contents of the symbol table to standard error.
         (Debugging method). */
     void Print();
+
+    void UpdateBitcodeName();
+    void UpdatePointers(llvm::Module *module);
 
     /** Returns a random symbol from the symbol table. (It is not
         guaranteed that it is equally likely to return all symbols). */

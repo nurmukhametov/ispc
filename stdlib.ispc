@@ -30,7 +30,6 @@
 #error Unknown value of ISPC_MASK_BITS
 #endif
 
-typedef uniform int8 *uniform opaque_ptr_t;
 ///////////////////////////////////////////////////////////////////////////
 /* Limits of integral types. */
 #ifndef INT8_MAX

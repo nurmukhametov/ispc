@@ -314,15 +314,6 @@ int Module::CompileFile() {
         "CompileFile", llvm::StringRef(filename + ("_" + std::string(g->target->GetISAString()))));
     ParserInit();
 
-    // FIXME: it'd be nice to do this in the Module constructor, but this
-    // function ends up calling into routines that expect the global
-    // variable 'm' to be initialized and available (which it isn't until
-    // the Module constructor returns...)
-    {
-        llvm::TimeTraceScope TimeScope("DefineStdlib");
-        DefineStdlib(symbolTable, g->ctx, module, g->includeStdlib);
-    }
-
     bool runPreprocessor = g->runCPP;
 
     if (runPreprocessor) {
@@ -375,6 +366,15 @@ int Module::CompileFile() {
         yy_switch_to_buffer(yy_create_buffer(yyin, 4096));
         yyparse();
         fclose(f);
+    }
+
+    // FIXME: it'd be nice to do this in the Module constructor, but this
+    // function ends up calling into routines that expect the global
+    // variable 'm' to be initialized and available (which it isn't until
+    // the Module constructor returns...)
+    {
+        llvm::TimeTraceScope TimeScope("DefineStdlib");
+        DefineStdlib(symbolTable, g->ctx, module, g->includeStdlib);
     }
 
     ast->Print(g->astDump);
@@ -2755,6 +2755,8 @@ static void lInitializePreprocessor(clang::Preprocessor &PP, const clang::Prepro
             lDefineBuiltinMacro(Builder, InitOpts.Macros[i].first, PP.getDiagnostics());
     }
 
+    Builder.append(llvm::Twine("#include \"stdlib.isph\""));
+
     // Copy PredefinedBuffer into the Preprocessor.
     PP.setPredefines(std::move(PredefineBuffer));
 }
@@ -2783,6 +2785,10 @@ static void lSetPreprocessorOptions(const std::shared_ptr<clang::PreprocessorOpt
     opts->addMacroDef("ISPC");
     opts->addMacroDef("PI=3.1415926535");
 
+    if (g->includeStdlib) {
+        opts->addMacroDef("ISPC_INCLUDE_STDLIB");
+    }
+
     if (g->enableLLVMIntrinsics) {
         opts->addMacroDef("ISPC_LLVM_INTRINSICS_ENABLED");
     }
@@ -2810,6 +2816,10 @@ static void lSetPreprocessorOptions(const std::shared_ptr<clang::PreprocessorOpt
     opts->addMacroDef(TARGET_ELEMENT_WIDTH);
 
     opts->addMacroDef(targetMacro);
+
+    // Define mask bits
+    std::string ispc_mask_bits = "ISPC_MASK_BITS=" + std::to_string(g->target->getMaskBitCount());
+    opts->addMacroDef(ispc_mask_bits);
 
     if (g->target->is32Bit())
         opts->addMacroDef("ISPC_POINTER_SIZE=32");
@@ -3179,7 +3189,8 @@ static llvm::Module *lInitDispatchModule() {
     // First, link in the definitions from the builtins-dispatch.ll file.
     const BitcodeLib *dispatch = g->target_registry->getDispatchLib(g->target_os);
     Assert(dispatch);
-    AddBitcodeToModule(dispatch, module);
+    llvm::Module *dispatchBCModule = AddDeclarationsToModule(dispatch, module);
+    AddBitcodeToModule(dispatchBCModule, module);
 
     lSetCodeModel(module);
 

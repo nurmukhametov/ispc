@@ -27,6 +27,7 @@
 #include <llvm/Support/CommandLine.h>
 #include <llvm/Support/Debug.h>
 #include <llvm/Support/FileSystem.h>
+#include <llvm/Support/Path.h>
 #include <llvm/Support/Signals.h>
 #if ISPC_LLVM_VERSION >= ISPC_LLVM_14_0
 #include <llvm/MC/TargetRegistry.h>
@@ -1086,6 +1087,14 @@ int main(int Argc, char *Argv[]) {
             }
         }
     }
+
+    // TODO! nostdlib
+    std::string ISPCExecutableAbsPath = llvm::sys::fs::getMainExecutable(argv[0], (void *)(intptr_t)main);
+    llvm::SmallString<128> includeDir(ISPCExecutableAbsPath);
+    llvm::sys::path::remove_filename(includeDir);
+    llvm::sys::path::remove_filename(includeDir);
+    llvm::sys::path::append(includeDir, "include");
+    lParseInclude(includeDir.c_str());
 
     // Emit accumulted errors and warnings, if any.
     // All the rest of errors and warnigns will be processed in regullar way.
