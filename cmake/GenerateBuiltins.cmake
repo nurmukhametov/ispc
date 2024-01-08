@@ -58,14 +58,14 @@ function(target_ll_to_cpp llFileName bit os_name resultFileName)
         return()
     endif()
 
-    set(output ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_CFG_INTDIR}/builtins-${llFileName}-${bit}bit-${os_name}.cpp)
+    set(output ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_CFG_INTDIR}/share/ispc/builtins-${llFileName}-${bit}bit-${os_name}.bc)
+    file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_CFG_INTDIR}/share/ispc)
     add_custom_command(
         OUTPUT ${output}
         COMMAND ${M4_EXECUTABLE} -I${includePath}
             -DLLVM_VERSION=${LLVM_VERSION} -DBUILD_OS=${os_name_macro} -DRUNTIME=${bit} ${inputFilePath}
-            | \"${Python3_EXECUTABLE}\" bitcode2cpp.py ${inputFilePath} --type=ispc-target --runtime=${bit} --os=${os_name_macro} --llvm_as ${LLVM_AS_EXECUTABLE} --opaque_flags="${LLVM_TOOLS_OPAQUE_FLAGS}"
-            > ${output}
-        DEPENDS ${inputFilePath} bitcode2cpp.py ${M4_IMPLICIT_DEPENDENCIES}
+            | ${LLVM_AS_EXECUTABLE} ${LLVM_TOOLS_OPAQUE_FLAGS} -o ${output}
+        DEPENDS ${inputFilePath} ${M4_IMPLICIT_DEPENDENCIES}
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
     )
     set(${resultFileName} ${output} PARENT_SCOPE)
@@ -344,10 +344,10 @@ function (generate_target_builtins resultList)
             foreach (os_name ${TARGET_OS_LIST_FOR_LL})
                 target_ll_to_cpp(target-${ispc_target} ${bit} ${os_name} output${os_name}${bit})
                 list(APPEND tmpList ${output${os_name}${bit}})
-                if(MSVC)
-                    # Group generated files inside Visual Studio
-                    source_group("Generated Builtins" FILES ${output${os_name}${bit}})
-                endif()
+                # if(MSVC)
+                #     # Group generated files inside Visual Studio
+                #     source_group("Generated Builtins" FILES ${output${os_name}${bit}})
+                # endif()
             endforeach()
         endforeach()
     endforeach()
@@ -360,9 +360,9 @@ function (generate_target_builtins resultList)
             target_ll_to_cpp(target-${wasm_target} 32 web outputweb32)
             target_ll_to_cpp(target-${wasm_target} 64 web outputweb64)
             list(APPEND tmpList ${outputweb32} ${outputweb64})
-            if(MSVC)
-                source_group("Generated Builtins" FILES ${outputweb32} ${outputweb64})
-            endif()
+            # if(MSVC)
+            #     source_group("Generated Builtins" FILES ${outputweb32} ${outputweb64})
+            # endif()
         endforeach()
     endif()
     # Return the list

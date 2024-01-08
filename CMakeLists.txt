@@ -427,6 +427,7 @@ generate_target_builtins(BUILTIN_FILES ${ISPC_TARGETS})
 generate_common_builtins(BUILTIN_CPP_FILES)
 generate_stdlib(STDLIB_FILES ${ISPC_MASKS})
 
+message(STATUS "BUILTIN_FILES is ${BUILTIN_FILES}")
 add_executable(${PROJECT_NAME} ${BUILTIN_FILES} ${BUILTIN_CPP_FILES}
                ${STDLIB_FILES} ${BISON_CPP_OUTPUT} ${FLEX_OUTPUT}
                ${CMAKE_CURRENT_SOURCE_DIR}/stdlib.ispc
@@ -770,6 +771,7 @@ endif()
 install (TARGETS ${PROJECT_NAME} DESTINATION bin)
 install(FILES stdlib.isph
         DESTINATION ${CMAKE_INSTALL_PREFIX}/include)
+install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_CFG_INTDIR}/share/ispc DESTINATION share)
 if (ISPC_PREPARE_PACKAGE)
     if (ISPC_PACKAGE_EXAMPLES)
         if (XE_ENABLED)
