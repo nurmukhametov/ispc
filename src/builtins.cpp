@@ -32,6 +32,8 @@
 #include <llvm/Linker/Linker.h>
 #include <llvm/Support/MemoryBuffer.h>
 #include <llvm/Target/TargetMachine.h>
+#include <llvm/IR/LegacyPassManager.h>
+#include <llvm/Transforms/IPO.h>
 #if ISPC_LLVM_VERSION >= ISPC_LLVM_17_0
 #include <llvm/TargetParser/Triple.h>
 #else
@@ -1016,35 +1018,13 @@ void ispc::AddBitcodeToModule(llvm::Module *bcModule, llvm::Module *module, Symb
             identMD->eraseFromParent();
         }
 
-        // lSetAllInternalFunctions(bcModule);
-
-        // llvm::errs() << "---bcModule----\n";
-        // bcModule->dump();
-        // llvm::errs() << "---module before linking----\n";
-        // module->dump();
-
-        // llvm::Module::iterator iter;
-        // for (iter = module->begin(); iter != module->end(); ++iter) {
-        //     llvm::Function *func = &*iter;
-        //     llvm::errs() << "f:p " << func->getName().data() << " " << func << "\n";
-        // }
-
         std::unique_ptr<llvm::Module> M(bcModule);
-        if (llvm::Linker::linkModules(*module, std::move(M))) {
+        if (llvm::Linker::linkModules(*module, std::move(M), llvm::Linker::Flags::LinkOnlyNeeded)) {
             Error(SourcePos(), "Error linking stdlib bitcode.");
         }
-        // llvm::errs() << "---module after linking----\n";
-        // module->dump();
 
-        // for (iter = module->begin(); iter != module->end(); ++iter) {
-        //     llvm::Function *func = &*iter;
-        //     llvm::errs() << "f:p " << func->getName().data() << " " << func << "\n";
-        // }
+        // lSetInternalFunctions(module);
 
-        lSetInternalFunctions(module);
-
-        // if (symbolTable != nullptr)
-        //     lAddModuleSymbols(module, symbolTable);
         lCheckModuleIntrinsics(module);
     }
 }
@@ -1089,8 +1069,6 @@ llvm::Module *ispc::AddDeclarationsToModule(const BitcodeLib *lib, llvm::Module 
             module->getOrInsertFunction(f.getName(), f.getFunctionType(), f.getAttributes());
         }
 
-        // if (symbolTable != nullptr)
-        //     lAddModuleSymbols(module, symbolTable);
         lCheckModuleIntrinsics(module);
 
         return bcModule;
@@ -1125,11 +1103,6 @@ static void lDefineConstantInt(const char *name, int val, llvm::Module *module, 
         llvm::DIGlobalVariableExpression *var =
             m->diBuilder->createGlobalVariableExpression(cu, name, name, file, 0 /* line */, diType, true /* static */);
         sym_GV_storagePtr->addDebugInfo(var);
-        /*#if ISPC_LLVM_VERSION <= ISPC_LLVM_3_6
-                Assert(var.Verify());
-        #else // LLVM 3.7+
-              // coming soon
-        #endif*/
     }
 }
 
@@ -1150,41 +1123,6 @@ static void lDefineConstantIntFunc(const char *name, int val, llvm::Module *modu
     symbolTable->AddVariable(sym);
 }
 
-static void lDefineProgramIndex(llvm::Module *module, SymbolTable *symbolTable,
-                                std::vector<llvm::Constant *> &dbg_sym) {
-    Symbol *sym = new Symbol("programIndex", SourcePos(), AtomicType::VaryingInt32->GetAsConstType(), SC_STATIC);
-
-    int pi[ISPC_MAX_NVEC];
-    for (int i = 0; i < g->target->getVectorWidth(); ++i)
-        pi[i] = i;
-    sym->constValue = new ConstExpr(sym->type, pi, SourcePos());
-
-    llvm::Type *ltype = LLVMTypes::Int32VectorType;
-    llvm::Constant *linit = LLVMInt32Vector(pi);
-
-    auto GV =
-        new llvm::GlobalVariable(*module, ltype, true, llvm::GlobalValue::InternalLinkage, linit, sym->name.c_str());
-    dbg_sym.push_back(GV);
-    sym->storageInfo = new AddressInfo(GV, GV->getValueType());
-    symbolTable->AddVariable(sym);
-
-    if (m->diBuilder != nullptr) {
-        llvm::DIFile *file = m->diCompileUnit->getFile();
-        llvm::DICompileUnit *cu = m->diCompileUnit;
-        llvm::DIType *diType = sym->type->GetDIType(file);
-        llvm::GlobalVariable *sym_GV_storagePtr = llvm::dyn_cast<llvm::GlobalVariable>(sym->storageInfo->getPointer());
-        Assert(sym_GV_storagePtr);
-        llvm::DIGlobalVariableExpression *var = m->diBuilder->createGlobalVariableExpression(
-            cu, sym->name.c_str(), sym->name.c_str(), file, 0 /* line */, diType, false /* static */);
-        sym_GV_storagePtr->addDebugInfo(var);
-        /*#if ISPC_LLVM_VERSION <= ISPC_LLVM_3_6
-                Assert(var.Verify());
-        #else // LLVM 3.7+
-              // coming soon
-        #endif*/
-    }
-}
-
 static void emitLLVMUsed(llvm::Module &module, std::vector<llvm::Constant *> &list) {
     // Convert list to what ConstantArray needs.
     llvm::SmallVector<llvm::Constant *, 8> UsedArray;
@@ -1202,18 +1140,18 @@ static void emitLLVMUsed(llvm::Module &module, std::vector<llvm::Constant *> &li
     GV->setSection("llvm.metadata");
 }
 
+void removeUnused(llvm::Module *module) {
+    llvm::legacy::PassManager passManager;
+    passManager.add(llvm::createGlobalDCEPass()); // Add Global Dead Code Elimination Pass
+    passManager.run(*module);
+}
+
 void ispc::DefineStdlib(SymbolTable *symbolTable, llvm::LLVMContext *ctx, llvm::Module *module,
                         bool includeStdlibISPC) {
     // debug_symbols are symbols that supposed to be preserved in debug information.
     // They will be referenced in llvm.used intrinsic to prevent they removal from
     // the object file.
     std::vector<llvm::Constant *> debug_symbols;
-
-    // define the 'programCount' builtin variable
-    // lDefineConstantInt("programCount", g->target->getVectorWidth(), module, symbolTable, debug_symbols);
-
-    // define the 'programIndex' builtin
-    // lDefineProgramIndex(module, symbolTable, debug_symbols);
 
     // Define __math_lib stuff.  This is used by stdlib.ispc, for example, to
     // figure out which math routines to end up calling...
@@ -1245,6 +1183,8 @@ void ispc::DefineStdlib(SymbolTable *symbolTable, llvm::LLVMContext *ctx, llvm::
         llvm::GlobalVariable *alignment = module->getGlobalVariable("memory_alignment", true);
         alignment->setInitializer(LLVMInt32(g->forceAlignment));
     }
+
+    module->print(llvm::outs(), nullptr);
 
     // TODO!
     const BitcodeLib *target =
@@ -1289,6 +1229,9 @@ void ispc::DefineStdlib(SymbolTable *symbolTable, llvm::LLVMContext *ctx, llvm::
         yyparse();
         yy_delete_buffer(strbuf);
     }
+
+    // removeUnused(module);
+    module->print(llvm::outs(), nullptr);
     
     symbolTable->UpdateBitcodeName();
     // symbolTable->Print();
@@ -1306,7 +1249,7 @@ void ispc::DefineStdlib(SymbolTable *symbolTable, llvm::LLVMContext *ctx, llvm::
     lAddModuleSymbols(module, symbolTable);
     // symbolTable->Print();
 
-    lDefineConstantIntFunc("__fast_masked_vload", (int)g->opt.fastMaskedVload, module, symbolTable, debug_symbols);
+    // lDefineConstantIntFunc("__fast_masked_vload", (int)g->opt.fastMaskedVload, module, symbolTable, debug_symbols);
 
     // IGC cannot deal with global references, so to keep debug capabilities
     // on Xe target, ISPC should not generate any global relocations.
