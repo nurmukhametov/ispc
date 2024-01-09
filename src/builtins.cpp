@@ -1023,7 +1023,7 @@ void ispc::AddBitcodeToModule(llvm::Module *bcModule, llvm::Module *module, Symb
             Error(SourcePos(), "Error linking stdlib bitcode.");
         }
 
-        // lSetInternalFunctions(module);
+        lSetInternalFunctions(module);
 
         lCheckModuleIntrinsics(module);
     }
@@ -1242,7 +1242,7 @@ void ispc::DefineStdlib(SymbolTable *symbolTable, llvm::LLVMContext *ctx, llvm::
     lAddModuleSymbols(module, symbolTable);
     // symbolTable->Print();
 
-    // lDefineConstantIntFunc("__fast_masked_vload", (int)g->opt.fastMaskedVload, module, symbolTable, debug_symbols);
+    lDefineConstantIntFunc("__fast_masked_vload", (int)g->opt.fastMaskedVload, module, symbolTable, debug_symbols);
 
     // IGC cannot deal with global references, so to keep debug capabilities
     // on Xe target, ISPC should not generate any global relocations.
