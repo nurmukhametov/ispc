@@ -3189,7 +3189,8 @@ static llvm::Module *lInitDispatchModule() {
     // First, link in the definitions from the builtins-dispatch.ll file.
     const BitcodeLib *dispatch = g->target_registry->getDispatchLib(g->target_os);
     Assert(dispatch);
-    llvm::Module *dispatchBCModule = AddDeclarationsToModule(dispatch, module);
+    llvm::Module *dispatchBCModule = dispatch->getLLVMModule();
+    AddDeclarationsToModule(dispatchBCModule, module);
     AddBitcodeToModule(dispatchBCModule, module);
 
     lSetCodeModel(module);

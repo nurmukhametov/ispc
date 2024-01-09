@@ -60,6 +60,9 @@ class Triple {
 
 std::vector<const BitcodeLib *> *TargetLibRegistry::libs = nullptr;
 
+extern std::vector<std::string> TargetBitcodeFileNames;
+
+#include <iostream>
 TargetLibRegistry::TargetLibRegistry() {
     // TODO: sort before adding - to canonicalize.
     // TODO: check for conflicts / duplicates.
@@ -101,7 +104,78 @@ TargetLibRegistry::TargetLibRegistry() {
                 m_builtins[Triple(lib->getISPCTarget(), TargetOS::ps5, lib->getArch()).encode()] = lib;
             }
             break;
+        case BitcodeLib::BitcodeLibType::ISPC_target_BC:
+            // do nothing
+            break;
         }
+    }
+
+    for (auto &name : TargetBitcodeFileNames) {
+        // printf(" bc: %s\n", name.c_str());
+        auto start_pos = std::string("builtins-target-").length();
+        auto ext_del = name.find_last_of(".");
+        auto length = ext_del - start_pos;
+        std::string target_arch_os = name.substr(start_pos, length);
+        auto target_arch_del_pos = target_arch_os.find_first_of("_");
+        if (target_arch_del_pos == std::string::npos) {
+            UNREACHABLE();
+        }
+        std::string target_s = target_arch_os.substr(0, target_arch_del_pos);
+        std::string arch_os = target_arch_os.substr(target_s.length() + 1);
+        auto arch_os_del_pos = arch_os.find_first_of("_");
+        if (arch_os_del_pos == std::string::npos) {
+            UNREACHABLE();
+        }
+        std::string arch_s = arch_os.substr(0, arch_os_del_pos);
+        std::string os_s = arch_os.substr(arch_s.length() + 1);
+        // std::cout << "TAO: "<< target_arch_os << " T: " << target_s << " AO: " << arch_os << " A: " << arch_s << " O: " << os_s << std::endl;
+
+        ISPCTarget target = ParseISPCTarget(target_s);
+        TargetOS os = TargetOS::error;
+        if (os_s == "unix") {
+            os = TargetOS::linux;
+        } else if (os_s == "windows") {
+            os = TargetOS::windows;
+        }
+        if (os == TargetOS::error) {
+            UNREACHABLE();
+        }
+
+        Arch arch = Arch::error;
+        if (ISPCTargetIsX86(target)) {
+            if (arch_s == "32bit") {
+                arch = Arch::x86;
+            } else if (arch_s == "64bit") {
+                arch = Arch::x86_64;
+            }
+        } else if (ISPCTargetIsNeon(target)) {
+            if (arch_s == "32bit") {
+                arch = Arch::arm;
+            } else if (arch_s == "64bit") {
+                arch = Arch::aarch64;
+            }
+        } else if (ISPCTargetIsWasm(target)) {
+            if (arch_s == "32bit") {
+                arch = Arch::wasm32;
+            } else if (arch_s == "64bit") {
+                arch = Arch::wasm64;
+            }
+        } else if (ISPCTargetIsGen(target)) {
+            if (arch_s == "64bit") {
+                arch = Arch::xe64;
+            }
+        }
+        if (arch == Arch::error) {
+            UNREACHABLE();
+        }
+        if (target == ISPCTarget::error) {
+            UNREACHABLE();
+        }
+        // TODO! make more gracious error exit than UNREACHABLE
+        Triple triple(target, os, arch);
+        auto lib = new BitcodeLib(name, target, os, arch);
+        // lib->print();
+        m_targets[triple.encode()] = lib;
     }
 }
 

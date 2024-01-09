@@ -58,7 +58,7 @@ function(target_ll_to_cpp llFileName bit os_name resultFileName)
         return()
     endif()
 
-    set(output ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_CFG_INTDIR}/share/ispc/builtins-${llFileName}-${bit}bit-${os_name}.bc)
+    set(output ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_CFG_INTDIR}/share/ispc/builtins-${llFileName}_${bit}bit_${os_name}.bc)
     file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_CFG_INTDIR}/share/ispc)
     add_custom_command(
         OUTPUT ${output}
@@ -321,7 +321,7 @@ function(builtin_xe_to_cpp bit resultFileName)
     endif()
 endfunction()
 
-function (generate_target_builtins resultList)
+function (generate_target_builtins resultList bitcodeList)
     # Dispatch module for macOS and all the rest of targets.
     if (${LLVM_VERSION_NUMBER} VERSION_GREATER_EQUAL "14.0.0")
         dispatch_ll_to_cpp(dispatch "linux" output_generic)
@@ -343,7 +343,7 @@ function (generate_target_builtins resultList)
         foreach (bit 32 64)
             foreach (os_name ${TARGET_OS_LIST_FOR_LL})
                 target_ll_to_cpp(target-${ispc_target} ${bit} ${os_name} output${os_name}${bit})
-                list(APPEND tmpList ${output${os_name}${bit}})
+                list(APPEND tmpBitcodeList ${output${os_name}${bit}})
                 # if(MSVC)
                 #     # Group generated files inside Visual Studio
                 #     source_group("Generated Builtins" FILES ${output${os_name}${bit}})
@@ -359,7 +359,7 @@ function (generate_target_builtins resultList)
         foreach (wasm_target ${wasm_targets})
             target_ll_to_cpp(target-${wasm_target} 32 web outputweb32)
             target_ll_to_cpp(target-${wasm_target} 64 web outputweb64)
-            list(APPEND tmpList ${outputweb32} ${outputweb64})
+            list(APPEND tmpBitcodeList ${outputweb32} ${outputweb64})
             # if(MSVC)
             #     source_group("Generated Builtins" FILES ${outputweb32} ${outputweb64})
             # endif()
@@ -367,6 +367,7 @@ function (generate_target_builtins resultList)
     endif()
     # Return the list
     set(${resultList} ${tmpList} PARENT_SCOPE)
+    set(${bitcodeList} ${tmpBitcodeList} PARENT_SCOPE)
 endfunction()
 
 function (generate_common_builtins resultList)

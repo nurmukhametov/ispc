@@ -1093,8 +1093,14 @@ int main(int Argc, char *Argv[]) {
     llvm::SmallString<128> includeDir(ISPCExecutableAbsPath);
     llvm::sys::path::remove_filename(includeDir);
     llvm::sys::path::remove_filename(includeDir);
+    llvm::SmallString<128> shareDir(includeDir);
     llvm::sys::path::append(includeDir, "include");
     lParseInclude(includeDir.c_str());
+
+    fprintf(stderr, "baseDir: %s\n", shareDir.c_str());
+    llvm::sys::path::append(shareDir, "share", "ispc");
+    fprintf(stderr, "shareDir: %s\n", shareDir.c_str());
+    g->shareDirPath = shareDir.str();
 
     // Emit accumulted errors and warnings, if any.
     // All the rest of errors and warnigns will be processed in regullar way.

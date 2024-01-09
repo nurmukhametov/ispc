@@ -12,11 +12,14 @@
 
 #include "target_enums.h"
 
+#include <llvm/IR/Module.h>
+#include "llvm/Support/MemoryBuffer.h"
+
 namespace ispc {
 
 class BitcodeLib {
   public:
-    enum class BitcodeLibType { Dispatch, Builtins_c, ISPC_target };
+    enum class BitcodeLibType { Dispatch, Builtins_c, ISPC_target, ISPC_target_BC };
 
   private:
     // Type of library
@@ -31,6 +34,8 @@ class BitcodeLib {
     const Arch m_arch;
     const ISPCTarget m_target;
 
+    const std::string m_bc_filename;
+
   public:
     // Dispatch constructor
     BitcodeLib(const unsigned char lib[], int size, TargetOS os);
@@ -38,6 +43,8 @@ class BitcodeLib {
     BitcodeLib(const unsigned char lib[], int size, TargetOS os, Arch arch);
     // ISPC-target constructor
     BitcodeLib(const unsigned char lib[], int size, ISPCTarget target, TargetOS os, Arch arch);
+    // ISPC-target constructor containing BC files.
+    BitcodeLib(std::string &bc_filename, ISPCTarget target, TargetOS os, Arch arch);
     void print() const;
 
     BitcodeLibType getType() const;
@@ -46,6 +53,7 @@ class BitcodeLib {
     TargetOS getOS() const;
     Arch getArch() const;
     ISPCTarget getISPCTarget() const;
+    llvm::Module *getLLVMModule() const;
 };
 
 } // namespace ispc

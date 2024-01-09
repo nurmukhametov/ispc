@@ -1029,15 +1029,10 @@ void ispc::AddBitcodeToModule(llvm::Module *bcModule, llvm::Module *module, Symb
     }
 }
 
-llvm::Module *ispc::AddDeclarationsToModule(const BitcodeLib *lib, llvm::Module *module, SymbolTable *symbolTable) {
-    llvm::StringRef sb = llvm::StringRef((const char *)lib->getLib(), lib->getSize());
-    llvm::MemoryBufferRef bcBuf = llvm::MemoryBuffer::getMemBuffer(sb)->getMemBufferRef();
-
-    llvm::Expected<std::unique_ptr<llvm::Module>> ModuleOrErr = llvm::parseBitcodeFile(bcBuf, *g->ctx);
-    if (!ModuleOrErr) {
-        Error(SourcePos(), "Error parsing stdlib bitcode: %s", toString(ModuleOrErr.takeError()).c_str());
+void ispc::AddDeclarationsToModule(llvm::Module *bcModule, llvm::Module *module, SymbolTable *symbolTable) {
+    if (!bcModule) {
+        Error(SourcePos(), "Error library module is nullptr");
     } else {
-        llvm::Module *bcModule = ModuleOrErr.get().release();
         // FIXME: this feels like a bad idea, but the issue is that when we
         // set the llvm::Module's target triple in the ispc Module::Module
         // constructor, we start by calling llvm::sys::getHostTriple() (and
@@ -1070,11 +1065,7 @@ llvm::Module *ispc::AddDeclarationsToModule(const BitcodeLib *lib, llvm::Module 
         }
 
         lCheckModuleIntrinsics(module);
-
-        return bcModule;
     }
-
-    return nullptr;
 }
 
 /** Utility routine that defines a constant int32 with given value, adding
@@ -1184,18 +1175,20 @@ void ispc::DefineStdlib(SymbolTable *symbolTable, llvm::LLVMContext *ctx, llvm::
         alignment->setInitializer(LLVMInt32(g->forceAlignment));
     }
 
-    module->print(llvm::outs(), nullptr);
+    // module->print(llvm::outs(), nullptr);
 
     // TODO!
     const BitcodeLib *target =
         g->target_registry->getISPCTargetLib(g->target->getISPCTarget(), g->target_os, g->target->getArch());
     Assert(target);
-    llvm::Module *targetBCModule = AddDeclarationsToModule(target, module, symbolTable);
+    llvm::Module *targetBCModule = target->getLLVMModule();
+    AddDeclarationsToModule(targetBCModule, module, symbolTable);
 
     // TODO!
     const BitcodeLib *builtins = g->target_registry->getBuiltinsCLib(g->target_os, g->target->getArch());
     Assert(builtins);
-    llvm::Module *builtinsBCModule = AddDeclarationsToModule(builtins, module, symbolTable);
+    llvm::Module *builtinsBCModule = builtins->getLLVMModule();
+    AddDeclarationsToModule(builtinsBCModule, module, symbolTable);
 
     lAddModuleSymbols(module, symbolTable);
     // symbolTable->Print();
@@ -1231,7 +1224,7 @@ void ispc::DefineStdlib(SymbolTable *symbolTable, llvm::LLVMContext *ctx, llvm::
     }
 
     // removeUnused(module);
-    module->print(llvm::outs(), nullptr);
+    // module->print(llvm::outs(), nullptr);
     
     symbolTable->UpdateBitcodeName();
     // symbolTable->Print();
