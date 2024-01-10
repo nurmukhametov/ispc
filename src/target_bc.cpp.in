@@ -1,0 +1,14 @@
+//
+//  Copyright (c) 2024, Intel Corporation
+//
+//  SPDX-License-Identifier: BSD-3-Clause
+
+
+// Template file for the list of bitcode files containing target-specific functions.
+
+#include <vector>
+#include <string>
+
+std::vector<std::string> TargetBitcodeFileNames = {
+    @BITCODE_FILES_LIST@
+};
