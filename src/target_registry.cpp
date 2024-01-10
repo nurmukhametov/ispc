@@ -61,6 +61,7 @@ class Triple {
 std::vector<const BitcodeLib *> *TargetLibRegistry::libs = nullptr;
 
 extern std::vector<std::string> TargetBitcodeFileNames;
+extern std::vector<std::string> BuiltinsCPPBitcodeFileNames;
 
 #include <iostream>
 TargetLibRegistry::TargetLibRegistry() {
@@ -104,13 +105,82 @@ TargetLibRegistry::TargetLibRegistry() {
                 m_builtins[Triple(lib->getISPCTarget(), TargetOS::ps5, lib->getArch()).encode()] = lib;
             }
             break;
+        case BitcodeLib::BitcodeLibType::Builtins_c_BC:
+            // do nothing
+            break;
         case BitcodeLib::BitcodeLibType::ISPC_target_BC:
             // do nothing
             break;
         }
     }
 
+    for (auto &name : BuiltinsCPPBitcodeFileNames) {
+        // builtins-cpp-32-linux-armv7.bc
+        auto start_pos = std::string("builtins-cpp-").length();
+        auto ext_del = name.find_last_of(".");
+        auto length = ext_del - start_pos;
+        std::string os_arch = name.substr(start_pos, length);
+        auto os_arch_del_pos = os_arch.find_last_of("-");
+        if (os_arch_del_pos == std::string::npos) {
+            UNREACHABLE();
+        }
+        std::string os_s = os_arch.substr(0, os_arch_del_pos);
+        std::string arch_s = os_arch.substr(os_s.length() + 1);
+        std::cout << "NAME: " << name << " OA: " << os_arch << " OS: " << os_s << " ARCH: " << arch_s <<  std::endl;
+
+        ISPCTarget target = ISPCTarget::none;
+        TargetOS os = TargetOS::error;
+        if (os_s == "linux") {
+            os = TargetOS::linux;
+        } else if (os_s == "windows") {
+            os = TargetOS::windows;
+        }
+        if (os == TargetOS::error) {
+            UNREACHABLE();
+        }
+
+        Arch arch = Arch::error;
+        if (arch_s == "i686") {
+            arch = Arch::x86;
+        } else if (arch_s == "x86_64") {
+            arch = Arch::x86_64;
+        } else if (arch_s == "armv7") {
+            arch = Arch::arm;
+        } else if (arch_s == "aarch64") {
+            arch = Arch::aarch64;
+        } else if (arch_s == "wasm32") {
+            arch = Arch::wasm32;
+        } else if (arch_s == "wasm64") {
+            arch = Arch::wasm64;
+        } else if (arch_s == "xe64") {
+            arch = Arch::xe64;
+        }
+        if (arch == Arch::error) {
+            UNREACHABLE();
+        }
+
+        // TODO! make more gracious error exit than UNREACHABLE
+        Triple triple(target, os, arch);
+        auto lib = new BitcodeLib(name, target, os, arch);
+        lib->print();
+        m_builtins[triple.encode()] = lib;
+        m_supported_oses[(int)os] = true;
+
+        // "custom_linux" target is regular "linux" target for ARM with a few tweaks.
+        // So, create it as an alias.
+        if (os == TargetOS::linux && (arch == Arch::arm || arch == Arch::aarch64)) {
+            m_builtins[Triple(target, TargetOS::custom_linux, arch).encode()] = lib;
+            m_supported_oses[(int)TargetOS::custom_linux] = true;
+        }
+        // PS5 is an alias to PS4 in terms of target files. All the tuning is done through CPU flags.
+        if (os == TargetOS::ps4) {
+            m_builtins[Triple(target, TargetOS::ps5, arch).encode()] = lib;
+            m_supported_oses[(int)TargetOS::ps5] = true;
+        }
+    }
+
     for (auto &name : TargetBitcodeFileNames) {
+        // builtins-target-neon-i32x4_64bit_unix.bc
         // printf(" bc: %s\n", name.c_str());
         auto start_pos = std::string("builtins-target-").length();
         auto ext_del = name.find_last_of(".");
@@ -176,6 +246,16 @@ TargetLibRegistry::TargetLibRegistry() {
         auto lib = new BitcodeLib(name, target, os, arch);
         // lib->print();
         m_targets[triple.encode()] = lib;
+
+        // "custom_linux" target is regular "linux" target for ARM with a few tweaks.
+        // So, create it as an alias.
+        if (os == TargetOS::linux && (arch == Arch::arm || arch == Arch::aarch64)) {
+            m_targets[Triple(target, TargetOS::custom_linux, arch).encode()] = lib;
+        }
+        // PS5 is an alias to PS4 in terms of target files. All the tuning is done through CPU flags.
+        if (os == TargetOS::ps4) {
+            m_targets[Triple(target, TargetOS::ps5, arch).encode()] = lib;
+        }
     }
 }
 

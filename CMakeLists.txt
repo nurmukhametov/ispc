@@ -423,21 +423,32 @@ message(STATUS "ISPC opaque pointers mode is " ${ISPC_OPAQUE_PTR_MODE})
 get_llvm_libfiles(LLVM_LIBRARY_LIST ${LLVM_COMPONENTS})
 get_llvm_cppflags(LLVM_CPP_FLAGS)
 
+file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_CFG_INTDIR}/share/ispc)
+
 generate_target_builtins(BUILTIN_FILES BITCODE_FILES ${ISPC_TARGETS})
-generate_common_builtins(BUILTIN_CPP_FILES)
+generate_common_builtins(BUILTIN_CPP_FILES COMMON_BUILTINS_BC_FILES)
 generate_stdlib(STDLIB_FILES ${ISPC_MASKS})
 
 set(BITCODE_FILES_LIST "")
-list(LENGTH BITCODE_FILES BITCODE_FILES_LENGTH)
 foreach(FULL_PATH IN LISTS BITCODE_FILES)
     get_filename_component(FILE_NAME "${FULL_PATH}" NAME)
     set(BITCODE_FILES_LIST "${BITCODE_FILES_LIST}\"${FILE_NAME}\", ")
 endforeach()
 message(STATUS "BITCODE_FILES_LIST is ${BITCODE_FILES_LIST}")
+
+set(COMMON_BUILTINS_BC_FILES_LIST "")
+foreach(FULL_PATH IN LISTS COMMON_BUILTINS_BC_FILES)
+    get_filename_component(FILE_NAME "${FULL_PATH}" NAME)
+    set(COMMON_BUILTINS_BC_FILES_LIST "${COMMON_BUILTINS_BC_FILES_LIST}\"${FILE_NAME}\", ")
+endforeach()
+message(STATUS "COMMON_BUILTINS_BC_FILES_LIST is ${COMMON_BUILTINS_BC_FILES_LIST}")
+
 set(TARGET_BC_FILE "${CMAKE_BINARY_DIR}/target_bc.cpp")
 configure_file("src/target_bc.cpp.in" ${TARGET_BC_FILE} @ONLY)
 
-add_executable(${PROJECT_NAME} ${BUILTIN_FILES} ${BUILTIN_CPP_FILES}
+add_executable(${PROJECT_NAME}
+               ${BUILTIN_FILES} ${COMMON_BUILTINS_BC_FILES}
+               ${BUILTIN_CPP_FILES}
                ${BITCODE_FILES} ${TARGET_BC_FILE}
                ${STDLIB_FILES} ${BISON_CPP_OUTPUT} ${FLEX_OUTPUT}
                ${CMAKE_CURRENT_SOURCE_DIR}/stdlib.ispc

@@ -19,7 +19,7 @@ namespace ispc {
 
 class BitcodeLib {
   public:
-    enum class BitcodeLibType { Dispatch, Builtins_c, ISPC_target, ISPC_target_BC };
+    enum class BitcodeLibType { Dispatch, Builtins_c, ISPC_target, Builtins_c_BC, ISPC_target_BC };
 
   private:
     // Type of library

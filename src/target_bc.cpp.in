@@ -12,3 +12,7 @@
 std::vector<std::string> TargetBitcodeFileNames = {
     @BITCODE_FILES_LIST@
 };
+
+std::vector<std::string> BuiltinsCPPBitcodeFileNames = {
+    @COMMON_BUILTINS_BC_FILES_LIST@
+};
