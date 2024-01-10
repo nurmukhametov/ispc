@@ -63,6 +63,7 @@ std::vector<const BitcodeLib *> *TargetLibRegistry::libs = nullptr;
 extern std::vector<std::string> TargetBitcodeFileNames;
 extern std::vector<std::string> BuiltinsCPPBitcodeFileNames;
 extern std::vector<std::string> DispatchBitcodeFileNames;
+extern std::vector<std::string> StdlibBitcodeFileNames;
 
 #include <iostream>
 TargetLibRegistry::TargetLibRegistry() {
@@ -273,6 +274,46 @@ TargetLibRegistry::TargetLibRegistry() {
             m_targets[Triple(target, TargetOS::ps5, arch).encode()] = lib;
         }
     }
+
+    for (auto &name : StdlibBitcodeFileNames) {
+        // stdlib-avx2-i32x4_x86-64_linux.bc
+        auto start_pos = std::string("stdlib-").length();
+        auto ext_del = name.find_last_of(".");
+        auto length = ext_del - start_pos;
+        std::string target_arch_os = name.substr(start_pos, length);
+        auto target_arch_del_pos = target_arch_os.find_first_of("_");
+        if (target_arch_del_pos == std::string::npos) {
+            UNREACHABLE();
+        }
+        std::string target_s = target_arch_os.substr(0, target_arch_del_pos);
+        std::string arch_os = target_arch_os.substr(target_s.length() + 1);
+        auto arch_os_del_pos = arch_os.find_first_of("_");
+        if (arch_os_del_pos == std::string::npos) {
+            UNREACHABLE();
+        }
+        std::string arch_s = arch_os.substr(0, arch_os_del_pos);
+        std::string os_s = arch_os.substr(arch_s.length() + 1);
+        // std::cout << "TAO: "<< target_arch_os << " T: " << target_s << " AO: " << arch_os << " A: " << arch_s << " O: " << os_s << std::endl;
+
+        Arch arch = ParseArch(arch_s);
+        ISPCTarget target = ParseISPCTarget(target_s);
+        TargetOS os = TargetOS::error;
+        if (os_s == "linux") {
+            os = TargetOS::linux;
+        } else if (os_s == "windows") {
+            os = TargetOS::windows;
+        }
+        if (os == TargetOS::error) {
+            UNREACHABLE();
+        }
+
+        // TODO! make more gracious error exit than UNREACHABLE
+        Triple triple(target, os, arch);
+        auto lib = new BitcodeLib(name, target, os, arch);
+        // lib->print();
+
+        m_stdlibs[triple.encode()] = lib;
+    }
 }
 
 void TargetLibRegistry::RegisterTarget(const BitcodeLib *lib) {
@@ -298,6 +339,7 @@ const BitcodeLib *TargetLibRegistry::getBuiltinsCLib(TargetOS os, Arch arch) con
     }
     return nullptr;
 }
+
 const BitcodeLib *TargetLibRegistry::getISPCTargetLib(ISPCTarget target, TargetOS os, Arch arch) const {
     // TODO: validate parameters not to be errors or forbidden values.
 
@@ -355,6 +397,69 @@ const BitcodeLib *TargetLibRegistry::getISPCTargetLib(ISPCTarget target, TargetO
 
     auto result = m_targets.find(Triple(target, os, arch).encode());
     if (result != m_targets.end()) {
+        return result->second;
+    }
+    return nullptr;
+}
+
+// TODO! copy-paste of getISPCTargetLib
+const BitcodeLib *TargetLibRegistry::getISPCStdLib(ISPCTarget target, TargetOS os, Arch arch) const {
+    // TODO: validate parameters not to be errors or forbidden values.
+
+    // This is an alias. It might be a good idea generalize this.
+    if (target == ISPCTarget::avx1_i32x4) {
+        target = ISPCTarget::sse4_i32x4;
+    }
+
+    // sse41 is an alias for sse4
+    switch (target) {
+    case ISPCTarget::sse41_i8x16:
+        target = ISPCTarget::sse4_i8x16;
+        break;
+    case ISPCTarget::sse41_i16x8:
+        target = ISPCTarget::sse4_i16x8;
+        break;
+    case ISPCTarget::sse41_i32x4:
+        target = ISPCTarget::sse4_i32x4;
+        break;
+    case ISPCTarget::sse41_i32x8:
+        target = ISPCTarget::sse4_i32x8;
+        break;
+    default:
+        // Fall through
+        ;
+    }
+
+    // There's no Mac that supports SPR, so the decision is not support these targets when targeting macOS.
+    // If these targets are linked in, then we still can use them for cross compilation, for example for Linux.
+    if (os == TargetOS::macos && (target == ISPCTarget::avx512spr_x4 || target == ISPCTarget::avx512spr_x8 ||
+                                  target == ISPCTarget::avx512spr_x16 || target == ISPCTarget::avx512spr_x32 ||
+                                  target == ISPCTarget::avx512spr_x64)) {
+        return nullptr;
+    }
+
+    // Canonicalize OS, as for the target we only differentiate between Windows, Unix, and Web (WASM target).
+    switch (os) {
+    case TargetOS::windows:
+    case TargetOS::web:
+        // Keep these values.
+        break;
+    case TargetOS::linux:
+    case TargetOS::custom_linux:
+    case TargetOS::freebsd:
+    case TargetOS::macos:
+    case TargetOS::android:
+    case TargetOS::ios:
+    case TargetOS::ps4:
+    case TargetOS::ps5:
+        os = TargetOS::linux;
+        break;
+    case TargetOS::error:
+        UNREACHABLE();
+    }
+
+    auto result = m_stdlibs.find(Triple(target, os, arch).encode());
+    if (result != m_stdlibs.end()) {
         return result->second;
     }
     return nullptr;

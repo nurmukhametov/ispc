@@ -20,3 +20,7 @@ std::vector<std::string> BuiltinsCPPBitcodeFileNames = {
 std::vector<std::string> DispatchBitcodeFileNames = {
     @DISPATCH_BC_FILES_LIST@
 };
+
+std::vector<std::string> StdlibBitcodeFileNames = {
+    @STDLIB_BC_FILES_LIST@
+};

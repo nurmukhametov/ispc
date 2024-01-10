@@ -57,6 +57,10 @@ class TargetLibRegistry {
     // Target x OS (Win/Unix) x Arch [32/64/none]
     std::map<uint32_t, const BitcodeLib *> m_targets;
 
+    // ISPC stdlibs
+    // Target x OS x Arch
+    std::map<uint32_t, const BitcodeLib *> m_stdlibs;
+
     // Bitset with supported OSes
     std::bitset<(int)TargetOS::error> m_supported_oses;
 
@@ -72,6 +76,9 @@ class TargetLibRegistry {
 
     // Return target module if available, otherwise nullptr.
     const BitcodeLib *getISPCTargetLib(ISPCTarget target, TargetOS os, Arch arch) const;
+
+    // Return stdlib module if available, otherwise nullptr.
+    const BitcodeLib *getISPCStdLib(ISPCTarget target, TargetOS os, Arch arch) const;
 
     // Print user-friendly message about supported targets
     void printSupportMatrix() const;

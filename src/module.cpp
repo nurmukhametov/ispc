@@ -316,6 +316,17 @@ int Module::CompileFile() {
 
     bool runPreprocessor = g->runCPP;
 
+    if (g->genStdlib) {
+        // FIXME: it'd be nice to do this in the Module constructor, but this
+        // function ends up calling into routines that expect the global
+        // variable 'm' to be initialized and available (which it isn't until
+        // the Module constructor returns...)
+        {
+            llvm::TimeTraceScope TimeScope("DefineStdlib");
+            DefineStdlib(symbolTable, g->ctx, module, g->includeStdlib);
+        }
+    }
+
     if (runPreprocessor) {
         llvm::TimeTraceScope TimeScope("Frontend parser");
         if (!IsStdin(filename)) {
@@ -368,13 +379,15 @@ int Module::CompileFile() {
         fclose(f);
     }
 
-    // FIXME: it'd be nice to do this in the Module constructor, but this
-    // function ends up calling into routines that expect the global
-    // variable 'm' to be initialized and available (which it isn't until
-    // the Module constructor returns...)
-    {
-        llvm::TimeTraceScope TimeScope("DefineStdlib");
-        DefineStdlib(symbolTable, g->ctx, module, g->includeStdlib);
+    if (!g->genStdlib) {
+        // FIXME: it'd be nice to do this in the Module constructor, but this
+        // function ends up calling into routines that expect the global
+        // variable 'm' to be initialized and available (which it isn't until
+        // the Module constructor returns...)
+        {
+            llvm::TimeTraceScope TimeScope("DefineStdlib");
+            DefineStdlib(symbolTable, g->ctx, module, g->includeStdlib);
+        }
     }
 
     ast->Print(g->astDump);
@@ -389,8 +402,10 @@ int Module::CompileFile() {
     if (diBuilder)
         diBuilder->finalize();
     llvm::TimeTraceScope TimeScope("Optimize");
-    if (errorCount == 0)
-        Optimize(module, g->opt.level);
+    if (!g->genStdlib) {
+        if (errorCount == 0)
+            Optimize(module, g->opt.level);
+    }
 
     return errorCount;
 }
@@ -3186,12 +3201,14 @@ static llvm::Module *lInitDispatchModule() {
     // DataLayout information supposed to be managed in single place in Target class.
     module->setDataLayout(g->target->getDataLayout()->getStringRepresentation());
 
-    // First, link in the definitions from the builtins-dispatch.ll file.
-    const BitcodeLib *dispatch = g->target_registry->getDispatchLib(g->target_os);
-    Assert(dispatch);
-    llvm::Module *dispatchBCModule = dispatch->getLLVMModule();
-    AddDeclarationsToModule(dispatchBCModule, module);
-    AddBitcodeToModule(dispatchBCModule, module);
+    if (!g->genStdlib) {
+        // First, link in the definitions from the builtins-dispatch.ll file.
+        const BitcodeLib *dispatch = g->target_registry->getDispatchLib(g->target_os);
+        Assert(dispatch);
+        llvm::Module *dispatchBCModule = dispatch->getLLVMModule();
+        AddDeclarationsToModule(dispatchBCModule, module);
+        AddBitcodeToModule(dispatchBCModule, module);
+    }
 
     lSetCodeModel(module);
 

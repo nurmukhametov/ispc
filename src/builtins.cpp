@@ -1019,7 +1019,7 @@ void ispc::AddBitcodeToModule(llvm::Module *bcModule, llvm::Module *module, Symb
         }
 
         std::unique_ptr<llvm::Module> M(bcModule);
-        if (llvm::Linker::linkModules(*module, std::move(M), llvm::Linker::Flags::LinkOnlyNeeded)) {
+        if (llvm::Linker::linkModules(*module, std::move(M))) {
             Error(SourcePos(), "Error linking stdlib bitcode.");
         }
 
@@ -1177,6 +1177,32 @@ void ispc::DefineStdlib(SymbolTable *symbolTable, llvm::LLVMContext *ctx, llvm::
 
     // module->print(llvm::outs(), nullptr);
 
+    if (g->genStdlib) {
+        const BitcodeLib *target =
+            g->target_registry->getISPCTargetLib(g->target->getISPCTarget(), g->target_os, g->target->getArch());
+        Assert(target);
+        llvm::Module *targetBCModule = target->getLLVMModule();
+        AddDeclarationsToModule(targetBCModule, module, symbolTable);
+
+        // TODO!
+        const BitcodeLib *builtins = g->target_registry->getBuiltinsCLib(g->target_os, g->target->getArch());
+        Assert(builtins);
+        llvm::Module *builtinsBCModule = builtins->getLLVMModule();
+        AddDeclarationsToModule(builtinsBCModule, module, symbolTable);
+
+        lAddModuleSymbols(module, symbolTable);
+    } else {
+        if (includeStdlibISPC) {
+            const BitcodeLib *stdlib =
+                g->target_registry->getISPCStdLib(g->target->getISPCTarget(), g->target_os, g->target->getArch());
+            Assert(stdlib);
+            llvm::Module *stdlibBCModule = stdlib->getLLVMModule();
+
+            AddBitcodeToModule(stdlibBCModule, module);
+        }
+    }
+
+    /*
     // TODO!
     const BitcodeLib *target =
         g->target_registry->getISPCTargetLib(g->target->getISPCTarget(), g->target_os, g->target->getArch());
@@ -1228,19 +1254,32 @@ void ispc::DefineStdlib(SymbolTable *symbolTable, llvm::LLVMContext *ctx, llvm::
     
     symbolTable->UpdateBitcodeName();
     // symbolTable->Print();
+    */
 
-    // Unlike regular builtins and dispatch module, which don't care about mangling of external functions,
-    // so they only differentiate Windows/Unix and 32/64 bit, builtins-c need to take care about mangling.
-    // Hence, different version for all potentially supported OSes.
-    AddBitcodeToModule(builtinsBCModule, module);
+    if (!g->genStdlib) {
+        const BitcodeLib *builtins = g->target_registry->getBuiltinsCLib(g->target_os, g->target->getArch());
+        Assert(builtins);
+        llvm::Module *builtinsBCModule = builtins->getLLVMModule();
 
-    // Next, add the target's custom implementations of the various needed
-    // builtin functions (e.g. __masked_store_32(), etc).
-    AddBitcodeToModule(targetBCModule, module);
+        // Unlike regular builtins and dispatch module, which don't care about mangling of external functions,
+        // so they only differentiate Windows/Unix and 32/64 bit, builtins-c need to take care about mangling.
+        // Hence, different version for all potentially supported OSes.
+        AddBitcodeToModule(builtinsBCModule, module);
 
-    symbolTable->UpdatePointers(module);
-    lAddModuleSymbols(module, symbolTable);
-    // symbolTable->Print();
+        const BitcodeLib *target =
+            g->target_registry->getISPCTargetLib(g->target->getISPCTarget(), g->target_os, g->target->getArch());
+        Assert(target);
+        llvm::Module *targetBCModule = target->getLLVMModule();
+
+        // Next, add the target's custom implementations of the various needed
+        // builtin functions (e.g. __masked_store_32(), etc).
+        AddBitcodeToModule(targetBCModule, module);
+
+        // symbolTable->UpdatePointers(module);
+        symbolTable->UpdateBitcodeName();
+        lAddModuleSymbols(module, symbolTable);
+        // symbolTable->Print();
+    }
 
     lDefineConstantIntFunc("__fast_masked_vload", (int)g->opt.fastMaskedVload, module, symbolTable, debug_symbols);
 

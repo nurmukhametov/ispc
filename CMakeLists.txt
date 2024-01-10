@@ -427,7 +427,7 @@ file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_CFG_INTDIR}/share/ispc)
 
 generate_target_builtins(BUILTIN_FILES BITCODE_FILES DISPATCH_BC_FILES ${ISPC_TARGETS})
 generate_common_builtins(BUILTIN_CPP_FILES COMMON_BUILTINS_BC_FILES)
-generate_stdlib(STDLIB_FILES ${ISPC_MASKS})
+# generate_stdlib(STDLIB_FILES ${ISPC_MASKS})
 
 set(BITCODE_FILES_LIST "")
 foreach(FULL_PATH IN LISTS BITCODE_FILES)
@@ -451,13 +451,11 @@ endforeach()
 message(STATUS "DISPATCH_BC_FILES_LIST is ${DISPATCH_BC_FILES_LIST}")
 
 set(TARGET_BC_FILE "${CMAKE_BINARY_DIR}/target_bc.cpp")
-configure_file("src/target_bc.cpp.in" ${TARGET_BC_FILE} @ONLY)
 
 add_executable(${PROJECT_NAME}
-               ${BUILTIN_FILES} ${BUILTIN_CPP_FILES}
                ${TARGET_BC_FILE}
                ${BITCODE_FILES} ${COMMON_BUILTINS_BC_FILES} ${DISPATCH_BC_FILES}
-               ${STDLIB_FILES} ${BISON_CPP_OUTPUT} ${FLEX_OUTPUT}
+               ${BISON_CPP_OUTPUT} ${FLEX_OUTPUT}
                ${CMAKE_CURRENT_SOURCE_DIR}/stdlib.ispc
                ${CMAKE_CURRENT_SOURCE_DIR}/common/version.rc)
 
@@ -504,6 +502,73 @@ target_sources(${PROJECT_NAME}
         "common/version.h"
         "src/target_bc.cpp.in"
 )
+
+if (WIN32)
+    set(TARGET_OS_LIST_FOR_STDLIB "windows" "linux")
+elseif (UNIX)
+    set(TARGET_OS_LIST_FOR_STDLIB "linux")
+endif()
+
+foreach (ispc_target ${ISPC_TARGETS})
+    foreach (bit 32 64)
+        foreach (target_os ${TARGET_OS_LIST_FOR_STDLIB})
+            # Neon targets constrains: neon-i8x16 and neon-i16x8 are implemented only for 32 bit ARM.
+            if ("${bit}" STREQUAL "64" AND
+                (${ispc_target} STREQUAL "neon-i8x16" OR ${ispc_target} STREQUAL "neon-i16x8"))
+                continue()
+            endif()
+
+            string(REGEX MATCH "^(sse|avx)" isX86 ${ispc_target})
+            if (isX86)
+                if (${bit} STREQUAL "64")
+                    set(target_arch "x86-64")
+                else()
+                    set(target_arch "x86")
+                endif()
+            endif()
+
+            string(REGEX MATCH "^(neon)" isArm ${ispc_target})
+            if (isArm)
+                if (${bit} STREQUAL "64")
+                    set(target_arch "aarch64")
+                else()
+                    set(target_arch "arm")
+                endif()
+            endif()
+
+            # TODO! Xe and wasm
+            # Xe targets are implemented only for 64 bit.
+            string(REGEX MATCH "^xe" isXe "${ispc_target}")
+            if ("${bit}" STREQUAL "32" AND isXe)
+                continue()
+            endif()
+
+            message(STATUS "generate stdlib.ispc rule for target ${ispc_target}, arch ${target_arch}, os ${target_os}")
+            set(output ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_CFG_INTDIR}/share/ispc/stdlib-${ispc_target}_${target_arch}_${target_os}.bc)
+            list(APPEND STDLIB_BC_FILES ${output})
+            add_custom_command(
+                OUTPUT ${output}
+                COMMAND ${PROJECT_NAME} --nostdlib --gen-stdlib --target=${ispc_target} --arch=${target_arch} --target-os=${target_os} stdlib.ispc --emit-llvm -o ${output}
+                DEPENDS ${PROJECT_NAME} stdlib.ispc
+                WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+            )
+        endforeach()
+    endforeach()
+endforeach()
+
+add_custom_target(
+    stdlib ALL
+    DEPENDS ${STDLIB_BC_FILES}
+)
+
+set(STDLIB_BC_FILES_LIST "")
+foreach(FULL_PATH IN LISTS STDLIB_BC_FILES)
+    get_filename_component(FILE_NAME "${FULL_PATH}" NAME)
+    set(STDLIB_BC_FILES_LIST "${STDLIB_BC_FILES_LIST}\"${FILE_NAME}\", ")
+endforeach()
+message(STATUS "STDLIB_BC_FILES_LIST is ${STDLIB_BC_FILES_LIST}")
+
+configure_file("src/target_bc.cpp.in" ${TARGET_BC_FILE} @ONLY)
 
 # ISPC passes
 add_subdirectory(src/opt)

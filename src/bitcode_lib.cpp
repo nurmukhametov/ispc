@@ -36,6 +36,7 @@ BitcodeLib::BitcodeLib(const unsigned char lib[], int size, ISPCTarget target, T
     TargetLibRegistry::RegisterTarget(this);
 }
 // ISPC-target constructor containing BC files.
+// TODO! redesign BitcodeLibType enum
 BitcodeLib::BitcodeLib(std::string &bc_filename, ISPCTarget target, TargetOS os, Arch arch)
     : m_type(BitcodeLibType::ISPC_target_BC), m_lib(nullptr), m_size(0), m_os(os), m_arch(arch), m_target(target), m_bc_filename(bc_filename) { }
 
@@ -107,6 +108,7 @@ llvm::Module *BitcodeLib::getLLVMModule() const {
         llvm::SmallString<128> filePath(g->shareDirPath);
         llvm::sys::path::append(filePath, m_bc_filename);
         llvm::ErrorOr<std::unique_ptr<llvm::MemoryBuffer>> bufferOrErr = llvm::MemoryBuffer::getFile(filePath.str());
+        // fprintf(stderr, "LOAD bc_filename %s\n", m_bc_filename.c_str());
         if (std::error_code EC = bufferOrErr.getError()) {
             fprintf(stderr, "ERROR reading bc_filename %s\n", m_bc_filename.c_str());
             fprintf(stderr, "%s\n", EC.message().c_str());

@@ -212,6 +212,7 @@ static void lPrintVersion() {
     printf("    [--[no-]discard-value-names]\tDo not discard/Discard value names when generating LLVM IR\n");
     printf("    [--dump-file[=<path>]]\t\tDump module IR to file(s) in "
            "current directory, or to <path> if specified\n");
+    printf("    [--gen-stdlib]\t\tEnable special compilation mode to generate LLVM IR for stdlib.ispc.");
     printf("    [--fuzz-seed=<value>]\t\tSeed value for RNG for fuzz testing\n");
     printf("    [--fuzz-test]\t\t\tRandomly perturb program input to test error conditions\n");
     printf("    [--off-phase=<value>]\t\tSwitch off optimization phases. --off-phase=first,210:220,300,305,310:last\n");
@@ -1060,6 +1061,10 @@ int main(int Argc, char *Argv[]) {
             g->dumpFilePath = ParsePath(argv[i] + strlen("--dump-file="), errorHandler);
         } else if (strncmp(argv[i], "--dump-file", 11) == 0) {
             g->dumpFile = true;
+        }
+
+        else if(strncmp(argv[i], "--gen-stdlib", 12) == 0) {
+            g->genStdlib = true;
         }
 
         else if (strncmp(argv[i], "--off-phase=", 12) == 0) {

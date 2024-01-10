@@ -718,6 +718,9 @@ struct Globals {
     /** Whether to dump IR to file. */
     bool dumpFile;
 
+    /** Wherther we are in special mode of generating IR for stdlib. */
+    bool genStdlib;
+
     /** Store the path to directory for IR file dumps. */
     std::string dumpFilePath;
 
