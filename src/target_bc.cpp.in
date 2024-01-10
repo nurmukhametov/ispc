@@ -16,3 +16,7 @@ std::vector<std::string> TargetBitcodeFileNames = {
 std::vector<std::string> BuiltinsCPPBitcodeFileNames = {
     @COMMON_BUILTINS_BC_FILES_LIST@
 };
+
+std::vector<std::string> DispatchBitcodeFileNames = {
+    @DISPATCH_BC_FILES_LIST@
+};

@@ -425,7 +425,7 @@ get_llvm_cppflags(LLVM_CPP_FLAGS)
 
 file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_CFG_INTDIR}/share/ispc)
 
-generate_target_builtins(BUILTIN_FILES BITCODE_FILES ${ISPC_TARGETS})
+generate_target_builtins(BUILTIN_FILES BITCODE_FILES DISPATCH_BC_FILES ${ISPC_TARGETS})
 generate_common_builtins(BUILTIN_CPP_FILES COMMON_BUILTINS_BC_FILES)
 generate_stdlib(STDLIB_FILES ${ISPC_MASKS})
 
@@ -443,13 +443,20 @@ foreach(FULL_PATH IN LISTS COMMON_BUILTINS_BC_FILES)
 endforeach()
 message(STATUS "COMMON_BUILTINS_BC_FILES_LIST is ${COMMON_BUILTINS_BC_FILES_LIST}")
 
+set(DISPATCH_BC_FILES_LIST "")
+foreach(FULL_PATH IN LISTS DISPATCH_BC_FILES)
+    get_filename_component(FILE_NAME "${FULL_PATH}" NAME)
+    set(DISPATCH_BC_FILES_LIST "${DISPATCH_BC_FILES_LIST}\"${FILE_NAME}\", ")
+endforeach()
+message(STATUS "DISPATCH_BC_FILES_LIST is ${DISPATCH_BC_FILES_LIST}")
+
 set(TARGET_BC_FILE "${CMAKE_BINARY_DIR}/target_bc.cpp")
 configure_file("src/target_bc.cpp.in" ${TARGET_BC_FILE} @ONLY)
 
 add_executable(${PROJECT_NAME}
-               ${BUILTIN_FILES} ${COMMON_BUILTINS_BC_FILES}
-               ${BUILTIN_CPP_FILES}
-               ${BITCODE_FILES} ${TARGET_BC_FILE}
+               ${BUILTIN_FILES} ${BUILTIN_CPP_FILES}
+               ${TARGET_BC_FILE}
+               ${BITCODE_FILES} ${COMMON_BUILTINS_BC_FILES} ${DISPATCH_BC_FILES}
                ${STDLIB_FILES} ${BISON_CPP_OUTPUT} ${FLEX_OUTPUT}
                ${CMAKE_CURRENT_SOURCE_DIR}/stdlib.ispc
                ${CMAKE_CURRENT_SOURCE_DIR}/common/version.rc)

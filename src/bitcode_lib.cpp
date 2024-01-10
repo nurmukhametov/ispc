@@ -59,6 +59,15 @@ void BitcodeLib::print() const {
                target.c_str(), arch.c_str());
         break;
     }
+    case BitcodeLibType::Dispatch_BC: {
+        printf("Type: dispatch.   filename: %s\n", m_bc_filename.c_str());
+        break;
+    }
+    case BitcodeLibType::Builtins_c_BC: {
+        std::string arch = ArchToString(m_arch);
+        printf("Type: builtins-c.  OS: %s, arch: %s, filename: %s\n", os.c_str(), arch.c_str(), m_bc_filename.c_str());
+        break;
+    }
     case BitcodeLibType::ISPC_target_BC: {
         std::string target = ISPCTargetToString(m_target);
         std::string arch = ArchToString(m_arch);
@@ -92,6 +101,8 @@ llvm::Module *BitcodeLib::getLLVMModule() const {
             return M;
         }
     }
+    case BitcodeLibType::Dispatch_BC:
+    case BitcodeLibType::Builtins_c_BC:
     case BitcodeLibType::ISPC_target_BC: {
         llvm::SmallString<128> filePath(g->shareDirPath);
         llvm::sys::path::append(filePath, m_bc_filename);

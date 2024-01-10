@@ -74,13 +74,12 @@ endfunction()
 
 function(dispatch_ll_to_cpp llFileName os_name resultFileName)
     set(inputFilePath builtins/${llFileName}.ll)
-    set(output ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_CFG_INTDIR}/builtins-${llFileName}.cpp)
+    set(output ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_CFG_INTDIR}/share/ispc/builtins-${llFileName}.bc)
     add_custom_command(
         OUTPUT ${output}
         COMMAND ${M4_EXECUTABLE} -DLLVM_VERSION=${LLVM_VERSION} ${inputFilePath}
-            | \"${Python3_EXECUTABLE}\" bitcode2cpp.py ${inputFilePath} --type=dispatch --os=${os_name} --llvm_as ${LLVM_AS_EXECUTABLE} --opaque_flags="${LLVM_TOOLS_OPAQUE_FLAGS}"
-            > ${output}
-        DEPENDS ${inputFilePath} bitcode2cpp.py
+            | ${LLVM_AS_EXECUTABLE} ${LLVM_TOOLS_OPAQUE_FLAGS} -o ${output}
+        DEPENDS ${inputFilePath}
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
     )
     set(${resultFileName} ${output} PARENT_SCOPE)
@@ -269,7 +268,7 @@ function(builtin_to_cpp bit os_name arch supported_archs supported_oses resultFi
         add_custom_command(
             OUTPUT ${output}
             COMMAND ${EMCC_EXECUTABLE} -DWASM -s WASM_OBJECT_FILES=0 ${emcc_flags} ${ISPC_OPAQUE_FLAGS} -I${CMAKE_SOURCE_DIR} -c ${inputFilePath} --std=gnu++17 -emit-llvm -c -o ${output}
-            DEPENDS ${inputFilePath} bitcode2cpp.py
+            DEPENDS ${inputFilePath}
             WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
         )
     else()
@@ -314,7 +313,7 @@ function(builtin_xe_to_cpp bit resultFileName)
     endif()
 endfunction()
 
-function (generate_target_builtins resultList bitcodeList)
+function (generate_target_builtins resultList bitcodeList dispatchList)
     # Dispatch module for macOS and all the rest of targets.
     if (${LLVM_VERSION_NUMBER} VERSION_GREATER_EQUAL "14.0.0")
         dispatch_ll_to_cpp(dispatch "linux" output_generic)
@@ -323,11 +322,11 @@ function (generate_target_builtins resultList bitcodeList)
     endif()
 
     dispatch_ll_to_cpp(dispatch-macos "macos" output_macos)
-    list(APPEND tmpList ${output_generic} ${output_macos})
-    if(MSVC)
-        # Group generated files inside Visual Studio
-        source_group("Generated Builtins" FILES ${output_generic} ${output_macos})
-    endif()
+    list(APPEND tmpDispatchList ${output_generic} ${output_macos})
+    # if(MSVC)
+    #     # Group generated files inside Visual Studio
+    #     source_group("Generated Builtins" FILES ${output_generic} ${output_macos})
+    # endif()
 
     # "Regular" targets, targeting specific real ISA: sse/avx/neon
     set(regular_targets ${ARGN})
@@ -361,6 +360,7 @@ function (generate_target_builtins resultList bitcodeList)
     # Return the list
     set(${resultList} ${tmpList} PARENT_SCOPE)
     set(${bitcodeList} ${tmpBitcodeList} PARENT_SCOPE)
+    set(${dispatchList} ${tmpDispatchList} PARENT_SCOPE)
 endfunction()
 
 function (generate_common_builtins resultList bitcodeList)

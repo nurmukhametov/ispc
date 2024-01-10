@@ -1097,9 +1097,9 @@ int main(int Argc, char *Argv[]) {
     llvm::sys::path::append(includeDir, "include");
     lParseInclude(includeDir.c_str());
 
-    fprintf(stderr, "baseDir: %s\n", shareDir.c_str());
+    // fprintf(stderr, "baseDir: %s\n", shareDir.c_str());
     llvm::sys::path::append(shareDir, "share", "ispc");
-    fprintf(stderr, "shareDir: %s\n", shareDir.c_str());
+    // fprintf(stderr, "shareDir: %s\n", shareDir.c_str());
     g->shareDirPath = shareDir.str();
 
     // Emit accumulted errors and warnings, if any.

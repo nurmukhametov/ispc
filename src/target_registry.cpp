@@ -62,6 +62,7 @@ std::vector<const BitcodeLib *> *TargetLibRegistry::libs = nullptr;
 
 extern std::vector<std::string> TargetBitcodeFileNames;
 extern std::vector<std::string> BuiltinsCPPBitcodeFileNames;
+extern std::vector<std::string> DispatchBitcodeFileNames;
 
 #include <iostream>
 TargetLibRegistry::TargetLibRegistry() {
@@ -69,6 +70,7 @@ TargetLibRegistry::TargetLibRegistry() {
     // TODO: check for conflicts / duplicates.
     m_dispatch = nullptr;
     m_dispatch_macos = nullptr;
+    if (libs) {
     for (auto lib : *libs) {
         switch (lib->getType()) {
         case BitcodeLib::BitcodeLibType::Dispatch:
@@ -105,12 +107,26 @@ TargetLibRegistry::TargetLibRegistry() {
                 m_builtins[Triple(lib->getISPCTarget(), TargetOS::ps5, lib->getArch()).encode()] = lib;
             }
             break;
+        case BitcodeLib::BitcodeLibType::Dispatch_BC:
         case BitcodeLib::BitcodeLibType::Builtins_c_BC:
-            // do nothing
-            break;
         case BitcodeLib::BitcodeLibType::ISPC_target_BC:
             // do nothing
             break;
+        }
+    }
+    }
+
+    for (auto &name : DispatchBitcodeFileNames) {
+        // builtins-dispatch-macos.cpp
+        // builtins-dispatch.cpp
+        if (name.find("macos") == std::string::npos) {
+            auto lib = new BitcodeLib(name, ISPCTarget::none, TargetOS::linux, Arch::none);
+            m_dispatch = lib;
+            // lib->print();
+        } else {
+            auto lib = new BitcodeLib(name, ISPCTarget::none, TargetOS::macos, Arch::none);
+            m_dispatch_macos = lib;
+            // lib->print();
         }
     }
 
@@ -126,7 +142,7 @@ TargetLibRegistry::TargetLibRegistry() {
         }
         std::string os_s = os_arch.substr(0, os_arch_del_pos);
         std::string arch_s = os_arch.substr(os_s.length() + 1);
-        std::cout << "NAME: " << name << " OA: " << os_arch << " OS: " << os_s << " ARCH: " << arch_s <<  std::endl;
+        // std::cout << "NAME: " << name << " OA: " << os_arch << " OS: " << os_s << " ARCH: " << arch_s <<  std::endl;
 
         ISPCTarget target = ISPCTarget::none;
         TargetOS os = TargetOS::error;
@@ -162,7 +178,7 @@ TargetLibRegistry::TargetLibRegistry() {
         // TODO! make more gracious error exit than UNREACHABLE
         Triple triple(target, os, arch);
         auto lib = new BitcodeLib(name, target, os, arch);
-        lib->print();
+        // lib->print();
         m_builtins[triple.encode()] = lib;
         m_supported_oses[(int)os] = true;
 
