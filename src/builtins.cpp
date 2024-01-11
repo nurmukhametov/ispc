@@ -21,18 +21,21 @@
 #include <math.h>
 #include <stdlib.h>
 
+#include <llvm/ADT/StringMap.h>
 #include <llvm/Bitcode/BitcodeReader.h>
 #include <llvm/IR/Attributes.h>
 #include <llvm/IR/DerivedTypes.h>
 #include <llvm/IR/Instructions.h>
 #include <llvm/IR/Intrinsics.h>
+#include <llvm/IR/LegacyPassManager.h>
 #include <llvm/IR/LLVMContext.h>
 #include <llvm/IR/Module.h>
 #include <llvm/IR/Type.h>
 #include <llvm/Linker/Linker.h>
+#include "llvm/Passes/PassBuilder.h"
 #include <llvm/Support/MemoryBuffer.h>
 #include <llvm/Target/TargetMachine.h>
-#include <llvm/IR/LegacyPassManager.h>
+#include "llvm/Transforms/IPO/GlobalDCE.h"
 #include <llvm/Transforms/IPO.h>
 #if ISPC_LLVM_VERSION >= ISPC_LLVM_17_0
 #include <llvm/TargetParser/Triple.h>
@@ -987,6 +990,14 @@ static void lSetAllInternalFunctions(llvm::Module *module) {
     }
 }
 
+static void lSetAllFromModuleAsInternalFunctions(llvm::Module *module, llvm::StringMap<int> &functions) {
+    for (llvm::Function &F : module->functions()) {
+        if (!F.isDeclaration() && functions.find(F.getName()) != functions.end()) {
+            F.setLinkage(llvm::GlobalValue::InternalLinkage);
+        }
+    }
+}
+
 void ispc::AddBitcodeToModule(llvm::Module *bcModule, llvm::Module *module, SymbolTable *symbolTable) {
     if (!bcModule) {
         Error(SourcePos(), "Error library module is nullptr");
@@ -1023,7 +1034,7 @@ void ispc::AddBitcodeToModule(llvm::Module *bcModule, llvm::Module *module, Symb
             Error(SourcePos(), "Error linking stdlib bitcode.");
         }
 
-        lSetInternalFunctions(module);
+        // lSetInternalFunctions(module);
 
         lCheckModuleIntrinsics(module);
     }
@@ -1131,10 +1142,17 @@ static void emitLLVMUsed(llvm::Module &module, std::vector<llvm::Constant *> &li
     GV->setSection("llvm.metadata");
 }
 
-void removeUnused(llvm::Module *module) {
-    llvm::legacy::PassManager passManager;
-    passManager.add(llvm::createGlobalDCEPass()); // Add Global Dead Code Elimination Pass
-    passManager.run(*module);
+void removeUnused(llvm::Module *M) {
+    // llvm::legacy::PassManager PM;
+    // PM.add(llvm::createGlobalDCEPass());
+    // PM.run(*M);
+    llvm::FunctionAnalysisManager FAM;
+    llvm::ModuleAnalysisManager MAM;
+    llvm::ModulePassManager PM;
+    llvm::PassBuilder PB;
+    PB.registerModuleAnalyses(MAM);
+    PM.addPass(llvm::GlobalDCEPass());
+    PM.run(*M, MAM);
 }
 
 void ispc::DefineStdlib(SymbolTable *symbolTable, llvm::LLVMContext *ctx, llvm::Module *module,
@@ -1203,6 +1221,11 @@ void ispc::DefineStdlib(SymbolTable *symbolTable, llvm::LLVMContext *ctx, llvm::
             Assert(stdlib);
             llvm::Module *stdlibBCModule = stdlib->getLLVMModule();
 
+            llvm::StringMap<int> stdlibFunctions;
+            for (llvm::Function &F : stdlibBCModule->functions()) {
+                stdlibFunctions[F.getName()] = 1;
+            }
+
         // llvm::outs() << "BEFORE\n";
         // module->print(llvm::outs(), nullptr);
             removeUnused(module);
@@ -1211,6 +1234,7 @@ void ispc::DefineStdlib(SymbolTable *symbolTable, llvm::LLVMContext *ctx, llvm::
 
 
             AddBitcodeToModule(stdlibBCModule, module);
+            lSetAllFromModuleAsInternalFunctions(module, stdlibFunctions);
         // llvm::outs() << "AFTER\n";
         // module->print(llvm::outs(), nullptr);
         }
@@ -1221,10 +1245,16 @@ void ispc::DefineStdlib(SymbolTable *symbolTable, llvm::LLVMContext *ctx, llvm::
         Assert(builtins);
         llvm::Module *builtinsBCModule = builtins->getLLVMModule();
 
+        llvm::StringMap<int> commonBuiltins;
+        for (llvm::Function &F : builtinsBCModule->functions()) {
+            commonBuiltins[F.getName()] = 1;
+        }
+
         // Unlike regular builtins and dispatch module, which don't care about mangling of external functions,
         // so they only differentiate Windows/Unix and 32/64 bit, builtins-c need to take care about mangling.
         // Hence, different version for all potentially supported OSes.
         AddBitcodeToModule(builtinsBCModule, module);
+        lSetAllFromModuleAsInternalFunctions(module, commonBuiltins);
 
         const BitcodeLib *target =
             g->target_registry->getISPCTargetLib(g->target->getISPCTarget(), g->target_os, g->target->getArch());
@@ -1240,6 +1270,7 @@ void ispc::DefineStdlib(SymbolTable *symbolTable, llvm::LLVMContext *ctx, llvm::
         // symbolTable->UpdatePointers(module);
         // symbolTable->UpdateBitcodeName();
         lAddModuleSymbols(module, symbolTable);
+        lSetInternalFunctions(module);
         // symbolTable->Print();
     }
 
@@ -1254,6 +1285,10 @@ void ispc::DefineStdlib(SymbolTable *symbolTable, llvm::LLVMContext *ctx, llvm::
     if (!g->target->isXeTarget() && g->generateDebuggingSymbols) {
         emitLLVMUsed(*module, debug_symbols);
     }
+
+        if (!g->genStdlib) {
+            module->print(llvm::outs(), nullptr);
+        }
 
     // symbolTable->Print();
     if (once) {
