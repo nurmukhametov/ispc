@@ -388,7 +388,7 @@ __declspec(safe) uniform unsigned int64 packmask(bool v) {
 ///////////////////////////////////////////////////////////////////////////
 // memcpy/memmove/memset
 
-static void memcpy(void *uniform dst, void *uniform src, uniform int32 count) {
+void memcpy(void *uniform dst, void *uniform src, uniform int32 count) {
     if (__is_xe_target) {
         for (uniform int j = 0; j < count; j++) {
             ((int8 * uniform) dst)[j] = ((int8 * uniform) src)[j];
@@ -398,7 +398,7 @@ static void memcpy(void *uniform dst, void *uniform src, uniform int32 count) {
     }
 }
 
-static void memcpy64(void *uniform dst, void *uniform src, uniform int64 count) {
+void memcpy64(void *uniform dst, void *uniform src, uniform int64 count) {
     if (__is_xe_target) {
         for (uniform int64 j = 0; j < count; j++) {
             ((int8 * uniform) dst)[j] = ((int8 * uniform) src)[j];
@@ -408,7 +408,7 @@ static void memcpy64(void *uniform dst, void *uniform src, uniform int64 count) 
     }
 }
 
-static void memcpy(void *varying dst, void *varying src, int32 count) {
+void memcpy(void *varying dst, void *varying src, int32 count) {
     void *uniform da[programCount];
     void *uniform sa[programCount];
 
@@ -427,7 +427,7 @@ static void memcpy(void *varying dst, void *varying src, int32 count) {
     }
 }
 
-static void memcpy64(void *varying dst, void *varying src, int64 count) {
+void memcpy64(void *varying dst, void *varying src, int64 count) {
     void *uniform da[programCount];
     void *uniform sa[programCount];
 
@@ -446,7 +446,7 @@ static void memcpy64(void *varying dst, void *varying src, int64 count) {
     }
 }
 
-static void memmove(void *uniform dst, void *uniform src, uniform int32 count) {
+void memmove(void *uniform dst, void *uniform src, uniform int32 count) {
     if (__is_xe_target) {
         if ((uintptr_t)dst - (uintptr_t)src >= (size_t)count) {
             for (uniform int j = 0; j < count; j++) {
@@ -462,7 +462,7 @@ static void memmove(void *uniform dst, void *uniform src, uniform int32 count) {
     }
 }
 
-static void memmove64(void *uniform dst, void *uniform src, uniform int64 count) {
+void memmove64(void *uniform dst, void *uniform src, uniform int64 count) {
     if (__is_xe_target) {
         if ((uintptr_t)dst - (uintptr_t)src >= (size_t)count) {
             for (uniform int64 j = 0; j < count; j++) {
@@ -478,7 +478,7 @@ static void memmove64(void *uniform dst, void *uniform src, uniform int64 count)
     }
 }
 
-static void memmove(void *varying dst, void *varying src, int32 count) {
+void memmove(void *varying dst, void *varying src, int32 count) {
     void *uniform da[programCount];
     void *uniform sa[programCount];
 
@@ -504,7 +504,7 @@ static void memmove(void *varying dst, void *varying src, int32 count) {
     }
 }
 
-static void memmove64(void *varying dst, void *varying src, int64 count) {
+void memmove64(void *varying dst, void *varying src, int64 count) {
     void *uniform da[programCount];
     void *uniform sa[programCount];
 
@@ -530,7 +530,7 @@ static void memmove64(void *varying dst, void *varying src, int64 count) {
     }
 }
 
-static void memset(void *uniform ptr, uniform int8 val, uniform int32 count) {
+void memset(void *uniform ptr, uniform int8 val, uniform int32 count) {
     if (__is_xe_target) {
         for (uniform int j = 0; j < count; j++) {
             ((int8 * uniform) ptr)[j] = val;
@@ -540,7 +540,7 @@ static void memset(void *uniform ptr, uniform int8 val, uniform int32 count) {
     }
 }
 
-static void memset64(void *uniform ptr, uniform int8 val, uniform int64 count) {
+void memset64(void *uniform ptr, uniform int8 val, uniform int64 count) {
     if (__is_xe_target) {
         for (uniform int64 j = 0; j < count; j++) {
             ((int8 * uniform) ptr)[j] = val;
@@ -550,7 +550,7 @@ static void memset64(void *uniform ptr, uniform int8 val, uniform int64 count) {
     }
 }
 
-static void memset(void *varying ptr, int8 val, int32 count) {
+void memset(void *varying ptr, int8 val, int32 count) {
     void *uniform pa[programCount];
     pa[programIndex] = ptr;
 
@@ -566,7 +566,7 @@ static void memset(void *varying ptr, int8 val, int32 count) {
     }
 }
 
-static void memset64(void *varying ptr, int8 val, int64 count) {
+void memset64(void *varying ptr, int8 val, int64 count) {
     void *uniform pa[programCount];
     pa[programIndex] = ptr;
 
@@ -676,109 +676,109 @@ __declspec(safe) int64 count_trailing_zeros(int64 v) {
 ///////////////////////////////////////////////////////////////////////////
 // AOS/SOA conversion
 
-static void aos_to_soa2(uniform float a[], varying float *uniform v0, varying float *uniform v1) {
+void aos_to_soa2(uniform float a[], varying float *uniform v0, varying float *uniform v1) {
     __aos_to_soa2_float((opaque_ptr_t)a, (opaque_ptr_t)v0, (opaque_ptr_t)v1);
 }
 
-static void soa_to_aos2(float v0, float v1, uniform float a[]) { __soa_to_aos2_float(v0, v1, (opaque_ptr_t)a); }
+void soa_to_aos2(float v0, float v1, uniform float a[]) { __soa_to_aos2_float(v0, v1, (opaque_ptr_t)a); }
 
-static void aos_to_soa3(uniform float a[], varying float *uniform v0, varying float *uniform v1,
+void aos_to_soa3(uniform float a[], varying float *uniform v0, varying float *uniform v1,
                                varying float *uniform v2) {
     __aos_to_soa3_float((opaque_ptr_t)a, (opaque_ptr_t)v0, (opaque_ptr_t)v1, (opaque_ptr_t)v2);
 }
 
-static void soa_to_aos3(float v0, float v1, float v2, uniform float a[]) {
+void soa_to_aos3(float v0, float v1, float v2, uniform float a[]) {
     __soa_to_aos3_float(v0, v1, v2, (opaque_ptr_t)a);
 }
 
-static void aos_to_soa4(uniform float a[], varying float *uniform v0, varying float *uniform v1,
+void aos_to_soa4(uniform float a[], varying float *uniform v0, varying float *uniform v1,
                                varying float *uniform v2, varying float *uniform v3) {
     __aos_to_soa4_float((opaque_ptr_t)a, (opaque_ptr_t)v0, (opaque_ptr_t)v1, (opaque_ptr_t)v2, (opaque_ptr_t)v3);
 }
 
-static void soa_to_aos4(float v0, float v1, float v2, float v3, uniform float a[]) {
+void soa_to_aos4(float v0, float v1, float v2, float v3, uniform float a[]) {
     __soa_to_aos4_float(v0, v1, v2, v3, (opaque_ptr_t)a);
 }
 
-static void aos_to_soa2(uniform int32 a[], varying int32 *uniform v0, varying int32 *uniform v1) {
+void aos_to_soa2(uniform int32 a[], varying int32 *uniform v0, varying int32 *uniform v1) {
     aos_to_soa2((uniform float *uniform)a, (varying float *uniform)v0, (varying float *uniform)v1);
 }
 
-static void soa_to_aos2(int32 v0, int32 v1, uniform int32 a[]) {
+void soa_to_aos2(int32 v0, int32 v1, uniform int32 a[]) {
     soa_to_aos2(floatbits(v0), floatbits(v1), (uniform float *uniform)a);
 }
 
-static void aos_to_soa3(uniform int32 a[], varying int32 *uniform v0, varying int32 *uniform v1,
+void aos_to_soa3(uniform int32 a[], varying int32 *uniform v0, varying int32 *uniform v1,
                                varying int32 *uniform v2) {
     aos_to_soa3((uniform float *uniform)a, (varying float *uniform)v0, (varying float *uniform)v1,
                 (varying float *uniform)v2);
 }
 
-static void soa_to_aos3(int32 v0, int32 v1, int32 v2, uniform int32 a[]) {
+void soa_to_aos3(int32 v0, int32 v1, int32 v2, uniform int32 a[]) {
     soa_to_aos3(floatbits(v0), floatbits(v1), floatbits(v2), (uniform float *uniform)a);
 }
 
-static void aos_to_soa4(uniform int32 a[], varying int32 *uniform v0, varying int32 *uniform v1,
+void aos_to_soa4(uniform int32 a[], varying int32 *uniform v0, varying int32 *uniform v1,
                                varying int32 *uniform v2, varying int32 *uniform v3) {
     aos_to_soa4((uniform float *uniform)a, (varying float *uniform)v0, (varying float *uniform)v1,
                 (varying float *uniform)v2, (varying float *uniform)v3);
 }
 
-static void soa_to_aos4(int32 v0, int32 v1, int32 v2, int32 v3, uniform int32 a[]) {
+void soa_to_aos4(int32 v0, int32 v1, int32 v2, int32 v3, uniform int32 a[]) {
     soa_to_aos4(floatbits(v0), floatbits(v1), floatbits(v2), floatbits(v3), (uniform float *uniform)a);
 }
 
-static void aos_to_soa2(uniform double a[], varying double *uniform v0, varying double *uniform v1) {
+void aos_to_soa2(uniform double a[], varying double *uniform v0, varying double *uniform v1) {
     __aos_to_soa2_double((opaque_ptr_t)a, (opaque_ptr_t)v0, (opaque_ptr_t)v1);
 }
 
-static void soa_to_aos2(double v0, double v1, uniform double a[]) {
+void soa_to_aos2(double v0, double v1, uniform double a[]) {
     __soa_to_aos2_double(v0, v1, (opaque_ptr_t)a);
 }
 
-static void aos_to_soa3(uniform double a[], varying double *uniform v0, varying double *uniform v1,
+void aos_to_soa3(uniform double a[], varying double *uniform v0, varying double *uniform v1,
                                varying double *uniform v2) {
     __aos_to_soa3_double((opaque_ptr_t)a, (opaque_ptr_t)v0, (opaque_ptr_t)v1, (opaque_ptr_t)v2);
 }
 
-static void soa_to_aos3(double v0, double v1, double v2, uniform double a[]) {
+void soa_to_aos3(double v0, double v1, double v2, uniform double a[]) {
     __soa_to_aos3_double(v0, v1, v2, (opaque_ptr_t)a);
 }
 
-static void aos_to_soa4(uniform double a[], varying double *uniform v0, varying double *uniform v1,
+void aos_to_soa4(uniform double a[], varying double *uniform v0, varying double *uniform v1,
                                varying double *uniform v2, varying double *uniform v3) {
     __aos_to_soa4_double((opaque_ptr_t)a, (opaque_ptr_t)v0, (opaque_ptr_t)v1, (opaque_ptr_t)v2, (opaque_ptr_t)v3);
 }
 
-static void soa_to_aos4(double v0, double v1, double v2, double v3, uniform double a[]) {
+void soa_to_aos4(double v0, double v1, double v2, double v3, uniform double a[]) {
     __soa_to_aos4_double(v0, v1, v2, v3, (opaque_ptr_t)a);
 }
 
-static void aos_to_soa2(uniform int64 a[], varying int64 *uniform v0, varying int64 *uniform v1) {
+void aos_to_soa2(uniform int64 a[], varying int64 *uniform v0, varying int64 *uniform v1) {
     aos_to_soa2((uniform double *uniform)a, (varying double *uniform)v0, (varying double *uniform)v1);
 }
 
-static void soa_to_aos2(int64 v0, int64 v1, uniform int64 a[]) {
+void soa_to_aos2(int64 v0, int64 v1, uniform int64 a[]) {
     soa_to_aos2(doublebits(v0), doublebits(v1), (uniform double *uniform)a);
 }
 
-static void aos_to_soa3(uniform int64 a[], varying int64 *uniform v0, varying int64 *uniform v1,
+void aos_to_soa3(uniform int64 a[], varying int64 *uniform v0, varying int64 *uniform v1,
                                varying int64 *uniform v2) {
     aos_to_soa3((uniform double *uniform)a, (varying double *uniform)v0, (varying double *uniform)v1,
                 (varying double *uniform)v2);
 }
 
-static void soa_to_aos3(int64 v0, int64 v1, int64 v2, uniform int64 a[]) {
+void soa_to_aos3(int64 v0, int64 v1, int64 v2, uniform int64 a[]) {
     soa_to_aos3(doublebits(v0), doublebits(v1), doublebits(v2), (uniform double *uniform)a);
 }
 
-static void aos_to_soa4(uniform int64 a[], varying int64 *uniform v0, varying int64 *uniform v1,
+void aos_to_soa4(uniform int64 a[], varying int64 *uniform v0, varying int64 *uniform v1,
                                varying int64 *uniform v2, varying int64 *uniform v3) {
     aos_to_soa4((uniform double *uniform)a, (varying double *uniform)v0, (varying double *uniform)v1,
                 (varying double *uniform)v2, (varying double *uniform)v3);
 }
 
-static void soa_to_aos4(int64 v0, int64 v1, int64 v2, int64 v3, uniform int64 a[]) {
+void soa_to_aos4(int64 v0, int64 v1, int64 v2, int64 v3, uniform int64 a[]) {
     soa_to_aos4(doublebits(v0), doublebits(v1), doublebits(v2), doublebits(v3), (uniform double *uniform)a);
 }
 ///////////////////////////////////////////////////////////////////////////
@@ -860,7 +860,7 @@ __declspec(safe, cost1) void prefetchw_l3(const void *uniform ptr) {
     __prefetch_write_uniform_3((opaque_ptr_t)ptr);
 }
 
-static void prefetch_l1(const void *varying ptr) {
+void prefetch_l1(const void *varying ptr) {
     if (__have_xe_prefetch) {
         __prefetch_read_sized_varying_1((int64)ptr, (uniform int8)PREFETCH_DATASIZE_DEFAULT, (IntMaskType)__mask);
     } else {
@@ -868,7 +868,7 @@ static void prefetch_l1(const void *varying ptr) {
     }
 }
 
-static void prefetch_l1(const void *varying ptr, uniform int8 size) {
+void prefetch_l1(const void *varying ptr, uniform int8 size) {
     if (__have_xe_prefetch) {
         __prefetch_read_sized_varying_1((int64)ptr, size, (IntMaskType)__mask);
     } else {
@@ -876,7 +876,7 @@ static void prefetch_l1(const void *varying ptr, uniform int8 size) {
     }
 }
 
-static void prefetch_l2(const void *varying ptr) {
+void prefetch_l2(const void *varying ptr) {
     if (__have_xe_prefetch) {
         __prefetch_read_sized_varying_2((int64)ptr, (uniform int8)PREFETCH_DATASIZE_DEFAULT, (IntMaskType)__mask);
     } else {
@@ -884,7 +884,7 @@ static void prefetch_l2(const void *varying ptr) {
     }
 }
 
-static void prefetch_l2(const void *varying ptr, uniform int8 size) {
+void prefetch_l2(const void *varying ptr, uniform int8 size) {
     if (__have_xe_prefetch) {
         __prefetch_read_sized_varying_2((int64)ptr, size, (IntMaskType)__mask);
     } else {
@@ -892,7 +892,7 @@ static void prefetch_l2(const void *varying ptr, uniform int8 size) {
     }
 }
 
-static void prefetch_l3(const void *varying ptr) {
+void prefetch_l3(const void *varying ptr) {
     if (__have_xe_prefetch) {
         __prefetch_read_sized_varying_3((int64)ptr, (uniform int8)PREFETCH_DATASIZE_DEFAULT, (IntMaskType)__mask);
     } else {
@@ -900,7 +900,7 @@ static void prefetch_l3(const void *varying ptr) {
     }
 }
 
-static void prefetch_l3(const void *varying ptr, uniform int8 size) {
+void prefetch_l3(const void *varying ptr, uniform int8 size) {
     if (__have_xe_prefetch) {
         __prefetch_read_sized_varying_3((int64)ptr, size, (IntMaskType)__mask);
     } else {
@@ -908,7 +908,7 @@ static void prefetch_l3(const void *varying ptr, uniform int8 size) {
     }
 }
 
-static void prefetch_nt(const void *varying ptr) {
+void prefetch_nt(const void *varying ptr) {
     if (__have_xe_prefetch) {
         __prefetch_read_sized_varying_nt((int64)ptr, (uniform int8)PREFETCH_DATASIZE_DEFAULT, (IntMaskType)__mask);
     } else {
@@ -916,7 +916,7 @@ static void prefetch_nt(const void *varying ptr) {
     }
 }
 
-static void prefetch_nt(const void *varying ptr, uniform int8 size) {
+void prefetch_nt(const void *varying ptr, uniform int8 size) {
     if (__have_xe_prefetch) {
         __prefetch_read_sized_varying_nt((int64)ptr, size, (IntMaskType)__mask);
     } else {
@@ -1194,112 +1194,112 @@ REDUCE_EQUAL(int64, int64, IntMaskType)
 REDUCE_EQUAL(unsigned int64, int64, UIntMaskType)
 REDUCE_EQUAL(double, double, IntMaskType)
 
-static float16 exclusive_scan_add(float16 v) { return __exclusive_scan_add_half(v, __mask); }
+float16 exclusive_scan_add(float16 v) { return __exclusive_scan_add_half(v, __mask); }
 
-static int32 exclusive_scan_add(int32 v) { return __exclusive_scan_add_i32(v, (IntMaskType)__mask); }
+int32 exclusive_scan_add(int32 v) { return __exclusive_scan_add_i32(v, (IntMaskType)__mask); }
 
-static unsigned int32 exclusive_scan_add(unsigned int32 v) {
+unsigned int32 exclusive_scan_add(unsigned int32 v) {
     return __exclusive_scan_add_i32((int32)v, (IntMaskType)__mask);
 }
 
-static float exclusive_scan_add(float v) { return __exclusive_scan_add_float(v, __mask); }
+float exclusive_scan_add(float v) { return __exclusive_scan_add_float(v, __mask); }
 
-static int64 exclusive_scan_add(int64 v) { return __exclusive_scan_add_i64(v, (IntMaskType)__mask); }
+int64 exclusive_scan_add(int64 v) { return __exclusive_scan_add_i64(v, (IntMaskType)__mask); }
 
-static unsigned int64 exclusive_scan_add(unsigned int64 v) { return __exclusive_scan_add_i64(v, (UIntMaskType)__mask); }
+unsigned int64 exclusive_scan_add(unsigned int64 v) { return __exclusive_scan_add_i64(v, (UIntMaskType)__mask); }
 
-static double exclusive_scan_add(double v) { return __exclusive_scan_add_double(v, __mask); }
+double exclusive_scan_add(double v) { return __exclusive_scan_add_double(v, __mask); }
 
-static int32 exclusive_scan_and(int32 v) { return __exclusive_scan_and_i32(v, (IntMaskType)__mask); }
+int32 exclusive_scan_and(int32 v) { return __exclusive_scan_and_i32(v, (IntMaskType)__mask); }
 
-static unsigned int32 exclusive_scan_and(unsigned int32 v) { return __exclusive_scan_and_i32(v, (UIntMaskType)__mask); }
+unsigned int32 exclusive_scan_and(unsigned int32 v) { return __exclusive_scan_and_i32(v, (UIntMaskType)__mask); }
 
-static int64 exclusive_scan_and(int64 v) { return __exclusive_scan_and_i64(v, (IntMaskType)__mask); }
+int64 exclusive_scan_and(int64 v) { return __exclusive_scan_and_i64(v, (IntMaskType)__mask); }
 
-static unsigned int64 exclusive_scan_and(unsigned int64 v) { return __exclusive_scan_and_i64(v, (UIntMaskType)__mask); }
+unsigned int64 exclusive_scan_and(unsigned int64 v) { return __exclusive_scan_and_i64(v, (UIntMaskType)__mask); }
 
-static int32 exclusive_scan_or(int32 v) { return __exclusive_scan_or_i32(v, (IntMaskType)__mask); }
+int32 exclusive_scan_or(int32 v) { return __exclusive_scan_or_i32(v, (IntMaskType)__mask); }
 
-static unsigned int32 exclusive_scan_or(unsigned int32 v) { return __exclusive_scan_or_i32(v, (UIntMaskType)__mask); }
+unsigned int32 exclusive_scan_or(unsigned int32 v) { return __exclusive_scan_or_i32(v, (UIntMaskType)__mask); }
 
-static int64 exclusive_scan_or(int64 v) { return __exclusive_scan_or_i64(v, (IntMaskType)__mask); }
+int64 exclusive_scan_or(int64 v) { return __exclusive_scan_or_i64(v, (IntMaskType)__mask); }
 
-static unsigned int64 exclusive_scan_or(unsigned int64 v) { return __exclusive_scan_or_i64(v, (UIntMaskType)__mask); }
+unsigned int64 exclusive_scan_or(unsigned int64 v) { return __exclusive_scan_or_i64(v, (UIntMaskType)__mask); }
 
 ///////////////////////////////////////////////////////////////////////////
 // packed load, store
 
 /* unsigned int32 implementations. */
 // unsigned int32 load.
-static uniform int packed_load_active(uniform unsigned int a[], varying unsigned int *uniform vals) {
+uniform int packed_load_active(uniform unsigned int a[], varying unsigned int *uniform vals) {
     return __packed_load_activei32((opaque_ptr_t)a, (opaque_ptr_t)vals, (UIntMaskType)__mask);
 }
 
 // unsigned int32 store.
-static uniform int packed_store_active(uniform unsigned int a[], unsigned int vals) {
+uniform int packed_store_active(uniform unsigned int a[], unsigned int vals) {
     return __packed_store_activei32((opaque_ptr_t)a, vals, (UIntMaskType)__mask);
 }
 
 // unsigned int32 store2.
-static uniform int packed_store_active2(uniform unsigned int a[], unsigned int vals) {
+uniform int packed_store_active2(uniform unsigned int a[], unsigned int vals) {
     return __packed_store_active2i32((opaque_ptr_t)a, vals, (UIntMaskType)__mask);
 }
 
 /* int32 implementations. */
 // int32 load.
-static uniform int packed_load_active(uniform int a[], varying int *uniform vals) {
+uniform int packed_load_active(uniform int a[], varying int *uniform vals) {
     return __packed_load_activei32((opaque_ptr_t)a, (opaque_ptr_t)vals, (IntMaskType)__mask);
 }
 
 // int32 store.
-static uniform int packed_store_active(uniform int a[], int vals) {
+uniform int packed_store_active(uniform int a[], int vals) {
     return __packed_store_activei32((opaque_ptr_t)a, vals, (IntMaskType)__mask);
 }
 
 // int32 store2.
-static uniform int packed_store_active2(uniform int a[], int vals) {
+uniform int packed_store_active2(uniform int a[], int vals) {
     return __packed_store_active2i32((opaque_ptr_t)a, vals, (IntMaskType)__mask);
 }
 
 // int32 store with lanes.
-static uniform int packed_store_active(bool active, uniform int a[], int vals) {
+uniform int packed_store_active(bool active, uniform int a[], int vals) {
     return __packed_store_activei32((opaque_ptr_t)a, vals, (IntMaskType)(-(int)active));
 }
 
 /* unsigned int64 implementations. */
 // unsigned int64 load.
-static uniform int packed_load_active(uniform unsigned int64 a[], varying unsigned int64 *uniform vals) {
+uniform int packed_load_active(uniform unsigned int64 a[], varying unsigned int64 *uniform vals) {
     return __packed_load_activei64((opaque_ptr_t)a, (opaque_ptr_t)vals, (UIntMaskType)__mask);
 }
 
 // unsigned int64 store.
-static uniform int packed_store_active(uniform unsigned int64 a[], unsigned int64 vals) {
+uniform int packed_store_active(uniform unsigned int64 a[], unsigned int64 vals) {
     return __packed_store_activei64((opaque_ptr_t)a, vals, (UIntMaskType)__mask);
 }
 
 // unsigned int64 store2.
-static uniform int packed_store_active2(uniform unsigned int64 a[], unsigned int64 vals) {
+uniform int packed_store_active2(uniform unsigned int64 a[], unsigned int64 vals) {
     return __packed_store_active2i64((opaque_ptr_t)a, vals, (UIntMaskType)__mask);
 }
 
 /* int64 implementations. */
 // int64 load.
-static uniform int packed_load_active(uniform int64 a[], varying int64 *uniform vals) {
+uniform int packed_load_active(uniform int64 a[], varying int64 *uniform vals) {
     return __packed_load_activei64((opaque_ptr_t)a, (opaque_ptr_t)vals, (IntMaskType)__mask);
 }
 
 // int64 store.
-static uniform int packed_store_active(uniform int64 a[], int64 vals) {
+uniform int packed_store_active(uniform int64 a[], int64 vals) {
     return __packed_store_activei64((opaque_ptr_t)a, vals, (IntMaskType)__mask);
 }
 
 // int64 store2.
-static uniform int packed_store_active2(uniform int64 a[], int64 vals) {
+uniform int packed_store_active2(uniform int64 a[], int64 vals) {
     return __packed_store_active2i64((opaque_ptr_t)a, vals, (IntMaskType)__mask);
 }
 
 // int64 store with lanes.
-static uniform int packed_store_active(bool active, uniform int64 a[], int64 vals) {
+uniform int packed_store_active(bool active, uniform int64 a[], int64 vals) {
     return __packed_store_activei64((opaque_ptr_t)a, vals, (IntMaskType)(-(int)active));
 }
 
@@ -1488,7 +1488,7 @@ __declspec(safe, cost1) uniform double streaming_load_uniform(uniform double a[]
 ///////////////////////////////////////////////////////////////////////////
 // System information
 
-static uniform int num_cores() { return __num_cores(); }
+uniform int num_cores() { return __num_cores(); }
 
 __declspec(safe) uniform int64 clock() { return __clock(); }
 
@@ -1961,7 +1961,7 @@ __declspec(safe, cost2) uniform int64 clamp(uniform int64 v, uniform int64 low, 
 ///////////////////////////////////////////////////////////////////////////
 // Global atomics and memory barriers
 
-static void memory_barrier() { __memory_barrier(); }
+void memory_barrier() { __memory_barrier(); }
 
 #define DEFINE_ATOMIC_OP(TA, TB, OPA, OPB, MASKTYPE, TC)                                                               \
     TA atomic_##OPA##_global(uniform TA *uniform ptr, TA value) {                                        \
@@ -2141,29 +2141,29 @@ ATOMIC_DECL_CMPXCHG(double, double, IntMaskType, int64)
 
 // void * variants of swap and compare exchange
 
-static void *atomic_swap_global(void **uniform ptr, void *value) {
+void *atomic_swap_global(void **uniform ptr, void *value) {
     return (void *)atomic_swap_global((intptr_t * uniform) ptr, (intptr_t)value);
 }
 
-static void *uniform atomic_swap_global(void **uniform ptr, void *uniform value) {
+void *uniform atomic_swap_global(void **uniform ptr, void *uniform value) {
     return (void *uniform)atomic_swap_global((intptr_t * uniform) ptr, (uniform intptr_t)value);
 }
 
-static void *atomic_swap_global(void **ptr, void *value) {
+void *atomic_swap_global(void **ptr, void *value) {
     return (void *)atomic_swap_global((intptr_t *)ptr, (intptr_t)value);
 }
 
-static void *atomic_compare_exchange_global(void **uniform ptr, void *oldval, void *newval) {
+void *atomic_compare_exchange_global(void **uniform ptr, void *oldval, void *newval) {
     return (void *)atomic_compare_exchange_global((intptr_t * uniform) ptr, (intptr_t)oldval, (intptr_t)newval);
 }
 
-static void *uniform atomic_compare_exchange_global(void **uniform ptr, void *uniform oldval,
+void *uniform atomic_compare_exchange_global(void **uniform ptr, void *uniform oldval,
                                                            void *uniform newval) {
     return (void *uniform)atomic_compare_exchange_global((intptr_t * uniform) ptr, (uniform intptr_t)oldval,
                                                          (uniform intptr_t)newval);
 }
 
-static void *atomic_compare_exchange_global(void **ptr, void *oldval, void *newval) {
+void *atomic_compare_exchange_global(void **ptr, void *oldval, void *newval) {
     return (void *)atomic_compare_exchange_global((intptr_t *)ptr, (intptr_t)oldval, (intptr_t)newval);
 }
 
@@ -2195,41 +2195,41 @@ static void *atomic_compare_exchange_global(void **ptr, void *oldval, void *newv
         return ret;                                                                                                    \
     }
 
-static uniform int32 __add(uniform int32 a, uniform int32 b) { return a + b; }
-static uniform int32 __sub(uniform int32 a, uniform int32 b) { return a - b; }
-static uniform int32 __and(uniform int32 a, uniform int32 b) { return a & b; }
-static uniform int32 __or(uniform int32 a, uniform int32 b) { return a | b; }
-static uniform int32 __xor(uniform int32 a, uniform int32 b) { return a ^ b; }
-static uniform int32 __swap(uniform int32 a, uniform int32 b) { return b; }
+uniform int32 __add(uniform int32 a, uniform int32 b) { return a + b; }
+uniform int32 __sub(uniform int32 a, uniform int32 b) { return a - b; }
+uniform int32 __and(uniform int32 a, uniform int32 b) { return a & b; }
+uniform int32 __or(uniform int32 a, uniform int32 b) { return a | b; }
+uniform int32 __xor(uniform int32 a, uniform int32 b) { return a ^ b; }
+uniform int32 __swap(uniform int32 a, uniform int32 b) { return b; }
 
-static uniform unsigned int32 __add(uniform unsigned int32 a, uniform unsigned int32 b) { return a + b; }
-static uniform unsigned int32 __sub(uniform unsigned int32 a, uniform unsigned int32 b) { return a - b; }
-static uniform unsigned int32 __and(uniform unsigned int32 a, uniform unsigned int32 b) { return a & b; }
-static uniform unsigned int32 __or(uniform unsigned int32 a, uniform unsigned int32 b) { return a | b; }
-static uniform unsigned int32 __xor(uniform unsigned int32 a, uniform unsigned int32 b) { return a ^ b; }
-static uniform unsigned int32 __swap(uniform unsigned int32 a, uniform unsigned int32 b) { return b; }
+uniform unsigned int32 __add(uniform unsigned int32 a, uniform unsigned int32 b) { return a + b; }
+uniform unsigned int32 __sub(uniform unsigned int32 a, uniform unsigned int32 b) { return a - b; }
+uniform unsigned int32 __and(uniform unsigned int32 a, uniform unsigned int32 b) { return a & b; }
+uniform unsigned int32 __or(uniform unsigned int32 a, uniform unsigned int32 b) { return a | b; }
+uniform unsigned int32 __xor(uniform unsigned int32 a, uniform unsigned int32 b) { return a ^ b; }
+uniform unsigned int32 __swap(uniform unsigned int32 a, uniform unsigned int32 b) { return b; }
 
-static uniform float __add(uniform float a, uniform float b) { return a + b; }
-static uniform float __sub(uniform float a, uniform float b) { return a - b; }
-static uniform float __swap(uniform float a, uniform float b) { return b; }
+uniform float __add(uniform float a, uniform float b) { return a + b; }
+uniform float __sub(uniform float a, uniform float b) { return a - b; }
+uniform float __swap(uniform float a, uniform float b) { return b; }
 
-static uniform int64 __add(uniform int64 a, uniform int64 b) { return a + b; }
-static uniform int64 __sub(uniform int64 a, uniform int64 b) { return a - b; }
-static uniform int64 __and(uniform int64 a, uniform int64 b) { return a & b; }
-static uniform int64 __or(uniform int64 a, uniform int64 b) { return a | b; }
-static uniform int64 __xor(uniform int64 a, uniform int64 b) { return a ^ b; }
-static uniform int64 __swap(uniform int64 a, uniform int64 b) { return b; }
+uniform int64 __add(uniform int64 a, uniform int64 b) { return a + b; }
+uniform int64 __sub(uniform int64 a, uniform int64 b) { return a - b; }
+uniform int64 __and(uniform int64 a, uniform int64 b) { return a & b; }
+uniform int64 __or(uniform int64 a, uniform int64 b) { return a | b; }
+uniform int64 __xor(uniform int64 a, uniform int64 b) { return a ^ b; }
+uniform int64 __swap(uniform int64 a, uniform int64 b) { return b; }
 
-static uniform unsigned int64 __add(uniform unsigned int64 a, uniform unsigned int64 b) { return a + b; }
-static uniform unsigned int64 __sub(uniform unsigned int64 a, uniform unsigned int64 b) { return a - b; }
-static uniform unsigned int64 __and(uniform unsigned int64 a, uniform unsigned int64 b) { return a & b; }
-static uniform unsigned int64 __or(uniform unsigned int64 a, uniform unsigned int64 b) { return a | b; }
-static uniform unsigned int64 __xor(uniform unsigned int64 a, uniform unsigned int64 b) { return a ^ b; }
-static uniform unsigned int64 __swap(uniform unsigned int64 a, uniform unsigned int64 b) { return b; }
+uniform unsigned int64 __add(uniform unsigned int64 a, uniform unsigned int64 b) { return a + b; }
+uniform unsigned int64 __sub(uniform unsigned int64 a, uniform unsigned int64 b) { return a - b; }
+uniform unsigned int64 __and(uniform unsigned int64 a, uniform unsigned int64 b) { return a & b; }
+uniform unsigned int64 __or(uniform unsigned int64 a, uniform unsigned int64 b) { return a | b; }
+uniform unsigned int64 __xor(uniform unsigned int64 a, uniform unsigned int64 b) { return a ^ b; }
+uniform unsigned int64 __swap(uniform unsigned int64 a, uniform unsigned int64 b) { return b; }
 
-static uniform double __add(uniform double a, uniform double b) { return a + b; }
-static uniform double __sub(uniform double a, uniform double b) { return a - b; }
-static uniform double __swap(uniform double a, uniform double b) { return a - b; }
+uniform double __add(uniform double a, uniform double b) { return a + b; }
+uniform double __sub(uniform double a, uniform double b) { return a - b; }
+uniform double __swap(uniform double a, uniform double b) { return a - b; }
 
 LOCAL_ATOMIC(int32, add, __add)
 LOCAL_ATOMIC(int32, subtract, __sub)
@@ -2323,29 +2323,29 @@ LOCAL_CMPXCHG(double)
 
 // void * variants of swap and compare exchange
 
-static void *atomic_swap_local(void **uniform ptr, void *value) {
+void *atomic_swap_local(void **uniform ptr, void *value) {
     return (void *)atomic_swap_local((intptr_t * uniform) ptr, (intptr_t)value);
 }
 
-static void *uniform atomic_swap_local(void **uniform ptr, void *uniform value) {
+void *uniform atomic_swap_local(void **uniform ptr, void *uniform value) {
     return (void *uniform)atomic_swap_local((intptr_t * uniform) ptr, (uniform intptr_t)value);
 }
 
-static void *atomic_swap_local(void **ptr, void *value) {
+void *atomic_swap_local(void **ptr, void *value) {
     return (void *)atomic_swap_local((intptr_t *)ptr, (intptr_t)value);
 }
 
-static void *atomic_compare_exchange_local(void **uniform ptr, void *oldval, void *newval) {
+void *atomic_compare_exchange_local(void **uniform ptr, void *oldval, void *newval) {
     return (void *)atomic_compare_exchange_local((intptr_t * uniform) ptr, (intptr_t)oldval, (intptr_t)newval);
 }
 
-static void *uniform atomic_compare_exchange_local(void **uniform ptr, void *uniform oldval,
+void *uniform atomic_compare_exchange_local(void **uniform ptr, void *uniform oldval,
                                                           void *uniform newval) {
     return (void *uniform)atomic_compare_exchange_local((intptr_t * uniform) ptr, (uniform intptr_t)oldval,
                                                         (uniform intptr_t)newval);
 }
 
-static void *atomic_compare_exchange_local(void **ptr, void *oldval, void *newval) {
+void *atomic_compare_exchange_local(void **ptr, void *oldval, void *newval) {
     return (void *)atomic_compare_exchange_local((intptr_t *)ptr, (intptr_t)oldval, (intptr_t)newval);
 }
 
@@ -4497,7 +4497,7 @@ struct RNGState {
     unsigned int z1, z2, z3, z4;
 };
 
-static unsigned int random(varying RNGState *uniform state) {
+unsigned int random(varying RNGState *uniform state) {
     unsigned int b;
 
     b = ((state->z1 << 6) ^ state->z1) >> 13;
@@ -4511,7 +4511,7 @@ static unsigned int random(varying RNGState *uniform state) {
     return (state->z1 ^ state->z2 ^ state->z3 ^ state->z4);
 }
 
-static uniform unsigned int random(uniform RNGState *uniform state) {
+uniform unsigned int random(uniform RNGState *uniform state) {
     uniform unsigned int b;
 
     b = ((state->z1 << 6) ^ state->z1) >> 13;
@@ -4525,19 +4525,19 @@ static uniform unsigned int random(uniform RNGState *uniform state) {
     return (state->z1 ^ state->z2 ^ state->z3 ^ state->z4);
 }
 
-static float frandom(varying RNGState *uniform state) {
+float frandom(varying RNGState *uniform state) {
     unsigned int irand = random(state);
     irand &= (1ul << 23) - 1;
     return floatbits(0x3F800000 | irand) - 1.0f;
 }
 
-static uniform float frandom(uniform RNGState *uniform state) {
+uniform float frandom(uniform RNGState *uniform state) {
     uniform unsigned int irand = random(state);
     irand &= (1ul << 23) - 1;
     return floatbits(0x3F800000 | irand) - 1.0f;
 }
 
-static void seed_rng(varying RNGState *uniform state, unsigned int seed) {
+void seed_rng(varying RNGState *uniform state, unsigned int seed) {
     state->z1 = seed;
     state->z2 = seed ^ 0xbeeff00d;
     state->z3 = ((seed & 0xfffful) << 16) | (seed >> 16);
@@ -4545,7 +4545,7 @@ static void seed_rng(varying RNGState *uniform state, unsigned int seed) {
         (((seed & 0xfful) << 24) | ((seed & 0xff00ul) << 8) | ((seed & 0xff0000ul) >> 8) | (seed & 0xff000000ul) >> 24);
 }
 
-static void seed_rng(uniform RNGState *uniform state, uniform unsigned int seed) {
+void seed_rng(uniform RNGState *uniform state, uniform unsigned int seed) {
     state->z1 = seed;
     state->z2 = seed ^ 0xbeeff00d;
     state->z3 = ((seed & 0xfffful) << 16) | (seed >> 16);
@@ -4553,12 +4553,12 @@ static void seed_rng(uniform RNGState *uniform state, uniform unsigned int seed)
         (((seed & 0xfful) << 24) | ((seed & 0xff00ul) << 8) | ((seed & 0xff0000ul) >> 8) | (seed & 0xff000000ul) >> 24);
 }
 
-static void fastmath() { __fastmath(); }
+void fastmath() { __fastmath(); }
 
 ///////////////////////////////////////////////////////////////////////////
 // saturation arithmetic
 
-static uniform int8 saturating_add(uniform int8 a, uniform int8 b) {
+uniform int8 saturating_add(uniform int8 a, uniform int8 b) {
     if (__have_saturating_arithmetic) {
         return __padds_ui8(a, b);
     } else {
@@ -4571,9 +4571,9 @@ static uniform int8 saturating_add(uniform int8 a, uniform int8 b) {
     }
 }
 
-static varying int8 saturating_add(varying int8 a, varying int8 b) { return __padds_vi8(a, b); }
+varying int8 saturating_add(varying int8 a, varying int8 b) { return __padds_vi8(a, b); }
 
-static uniform int16 saturating_add(uniform int16 a, uniform int16 b) {
+uniform int16 saturating_add(uniform int16 a, uniform int16 b) {
     if (__have_saturating_arithmetic) {
         return __padds_ui16(a, b);
     } else {
@@ -4586,9 +4586,9 @@ static uniform int16 saturating_add(uniform int16 a, uniform int16 b) {
     }
 }
 
-static varying int16 saturating_add(varying int16 a, varying int16 b) { return __padds_vi16(a, b); }
+varying int16 saturating_add(varying int16 a, varying int16 b) { return __padds_vi16(a, b); }
 
-static uniform int32 saturating_add(uniform int32 a, uniform int32 b) {
+uniform int32 saturating_add(uniform int32 a, uniform int32 b) {
     if (__have_saturating_arithmetic) {
         return __padds_ui32(a, b);
     } else {
@@ -4601,7 +4601,7 @@ static uniform int32 saturating_add(uniform int32 a, uniform int32 b) {
     }
 }
 
-static varying int32 saturating_add(varying int32 a, varying int32 b) {
+varying int32 saturating_add(varying int32 a, varying int32 b) {
     if (__have_saturating_arithmetic) {
         return __padds_vi32(a, b);
     } else {
@@ -4614,7 +4614,7 @@ static varying int32 saturating_add(varying int32 a, varying int32 b) {
     }
 }
 
-static uniform int64 saturating_add(uniform int64 a, uniform int64 b) {
+uniform int64 saturating_add(uniform int64 a, uniform int64 b) {
     if (__have_saturating_arithmetic) {
         return __padds_ui64(a, b);
     } else {
@@ -4627,7 +4627,7 @@ static uniform int64 saturating_add(uniform int64 a, uniform int64 b) {
     }
 }
 
-static varying int64 saturating_add(varying int64 a, varying int64 b) {
+varying int64 saturating_add(varying int64 a, varying int64 b) {
     if (__have_saturating_arithmetic) {
         return __padds_vi64(a, b);
     } else {
@@ -4640,7 +4640,7 @@ static varying int64 saturating_add(varying int64 a, varying int64 b) {
     }
 }
 
-static uniform unsigned int8 saturating_add(uniform unsigned int8 a, uniform unsigned int8 b) {
+uniform unsigned int8 saturating_add(uniform unsigned int8 a, uniform unsigned int8 b) {
     if (__have_saturating_arithmetic) {
         return __paddus_ui8(a, b);
     } else {
@@ -4650,11 +4650,11 @@ static uniform unsigned int8 saturating_add(uniform unsigned int8 a, uniform uns
     }
 }
 
-static varying unsigned int8 saturating_add(varying unsigned int8 a, varying unsigned int8 b) {
+varying unsigned int8 saturating_add(varying unsigned int8 a, varying unsigned int8 b) {
     return __paddus_vi8(a, b);
 }
 
-static uniform unsigned int16 saturating_add(uniform unsigned int16 a, uniform unsigned int16 b) {
+uniform unsigned int16 saturating_add(uniform unsigned int16 a, uniform unsigned int16 b) {
     if (__have_saturating_arithmetic) {
         return __paddus_ui16(a, b);
     } else {
@@ -4664,11 +4664,11 @@ static uniform unsigned int16 saturating_add(uniform unsigned int16 a, uniform u
     }
 }
 
-static varying unsigned int16 saturating_add(varying unsigned int16 a, varying unsigned int16 b) {
+varying unsigned int16 saturating_add(varying unsigned int16 a, varying unsigned int16 b) {
     return __paddus_vi16(a, b);
 }
 
-static uniform unsigned int32 saturating_add(uniform unsigned int32 a, uniform unsigned int32 b) {
+uniform unsigned int32 saturating_add(uniform unsigned int32 a, uniform unsigned int32 b) {
     if (__have_saturating_arithmetic) {
         return __paddus_ui32(a, b);
     } else {
@@ -4678,7 +4678,7 @@ static uniform unsigned int32 saturating_add(uniform unsigned int32 a, uniform u
     }
 }
 
-static varying unsigned int32 saturating_add(varying unsigned int32 a, varying unsigned int32 b) {
+varying unsigned int32 saturating_add(varying unsigned int32 a, varying unsigned int32 b) {
     if (__have_saturating_arithmetic) {
         return __paddus_vi32(a, b);
     } else {
@@ -4688,7 +4688,7 @@ static varying unsigned int32 saturating_add(varying unsigned int32 a, varying u
     }
 }
 
-static uniform unsigned int64 saturating_add(uniform unsigned int64 a, uniform unsigned int64 b) {
+uniform unsigned int64 saturating_add(uniform unsigned int64 a, uniform unsigned int64 b) {
     if (__have_saturating_arithmetic) {
         return __paddus_ui64(a, b);
     } else {
@@ -4698,7 +4698,7 @@ static uniform unsigned int64 saturating_add(uniform unsigned int64 a, uniform u
     }
 }
 
-static varying unsigned int64 saturating_add(varying unsigned int64 a, varying unsigned int64 b) {
+varying unsigned int64 saturating_add(varying unsigned int64 a, varying unsigned int64 b) {
     if (__have_saturating_arithmetic) {
         return __paddus_vi64(a, b);
     } else {
@@ -4708,7 +4708,7 @@ static varying unsigned int64 saturating_add(varying unsigned int64 a, varying u
     }
 }
 
-static uniform int8 saturating_sub(uniform int8 a, uniform int8 b) {
+uniform int8 saturating_sub(uniform int8 a, uniform int8 b) {
     if (__have_saturating_arithmetic) {
         return __psubs_ui8(a, b);
     } else {
@@ -4721,9 +4721,9 @@ static uniform int8 saturating_sub(uniform int8 a, uniform int8 b) {
     }
 }
 
-static varying int8 saturating_sub(varying int8 a, varying int8 b) { return __psubs_vi8(a, b); }
+varying int8 saturating_sub(varying int8 a, varying int8 b) { return __psubs_vi8(a, b); }
 
-static uniform int16 saturating_sub(uniform int16 a, uniform int16 b) {
+uniform int16 saturating_sub(uniform int16 a, uniform int16 b) {
     if (__have_saturating_arithmetic) {
         return __psubs_ui16(a, b);
     } else {
@@ -4736,9 +4736,9 @@ static uniform int16 saturating_sub(uniform int16 a, uniform int16 b) {
     }
 }
 
-static varying int16 saturating_sub(varying int16 a, varying int16 b) { return __psubs_vi16(a, b); }
+varying int16 saturating_sub(varying int16 a, varying int16 b) { return __psubs_vi16(a, b); }
 
-static uniform int32 saturating_sub(uniform int32 a, uniform int32 b) {
+uniform int32 saturating_sub(uniform int32 a, uniform int32 b) {
     if (__have_saturating_arithmetic) {
         return __psubs_ui32(a, b);
     } else {
@@ -4751,7 +4751,7 @@ static uniform int32 saturating_sub(uniform int32 a, uniform int32 b) {
     }
 }
 
-static varying int32 saturating_sub(varying int32 a, varying int32 b) {
+varying int32 saturating_sub(varying int32 a, varying int32 b) {
     if (__have_saturating_arithmetic) {
         return __psubs_vi32(a, b);
     } else {
@@ -4764,7 +4764,7 @@ static varying int32 saturating_sub(varying int32 a, varying int32 b) {
     }
 }
 
-static uniform int64 saturating_sub(uniform int64 a, uniform int64 b) {
+uniform int64 saturating_sub(uniform int64 a, uniform int64 b) {
     if (__have_saturating_arithmetic) {
         return __psubs_ui64(a, b);
     } else {
@@ -4777,7 +4777,7 @@ static uniform int64 saturating_sub(uniform int64 a, uniform int64 b) {
     }
 }
 
-static varying int64 saturating_sub(varying int64 a, varying int64 b) {
+varying int64 saturating_sub(varying int64 a, varying int64 b) {
     if (__have_saturating_arithmetic) {
         return __psubs_vi64(a, b);
     } else {
@@ -4790,7 +4790,7 @@ static varying int64 saturating_sub(varying int64 a, varying int64 b) {
     }
 }
 
-static uniform unsigned int8 saturating_sub(uniform unsigned int8 a, uniform unsigned int8 b) {
+uniform unsigned int8 saturating_sub(uniform unsigned int8 a, uniform unsigned int8 b) {
     if (__have_saturating_arithmetic) {
         return __psubus_ui8(a, b);
     } else {
@@ -4800,11 +4800,11 @@ static uniform unsigned int8 saturating_sub(uniform unsigned int8 a, uniform uns
     }
 }
 
-static varying unsigned int8 saturating_sub(varying unsigned int8 a, varying unsigned int8 b) {
+varying unsigned int8 saturating_sub(varying unsigned int8 a, varying unsigned int8 b) {
     return __psubus_vi8(a, b);
 }
 
-static uniform unsigned int16 saturating_sub(uniform unsigned int16 a, uniform unsigned int16 b) {
+uniform unsigned int16 saturating_sub(uniform unsigned int16 a, uniform unsigned int16 b) {
     if (__have_saturating_arithmetic) {
         return __psubus_ui16(a, b);
     } else {
@@ -4814,11 +4814,11 @@ static uniform unsigned int16 saturating_sub(uniform unsigned int16 a, uniform u
     }
 }
 
-static varying unsigned int16 saturating_sub(varying unsigned int16 a, varying unsigned int16 b) {
+varying unsigned int16 saturating_sub(varying unsigned int16 a, varying unsigned int16 b) {
     return __psubus_vi16(a, b);
 }
 
-static uniform unsigned int32 saturating_sub(uniform unsigned int32 a, uniform unsigned int32 b) {
+uniform unsigned int32 saturating_sub(uniform unsigned int32 a, uniform unsigned int32 b) {
     if (__have_saturating_arithmetic) {
         return __psubus_ui32(a, b);
     } else {
@@ -4828,7 +4828,7 @@ static uniform unsigned int32 saturating_sub(uniform unsigned int32 a, uniform u
     }
 }
 
-static varying unsigned int32 saturating_sub(varying unsigned int32 a, varying unsigned int32 b) {
+varying unsigned int32 saturating_sub(varying unsigned int32 a, varying unsigned int32 b) {
     if (__have_saturating_arithmetic) {
         return __psubus_vi32(a, b);
     } else {
@@ -4838,7 +4838,7 @@ static varying unsigned int32 saturating_sub(varying unsigned int32 a, varying u
     }
 }
 
-static uniform unsigned int64 saturating_sub(uniform unsigned int64 a, uniform unsigned int64 b) {
+uniform unsigned int64 saturating_sub(uniform unsigned int64 a, uniform unsigned int64 b) {
     if (__have_saturating_arithmetic) {
         return __psubus_ui64(a, b);
     } else {
@@ -4848,7 +4848,7 @@ static uniform unsigned int64 saturating_sub(uniform unsigned int64 a, uniform u
     }
 }
 
-static varying unsigned int64 saturating_sub(varying unsigned int64 a, varying unsigned int64 b) {
+varying unsigned int64 saturating_sub(varying unsigned int64 a, varying unsigned int64 b) {
     if (__have_saturating_arithmetic) {
         return __psubus_vi64(a, b);
     } else {
@@ -4858,95 +4858,95 @@ static varying unsigned int64 saturating_sub(varying unsigned int64 a, varying u
     }
 }
 
-static uniform int8 saturating_div(uniform int8 a, uniform int8 b) {
+uniform int8 saturating_div(uniform int8 a, uniform int8 b) {
     /* Only one way to overflow, so test for and prevent it. */
     a += !((b + 1) | ((uniform unsigned int8)a + INT8_MIN));
     return a / b;
 }
 
-static varying int8 saturating_div(varying int8 a, varying int8 b) {
+varying int8 saturating_div(varying int8 a, varying int8 b) {
     /* Only one way to overflow, so test for and prevent it. */
     a += !((b + 1) | ((varying unsigned int8)a + INT8_MIN));
     return a / b;
 }
 
-static uniform int16 saturating_div(uniform int16 a, uniform int16 b) {
+uniform int16 saturating_div(uniform int16 a, uniform int16 b) {
     /* Only one way to overflow, so test for and prevent it. */
     a += !((b + 1) | ((uniform unsigned int16)a + INT16_MIN));
     return a / b;
 }
 
-static varying int16 saturating_div(varying int16 a, varying int16 b) {
+varying int16 saturating_div(varying int16 a, varying int16 b) {
     /* Only one way to overflow, so test for and prevent it. */
     a += !((b + 1) | ((varying unsigned int16)a + INT16_MIN));
     return a / b;
 }
 
-static uniform int32 saturating_div(uniform int32 a, uniform int32 b) {
+uniform int32 saturating_div(uniform int32 a, uniform int32 b) {
     /* Only one way to overflow, so test for and prevent it. */
     a += !((b + 1) | ((uniform unsigned int32)a + INT32_MIN));
     return a / b;
 }
 
-static varying int32 saturating_div(varying int32 a, varying int32 b) {
+varying int32 saturating_div(varying int32 a, varying int32 b) {
     /* Only one way to overflow, so test for and prevent it. */
     a += !((b + 1) | ((varying unsigned int32)a + INT32_MIN));
     return a / b;
 }
 
-static uniform int64 saturating_div(uniform int64 a, uniform int64 b) {
+uniform int64 saturating_div(uniform int64 a, uniform int64 b) {
     /* Only one way to overflow, so test for and prevent it. */
     a += !((b + 1) | ((uniform unsigned int64)a + INT64_MIN));
     return a / b;
 }
 
-static varying int64 saturating_div(varying int64 a, varying int64 b) {
+varying int64 saturating_div(varying int64 a, varying int64 b) {
     /* Only one way to overflow, so test for and prevent it. */
     a += !((b + 1) | ((varying unsigned int64)a + INT64_MIN));
     return a / b;
 }
 
-static uniform unsigned int8 saturating_div(uniform unsigned int8 a, uniform unsigned int8 b) {
+uniform unsigned int8 saturating_div(uniform unsigned int8 a, uniform unsigned int8 b) {
     /* No overflow possible */
     return a / b;
 }
 
-static varying unsigned int8 saturating_div(varying unsigned int8 a, varying unsigned int8 b) {
+varying unsigned int8 saturating_div(varying unsigned int8 a, varying unsigned int8 b) {
     /* No overflow possible */
     return a / b;
 }
 
-static uniform unsigned int16 saturating_div(uniform unsigned int16 a, uniform unsigned int16 b) {
+uniform unsigned int16 saturating_div(uniform unsigned int16 a, uniform unsigned int16 b) {
     /* No overflow possible */
     return a / b;
 }
 
-static varying unsigned int16 saturating_div(varying unsigned int16 a, varying unsigned int16 b) {
+varying unsigned int16 saturating_div(varying unsigned int16 a, varying unsigned int16 b) {
     /* No overflow possible */
     return a / b;
 }
 
-static uniform unsigned int32 saturating_div(uniform unsigned int32 a, uniform unsigned int32 b) {
+uniform unsigned int32 saturating_div(uniform unsigned int32 a, uniform unsigned int32 b) {
     /* No overflow possible */
     return a / b;
 }
 
-static varying unsigned int32 saturating_div(varying unsigned int32 a, varying unsigned int32 b) {
+varying unsigned int32 saturating_div(varying unsigned int32 a, varying unsigned int32 b) {
     /* No overflow possible */
     return a / b;
 }
 
-static uniform unsigned int64 saturating_div(uniform unsigned int64 a, uniform unsigned int64 b) {
+uniform unsigned int64 saturating_div(uniform unsigned int64 a, uniform unsigned int64 b) {
     /* No overflow possible */
     return a / b;
 }
 
-static varying unsigned int64 saturating_div(varying unsigned int64 a, varying unsigned int64 b) {
+varying unsigned int64 saturating_div(varying unsigned int64 a, varying unsigned int64 b) {
     /* No overflow possible */
     return a / b;
 }
 
-static uniform int8 saturating_mul(uniform int8 a, uniform int8 b) {
+uniform int8 saturating_mul(uniform int8 a, uniform int8 b) {
     if (__have_saturating_arithmetic) {
         return __pmuls_ui8(a, b);
     } else {
@@ -4960,7 +4960,7 @@ static uniform int8 saturating_mul(uniform int8 a, uniform int8 b) {
     }
 }
 
-static varying int8 saturating_mul(varying int8 a, varying int8 b) {
+varying int8 saturating_mul(varying int8 a, varying int8 b) {
     if (__have_saturating_arithmetic) {
         return __pmuls_vi8(a, b);
     } else {
@@ -4974,7 +4974,7 @@ static varying int8 saturating_mul(varying int8 a, varying int8 b) {
     }
 }
 
-static uniform int16 saturating_mul(uniform int16 a, uniform int16 b) {
+uniform int16 saturating_mul(uniform int16 a, uniform int16 b) {
     if (__have_saturating_arithmetic) {
         return __pmuls_ui16(a, b);
     } else {
@@ -4988,7 +4988,7 @@ static uniform int16 saturating_mul(uniform int16 a, uniform int16 b) {
     }
 }
 
-static varying int16 saturating_mul(varying int16 a, varying int16 b) {
+varying int16 saturating_mul(varying int16 a, varying int16 b) {
     if (__have_saturating_arithmetic) {
         return __pmuls_vi16(a, b);
     } else {
@@ -5002,7 +5002,7 @@ static varying int16 saturating_mul(varying int16 a, varying int16 b) {
     }
 }
 
-static uniform int32 saturating_mul(uniform int32 a, uniform int32 b) {
+uniform int32 saturating_mul(uniform int32 a, uniform int32 b) {
     if (__have_saturating_arithmetic) {
         return __pmuls_ui32(a, b);
     } else {
@@ -5016,7 +5016,7 @@ static uniform int32 saturating_mul(uniform int32 a, uniform int32 b) {
     }
 }
 
-static varying int32 saturating_mul(varying int32 a, varying int32 b) {
+varying int32 saturating_mul(varying int32 a, varying int32 b) {
     if (__have_saturating_arithmetic) {
         return __pmuls_vi32(a, b);
     } else {
@@ -5030,7 +5030,7 @@ static varying int32 saturating_mul(varying int32 a, varying int32 b) {
     }
 }
 
-static uniform unsigned int8 saturating_mul(uniform unsigned int8 a, uniform unsigned int8 b) {
+uniform unsigned int8 saturating_mul(uniform unsigned int8 a, uniform unsigned int8 b) {
     if (__have_saturating_arithmetic) {
         return __pmulus_ui8(a, b);
     } else {
@@ -5041,7 +5041,7 @@ static uniform unsigned int8 saturating_mul(uniform unsigned int8 a, uniform uns
     }
 }
 
-static varying unsigned int8 saturating_mul(varying unsigned int8 a, varying unsigned int8 b) {
+varying unsigned int8 saturating_mul(varying unsigned int8 a, varying unsigned int8 b) {
     if (__have_saturating_arithmetic) {
         return __pmulus_vi8(a, b);
     } else {
@@ -5052,7 +5052,7 @@ static varying unsigned int8 saturating_mul(varying unsigned int8 a, varying uns
     }
 }
 
-static uniform unsigned int16 saturating_mul(uniform unsigned int16 a, uniform unsigned int16 b) {
+uniform unsigned int16 saturating_mul(uniform unsigned int16 a, uniform unsigned int16 b) {
     if (__have_saturating_arithmetic) {
         return __pmulus_ui16(a, b);
     } else {
@@ -5063,7 +5063,7 @@ static uniform unsigned int16 saturating_mul(uniform unsigned int16 a, uniform u
     }
 }
 
-static varying unsigned int16 saturating_mul(varying unsigned int16 a, varying unsigned int16 b) {
+varying unsigned int16 saturating_mul(varying unsigned int16 a, varying unsigned int16 b) {
     if (__have_saturating_arithmetic) {
         return __pmulus_vi16(a, b);
     } else {
@@ -5074,7 +5074,7 @@ static varying unsigned int16 saturating_mul(varying unsigned int16 a, varying u
     }
 }
 
-static uniform unsigned int32 saturating_mul(uniform unsigned int32 a, uniform unsigned int32 b) {
+uniform unsigned int32 saturating_mul(uniform unsigned int32 a, uniform unsigned int32 b) {
     if (__have_saturating_arithmetic) {
         return __pmulus_ui32(a, b);
     } else {
@@ -5085,7 +5085,7 @@ static uniform unsigned int32 saturating_mul(uniform unsigned int32 a, uniform u
     }
 }
 
-static varying unsigned int32 saturating_mul(varying unsigned int32 a, varying unsigned int32 b) {
+varying unsigned int32 saturating_mul(varying unsigned int32 a, varying unsigned int32 b) {
     if (__have_saturating_arithmetic) {
         return __pmulus_vi32(a, b);
     } else {
@@ -5096,7 +5096,7 @@ static varying unsigned int32 saturating_mul(varying unsigned int32 a, varying u
     }
 }
 
-static uniform int64 saturating_mul(uniform int64 a, uniform int64 b) {
+uniform int64 saturating_mul(uniform int64 a, uniform int64 b) {
     uniform unsigned int64 ret = 0;
 
     uniform int8 sign = (((a > 0) && (b > 0)) || ((a < 0) && (b < 0))) ? 1 : -1;
@@ -5146,7 +5146,7 @@ static uniform int64 saturating_mul(uniform int64 a, uniform int64 b) {
     }
 }
 
-static varying int64 saturating_mul(varying int64 a, varying int64 b) {
+varying int64 saturating_mul(varying int64 a, varying int64 b) {
     varying unsigned int64 ret = 0;
 
     varying int8 sign = (((a > 0) && (b > 0)) || ((a < 0) && (b < 0))) ? 1 : -1;
@@ -5196,7 +5196,7 @@ static varying int64 saturating_mul(varying int64 a, varying int64 b) {
     }
 }
 
-static uniform unsigned int64 saturating_mul(uniform unsigned int64 a, uniform unsigned int64 b) {
+uniform unsigned int64 saturating_mul(uniform unsigned int64 a, uniform unsigned int64 b) {
 
     uniform unsigned int32 a0 = a & 0xFFFFFFFF;
     uniform unsigned int32 b0 = b & 0xFFFFFFFF;
@@ -5214,7 +5214,7 @@ static uniform unsigned int64 saturating_mul(uniform unsigned int64 a, uniform u
     }
 }
 
-static varying unsigned int64 saturating_mul(varying unsigned int64 a, varying unsigned int64 b) {
+varying unsigned int64 saturating_mul(varying unsigned int64 a, varying unsigned int64 b) {
     varying unsigned int32 a0 = a & 0xFFFFFFFF;
     varying unsigned int32 b0 = b & 0xFFFFFFFF;
     varying unsigned int32 a1 = a >> 32;
@@ -5234,7 +5234,7 @@ static varying unsigned int64 saturating_mul(varying unsigned int64 a, varying u
 ///////////////////////////////////////////////////////////////////////////
 // rdrand
 
-static uniform bool rdrand(float *uniform ptr) {
+uniform bool rdrand(float *uniform ptr) {
     if (__have_native_rand == false)
         return false;
     else {
@@ -5248,7 +5248,7 @@ static uniform bool rdrand(float *uniform ptr) {
     }
 }
 
-static bool rdrand(varying float *uniform ptr) {
+bool rdrand(varying float *uniform ptr) {
     if (__have_native_rand == false)
         return false;
     else {
@@ -5270,7 +5270,7 @@ static bool rdrand(varying float *uniform ptr) {
     }
 }
 
-static bool rdrand(float *ptr) {
+bool rdrand(float *ptr) {
     if (__have_native_rand == false)
         return false;
     else {
@@ -5290,14 +5290,14 @@ static bool rdrand(float *ptr) {
     }
 }
 
-static uniform bool rdrand(int16 *uniform ptr) {
+uniform bool rdrand(int16 *uniform ptr) {
     if (__have_native_rand == false)
         return false;
     else
         return __rdrand_i16((int8 * uniform) ptr);
 }
 
-static bool rdrand(varying int16 *uniform ptr) {
+bool rdrand(varying int16 *uniform ptr) {
     if (__have_native_rand == false)
         return false;
     else {
@@ -5313,7 +5313,7 @@ static bool rdrand(varying int16 *uniform ptr) {
     }
 }
 
-static bool rdrand(int16 *ptr) {
+bool rdrand(int16 *ptr) {
     if (__have_native_rand == false)
         return false;
     else {
@@ -5332,14 +5332,14 @@ static bool rdrand(int16 *ptr) {
     }
 }
 
-static uniform bool rdrand(int32 *uniform ptr) {
+uniform bool rdrand(int32 *uniform ptr) {
     if (__have_native_rand == false)
         return false;
     else
         return __rdrand_i32((int8 * uniform) ptr);
 }
 
-static bool rdrand(varying int32 *uniform ptr) {
+bool rdrand(varying int32 *uniform ptr) {
     if (__have_native_rand == false)
         return false;
     else {
@@ -5355,7 +5355,7 @@ static bool rdrand(varying int32 *uniform ptr) {
     }
 }
 
-static bool rdrand(int32 *ptr) {
+bool rdrand(int32 *ptr) {
     if (__have_native_rand == false)
         return false;
     else {
@@ -5374,14 +5374,14 @@ static bool rdrand(int32 *ptr) {
     }
 }
 
-static uniform bool rdrand(int64 *uniform ptr) {
+uniform bool rdrand(int64 *uniform ptr) {
     if (__have_native_rand == false)
         return false;
     else
         return __rdrand_i64((int8 * uniform) ptr);
 }
 
-static bool rdrand(varying int64 *uniform ptr) {
+bool rdrand(varying int64 *uniform ptr) {
     if (__have_native_rand == false)
         return false;
     else {
@@ -5397,7 +5397,7 @@ static bool rdrand(varying int64 *uniform ptr) {
     }
 }
 
-static bool rdrand(int64 *ptr) {
+bool rdrand(int64 *ptr) {
     if (__have_native_rand == false)
         return false;
     else {

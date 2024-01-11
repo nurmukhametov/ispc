@@ -1226,17 +1226,17 @@ void ispc::DefineStdlib(SymbolTable *symbolTable, llvm::LLVMContext *ctx, llvm::
                 stdlibFunctions[F.getName()] = 1;
             }
 
-        // llvm::outs() << "BEFORE\n";
-        // module->print(llvm::outs(), nullptr);
+            // llvm::outs() << "BEFORE\n";
+            // module->print(llvm::outs(), nullptr);
             removeUnused(module);
-        // llvm::outs() << "WITHOUT UNUSED\n";
-        // module->print(llvm::outs(), nullptr);
+            // llvm::outs() << "WITHOUT UNUSED\n";
+            // module->print(llvm::outs(), nullptr);
 
 
             AddBitcodeToModule(stdlibBCModule, module);
             lSetAllFromModuleAsInternalFunctions(module, stdlibFunctions);
-        // llvm::outs() << "AFTER\n";
-        // module->print(llvm::outs(), nullptr);
+            // llvm::outs() << "AFTER\n";
+            // module->print(llvm::outs(), nullptr);
         }
     }
 
