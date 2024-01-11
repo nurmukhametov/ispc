@@ -411,6 +411,8 @@ int Module::CompileFile() {
             DefineStdlib(symbolTable, g->ctx, module, g->includeStdlib);
         }
     }
+    for (llvm::Function &f : *module)
+        g->target->markFuncWithTargetAttr(&f);
 
     if (diBuilder)
         diBuilder->finalize();

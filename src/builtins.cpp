@@ -1286,9 +1286,9 @@ void ispc::DefineStdlib(SymbolTable *symbolTable, llvm::LLVMContext *ctx, llvm::
         emitLLVMUsed(*module, debug_symbols);
     }
 
-        if (!g->genStdlib) {
-            module->print(llvm::outs(), nullptr);
-        }
+//        if (!g->genStdlib) {
+//            module->print(llvm::outs(), nullptr);
+//        }
 
     // symbolTable->Print();
     if (once) {

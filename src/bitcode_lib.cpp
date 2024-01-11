@@ -108,7 +108,7 @@ llvm::Module *BitcodeLib::getLLVMModule() const {
         llvm::SmallString<128> filePath(g->shareDirPath);
         llvm::sys::path::append(filePath, m_bc_filename);
         llvm::ErrorOr<std::unique_ptr<llvm::MemoryBuffer>> bufferOrErr = llvm::MemoryBuffer::getFile(filePath.str());
-        fprintf(stderr, "LOAD bc_filename %s\n", m_bc_filename.c_str());
+        // fprintf(stderr, "LOAD bc_filename %s\n", m_bc_filename.c_str());
         if (std::error_code EC = bufferOrErr.getError()) {
             fprintf(stderr, "ERROR reading bc_filename %s\n", m_bc_filename.c_str());
             fprintf(stderr, "%s\n", EC.message().c_str());
