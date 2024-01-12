@@ -1274,7 +1274,8 @@ void ispc::DefineStdlib(SymbolTable *symbolTable, llvm::LLVMContext *ctx, llvm::
         // symbolTable->Print();
     }
 
-    if (once) {
+    // if (once) {
+    if (!g->genStdlib) {
         lDefineConstantIntFunc("__fast_masked_vload", (int)g->opt.fastMaskedVload, module, symbolTable, debug_symbols);
     }
 
