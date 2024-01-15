@@ -1544,7 +1544,9 @@ __declspec(safe) uniform int float_to_srgb8(uniform float inval);
 ///////////////////////////////////////////////////////////////////////////
 // RNG stuff
 
-struct RNGState ;
+struct RNGState {
+    unsigned int z1, z2, z3, z4;
+};
 
 unsigned int random(varying RNGState *uniform state);
 
