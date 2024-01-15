@@ -566,8 +566,38 @@ void Module::AddGlobalVariable(const std::string &name, const Type *type, Expr *
                 // the same type as the global.  (But not if it's an
                 // ExprList; they don't have types per se / can't type
                 // convert themselves anyway.)
-                if (llvm::dyn_cast<ExprList>(initExpr) == nullptr)
+                if (llvm::dyn_cast<ExprList>(initExpr) == nullptr) {
                     initExpr = TypeConvertExpr(initExpr, type, "initializer");
+                } else {
+                    ExprList *exprList = llvm::dyn_cast<ExprList>(initExpr);
+                    if (type->IsConstType() && type->IsVaryingType()) {
+                        int N = g->target->getVectorWidth();
+                        int32_t vals[N];
+                        int i = 0;
+                        for (i = 0; i < N; i++) {
+                            vals[i] = 0;
+                        }
+                        bool canInitVaryingConst = true;
+                        i = 0;
+                        for (const Expr *e : exprList->exprs) {
+                            const ConstExpr *ce = llvm::dyn_cast<ConstExpr>(e);
+                            if (!ce || ce->Count() != 1) {
+                                canInitVaryingConst = false;
+                                break;
+                            }
+                            const Type *t = ce->GetType();
+                            if (!t || !t->IsUniformType() || !t->IsAtomicType()
+                                   || ce->getBasicType() != AtomicType::TYPE_INT32) {
+                                canInitVaryingConst = false;
+                                break;
+                            }
+                            vals[i++] = ce->int32Val[0];
+                        }
+                        if (canInitVaryingConst) {
+                            initExpr = new ConstExpr(type, vals, pos);
+                        }
+                    }
+                }
 
                 if (initExpr != nullptr) {
                     initExpr = Optimize(initExpr);
@@ -575,6 +605,14 @@ void Module::AddGlobalVariable(const std::string &name, const Type *type, Expr *
                     // constant value..
                     std::pair<llvm::Constant *, bool> initPair = initExpr->GetStorageConstant(type);
                     llvmInitializer = initPair.first;
+                    // llvmInitializer->print(llvm::errs());
+                            if (false) {
+                                fprintf(stdout, "AddGlobVar [type: %s]\n", type->GetString().c_str());
+                                Indent indent;
+                                indent.pushSingle();
+                                initExpr->Print(indent);
+                                fflush(stdout);
+                            }
 
                     // If compiling for multitarget, skip initialization for
                     // indentified scenarios unless it's static
@@ -594,13 +632,14 @@ void Module::AddGlobalVariable(const std::string &name, const Type *type, Expr *
                                     name.c_str());
                         }
 
-                        if (type->IsConstType())
+                        if (type->IsConstType()) {
                             // Try to get a ConstExpr associated with
                             // the symbol.  This llvm::dyn_cast can
                             // validly fail, for example for types like
                             // StructTypes where a ConstExpr can't
                             // represent their values.
                             constValue = llvm::dyn_cast<ConstExpr>(initExpr);
+                        }
                     } else
                         Error(initExpr->pos, "Initializer for global variable \"%s\" must be a constant.",
                               name.c_str());
