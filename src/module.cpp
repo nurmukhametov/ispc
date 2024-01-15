@@ -3393,6 +3393,9 @@ int Module::CompileAndOutput(const char *srcFile, Arch arch, const char *cpu, st
         if (!g->target->isValid())
             return 1;
 
+        g->singleTargetCompilation = true;
+        g->mangleFunctionsWithTarget = true;
+
         m = new Module(srcFile);
         const int compileResult = m->CompileFile();
 
@@ -3484,6 +3487,7 @@ int Module::CompileAndOutput(const char *srcFile, Arch arch, const char *cpu, st
         // Make sure that the function names for 'export'ed functions have
         // the target ISA appended to them.
         g->mangleFunctionsWithTarget = true;
+        g->singleTargetCompilation = false;
 
         // Array initialized with all false
         bool compiledTargets[Target::NUM_ISAS] = {};

@@ -798,6 +798,8 @@ struct Globals {
         vector width to them. */
     bool mangleFunctionsWithTarget;
 
+    bool singleTargetCompilation;
+
     /** If enabled, the lexer will randomly replace some tokens returned
         with other tokens, in order to test error condition handling in the
         compiler. */
