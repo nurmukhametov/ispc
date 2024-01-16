@@ -13,28 +13,28 @@
 // RUN: not %{ispc} -DVECTORCALL %s --nostdlib --target=host --nowrap 2>&1 | FileCheck %s --check-prefixes=CHECK_VECTORCALL
 // RUN: not %{ispc} -DREGCALL %s --nostdlib --target=host --nowrap 2>&1 | FileCheck %s --check-prefixes=CHECK_REGCALL
 
-// CHECK_NONE: define linkonce_odr <{{[0-9]*}} x i32> @goo___vyf___vyfvyf[[TARGET_SUFFIX:_.*]](<{{[0-9]*}} x float> %argGooOne, <{{[0-9]*}} x float> %argGooTwo, <{{[0-9]*}} x {{.*}}> %__mask)
+// CHECK_NONE: define linkonce_odr <{{[0-9]*}} x i32> @goo___vyf___vyfvyf(<{{[0-9]*}} x float> %argGooOne, <{{[0-9]*}} x float> %argGooTwo, <{{[0-9]*}} x {{.*}}> %__mask)
 #ifdef NONE
 template <typename T> noinline int goo(T argGooOne, T argGooTwo) {
     return argGooOne + argGooTwo;
 }
 #endif
 
-// CHECK_EXTERN: define linkonce_odr <{{[0-9]*}} x i32> @goo___vyf___vyfvyf[[TARGET_SUFFIX:_.*]](<{{[0-9]*}} x float> %argGooOne, <{{[0-9]*}} x float> %argGooTwo, <{{[0-9]*}} x {{.*}}> %__mask)
+// CHECK_EXTERN: define linkonce_odr <{{[0-9]*}} x i32> @goo___vyf___vyfvyf(<{{[0-9]*}} x float> %argGooOne, <{{[0-9]*}} x float> %argGooTwo, <{{[0-9]*}} x {{.*}}> %__mask)
 #ifdef EXTERN
 template <typename T> noinline extern int goo(T argGooOne, T argGooTwo) {
     return argGooOne + argGooTwo;
 }
 #endif
 
-// CHECK_STATIC: define internal <{{[0-9]*}} x i32> @goo___vyf___vyfvyf[[TARGET_SUFFIX:_.*]](<{{[0-9]*}} x float> %argGooOne, <{{[0-9]*}} x float> %argGooTwo, <{{[0-9]*}} x {{.*}}> %__mask)
+// CHECK_STATIC: define internal <{{[0-9]*}} x i32> @goo___vyf___vyfvyf(<{{[0-9]*}} x float> %argGooOne, <{{[0-9]*}} x float> %argGooTwo, <{{[0-9]*}} x {{.*}}> %__mask)
 #ifdef STATIC
 template <typename T> noinline static int goo(T argGooOne, T argGooTwo) {
     return argGooOne + argGooTwo;
 }
 #endif
 
-// CHECK_UNMASKED: define linkonce_odr <{{[0-9]*}} x i32> @goo___vyf___UM_vyfvyf[[TARGET_SUFFIX:_.*]](<{{[0-9]*}} x float> %argGooOne, <{{[0-9]*}} x float> %argGooTwo)
+// CHECK_UNMASKED: define linkonce_odr <{{[0-9]*}} x i32> @goo___vyf___UM_vyfvyf(<{{[0-9]*}} x float> %argGooOne, <{{[0-9]*}} x float> %argGooTwo)
 #ifdef UNMASKED
 template <typename T> unmasked noinline int goo(T argGooOne, T argGooTwo) {
     return argGooOne + argGooTwo;

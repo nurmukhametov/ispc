@@ -1,7 +1,7 @@
 //; RUN: %{ispc} %s --target=host --emit-llvm-text -O0 -o - | FileCheck %s
 
 // Tests float16 constant parsing in *e*f16 form.
-//; CHECK: define half @foo0___unh[[TARGET_SUFFIX:_.*]](half
+//; CHECK: define half @foo0___unh(half
 //; CHECK: fadd half %{{[a-zA-Z_][a-zA-Z0-9_]*}}, 0xH011D
 uniform float16 foo0(uniform float16 arg0) {
     arg0 = arg0 + 1.7e-5f16;
@@ -30,19 +30,19 @@ uniform float16 foo2(uniform float16 arg0, uniform float16 arg1) {
 }
 
 // Tests function call with float16 arguments.
-//; CHECK: define half @foo3___unh[[TARGET_SUFFIX]](half
-//; CHECK: call half @goo3___unh[[TARGET_SUFFIX]](half
+//; CHECK: define half @foo3___unh(half
+//; CHECK: call half @goo3___unh(half
 noinline uniform float16 goo3(uniform float16 arg0) { return arg0 + 7.9; }
 
 uniform float16 foo3(uniform float16 arg0) { return goo3(arg0); }
 
 // Tests int type -> float16 type conversion.
-//; CHECK: define half @foo4___uni[[TARGET_SUFFIX]](i32 %
+//; CHECK: define half @foo4___uni(i32 %
 //; CHECK: sitofp i32 %{{[a-zA-Z_][a-zA-Z0-9_]*}} to half
 uniform float16 foo4(uniform int arg0) { return arg0; }
 
 // Tests float16 -> wider float type conversion.
-//; CHECK: define double @foo5___unh[[TARGET_SUFFIX]](half %arg0,
+//; CHECK: define double @foo5___unh(half %arg0,
 //; CHECK: fpext half %{{[a-zA-Z_][a-zA-Z0-9_]*}} to double
 uniform double foo5(uniform float16 arg0) { return arg0; }
 
@@ -70,7 +70,7 @@ uniform int8 foo7(uniform float arg0, uniform float16 arg1) {
 }
 
 // Testing precedence for float16 with 'lower' precedence type.
-//; CHECK: define i8 @foo8___unsunh[[TARGET_SUFFIX]](
+//; CHECK: define i8 @foo8___unsunh(
 //; CHECK: %{{[a-zA-Z_][a-zA-Z0-9_]*}} = sitofp i16 %{{[a-zA-Z_][a-zA-Z0-9_]*}} to half
 //; CHECK: fadd half
 uniform int8 foo8(uniform int16 arg0, uniform float16 arg1) {

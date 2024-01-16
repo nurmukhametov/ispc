@@ -31,23 +31,23 @@ template <typename T> noinline
     return argGooOne - argGooTwo;
 }
 
-// CHECK_EXTERN_INHERIT: define <{{[0-9]*}} x i32> @goo___vyi___vyivyi[[TARGET_SUFFIX:_.*]](<{{[0-9]*}} x i32> %argGooOne, <{{[0-9]*}} x i32> %argGooTwo, <{{[0-9]*}} x {{.*}}> %__mask)
-// CHECK_STATIC_INHERIT: define internal <{{[0-9]*}} x i32> @goo___vyi___vyivyi[[TARGET_SUFFIX:_.*]](<{{[0-9]*}} x i32> %argGooOne, <{{[0-9]*}} x i32> %argGooTwo, <{{[0-9]*}} x {{.*}}> %__mask)
-// CHECK_UNMASKED_INHERIT: define <{{[0-9]*}} x i32> @goo___vyi___UM_vyivyi[[TARGET_SUFFIX:_.*]](<{{[0-9]*}} x i32> %argGooOne, <{{[0-9]*}} x i32> %argGooTwo)
+// CHECK_EXTERN_INHERIT: define <{{[0-9]*}} x i32> @goo___vyi___vyivyi(<{{[0-9]*}} x i32> %argGooOne, <{{[0-9]*}} x i32> %argGooTwo, <{{[0-9]*}} x {{.*}}> %__mask)
+// CHECK_STATIC_INHERIT: define internal <{{[0-9]*}} x i32> @goo___vyi___vyivyi(<{{[0-9]*}} x i32> %argGooOne, <{{[0-9]*}} x i32> %argGooTwo, <{{[0-9]*}} x {{.*}}> %__mask)
+// CHECK_UNMASKED_INHERIT: define <{{[0-9]*}} x i32> @goo___vyi___UM_vyivyi(<{{[0-9]*}} x i32> %argGooOne, <{{[0-9]*}} x i32> %argGooTwo)
 #if defined(EXTERN_INHERIT) || defined(STATIC_INHERIT) || defined(UNMASKED_INHERIT)
 template <> noinline int goo<int>(int argGooOne, int argGooTwo) {
     return argGooOne + argGooTwo;
 }
 #endif
 
-// CHECK_EXTERN: define <{{[0-9]*}} x i32> @goo___vyi___vyivyi[[TARGET_SUFFIX:_.*]](<{{[0-9]*}} x i32> %argGooOne, <{{[0-9]*}} x i32> %argGooTwo, <{{[0-9]*}} x {{.*}}> %__mask)
+// CHECK_EXTERN: define <{{[0-9]*}} x i32> @goo___vyi___vyivyi(<{{[0-9]*}} x i32> %argGooOne, <{{[0-9]*}} x i32> %argGooTwo, <{{[0-9]*}} x {{.*}}> %__mask)
 #ifdef EXTERN
 template <> noinline extern int goo<int>(int argGooOne, int argGooTwo) {
     return argGooOne + argGooTwo;
 }
 #endif
 
-// CHECK_STATIC: define internal <{{[0-9]*}} x i32> @goo___vyi___vyivyi[[TARGET_SUFFIX:_.*]](<{{[0-9]*}} x i32> %argGooOne, <{{[0-9]*}} x i32> %argGooTwo, <{{[0-9]*}} x {{.*}}> %__mask)
+// CHECK_STATIC: define internal <{{[0-9]*}} x i32> @goo___vyi___vyivyi(<{{[0-9]*}} x i32> %argGooOne, <{{[0-9]*}} x i32> %argGooTwo, <{{[0-9]*}} x {{.*}}> %__mask)
 #ifdef STATIC
 template <> noinline static int goo<int>(int argGooOne, int argGooTwo) {
     return argGooOne + argGooTwo;
@@ -68,7 +68,7 @@ template <> noinline static int goo<int>(int argGooOne, int argGooTwo) {
 }
 #endif
 
-// CHECK_UNMASKED: define <{{[0-9]*}} x i32> @goo___vyi___UM_vyivyi[[TARGET_SUFFIX:_.*]](<{{[0-9]*}} x i32> %argGooOne, <{{[0-9]*}} x i32> %argGooTwo)
+// CHECK_UNMASKED: define <{{[0-9]*}} x i32> @goo___vyi___UM_vyivyi(<{{[0-9]*}} x i32> %argGooOne, <{{[0-9]*}} x i32> %argGooTwo)
 #ifdef UNMASKED
 template <> noinline unmasked int goo<int>(int argGooOne, int argGooTwo) {
     return argGooOne + argGooTwo;
@@ -82,7 +82,7 @@ template <> noinline unmasked int goo<int>(int argGooOne, int argGooTwo) {
 }
 #endif
 
-// CHECK_INLINE-NOT: @goo___vyi___vyivyi[[TARGET_SUFFIX:_.*]]
+// CHECK_INLINE-NOT: @goo___vyi___vyivyi
 #ifdef INLINE
 template <> inline int goo<int>(int argGooOne, int argGooTwo) {
     return argGooOne + argGooTwo;

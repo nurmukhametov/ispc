@@ -1,6 +1,6 @@
 // RUN: %{ispc} --target=host --nowrap --nostdlib -O2 --emit-llvm-text %s -o - | FileCheck %s
 
-// CHECK-LABEL: @foo{{[_0-9a-z]*}}(
+// CHECK-LABEL: @foo(
 // CHECK: foreach_full_body.lr.ph:
 // CHECK: br i1 [[TMP:%.*]], label %[[FOREACH_SPLIT_US:.*]], label %[[FOREACH_SPLIT:.*]]
 // CHECK: [[FOREACH_SPLIT_US]]:

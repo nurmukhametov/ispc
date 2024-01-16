@@ -15,7 +15,7 @@ bool y;
 
 uniform bool x;
 
-// COMMON-LABEL: @foo___vyTvyT{{[_0-9a-z]*}}(
+// COMMON-LABEL: @foo___vyTvyT(
 // COMMON-NEXT: allocas:
 // COMMON-NEXT: [[CMP:%.*]] = icmp ult <[[WIDTH]] x i8> %a, %b
 // COMMON-NEXT: [[CAST:%.*]] = sext <[[WIDTH]] x i1> [[CMP]] to <[[WIDTH]] x i8>
@@ -35,13 +35,13 @@ void foo(uint8 a, uint8 b)
 // element type (i1, i8, i16, i32, i64) for different archs (see
 // src/llvmutil.cpp BoolVectoType).
 
-// AVX2: define void @boo___vyb_avx2(<[[WIDTH]] x [[RTYPE:i[0-9]+]]> %a, <[[WIDTH]] x [[RTYPE]]> %__mask)
+// AVX2: define void @boo___vyb(<[[WIDTH]] x [[RTYPE:i[0-9]+]]> %a, <[[WIDTH]] x [[RTYPE]]> %__mask)
 // AVX2-NEXT: allocas:
 // AVX2-NEXT: [[CAST:%.*]] = trunc <[[WIDTH]] x [[RTYPE]]> %a to <[[WIDTH]] x i8>
 // AVX2-NEXT: store <[[WIDTH]] x i8> [[CAST]], {{.*}} @y
 // AVX2-NEXT: ret void
 
-// AVX512: define void @boo___vyb_avx512skx(<[[WIDTH]] x [[RTYPE:i[0-9]+]]> %a, <[[WIDTH]] x [[RTYPE]]> %__mask)
+// AVX512: define void @boo___vyb(<[[WIDTH]] x [[RTYPE:i[0-9]+]]> %a, <[[WIDTH]] x [[RTYPE]]> %__mask)
 // AVX512-NEXT: allocas:
 // AVX512-NEXT: [[CAST:%.*]] = sext <[[WIDTH]] x [[RTYPE]]> %a to <[[WIDTH]] x i8>
 // AVX512-NEXT: store <[[WIDTH]] x i8> [[CAST]], {{.*}} @y
@@ -51,7 +51,7 @@ void boo(bool a) {
     y = a;
 }
 
-// COMMON: define void @coo___unb{{[_0-9a-z]*}}(i1 %a
+// COMMON: define void @coo___unb(i1 %a
 // COMMON-NEXT: allocas:
 // COMMON-NEXT: [[CAST:%.*]] = sext i1 %a to i8
 // COMMON-NEXT: store i8 [[CAST]], {{.*}} @x
