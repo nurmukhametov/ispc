@@ -4,7 +4,7 @@
 // RUN: %{ispc} %s --target=avx2 --arch=x86-64 --nostdlib --emit-llvm-text --opt=reset-ftz-daz -o - | FileCheck %s
 // RUN: %{ispc} %s --target=avx2 --arch=x86-64 --nostdlib --emit-llvm-text -o - | FileCheck --check-prefixes=CHECK_NO_FTZ_DAZ %s
 
-// CHECK: define float @test_ftz_daz___
+// CHECK: define float @test_ftz_daz____avx2(<{{.*}}> %__mask)
 // CHECK-NOT: stmxcsr
 // CHECK-NOT: ldmxcsr
 // CHECK: define float @export_test_ftz_daz___

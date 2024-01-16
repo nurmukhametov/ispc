@@ -8,7 +8,7 @@ struct FVector3 {
 
 static const varying int vAOS32 = {0, 1, 2, 3, 8, 9, 10, 11};
 
-//; CHECK-LABEL: test:
+//; CHECK-LABEL: test_avx2:
 //; CHECK: {{[vpermpd $80]|[vperm2f128]}}
 //; CHECK-NOT: vpermpd $136
 export void test(uniform FVector3 &Out, uniform float *uniform In)

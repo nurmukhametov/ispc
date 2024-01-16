@@ -18,7 +18,7 @@ struct Parameters {
 #ifdef ISPC_EXPORT
 // CHECK_ISPC_EXPORT: define void @simple_export___
 // CHECK_ISPC_EXPORT: %full_mask_memory = alloca
-// CHECK_ISPC_EXPORT: define void @simple_export(
+// CHECK_ISPC_EXPORT: define void @simple_export[[TARGET_SUFFIX:_.*]](
 // CHECK_ISPC_EXPORT-NOT: %full_mask_memory = alloca
 export void simple_export(void *uniform _p) {
     Parameters *uniform p = (Parameters * uniform) _p;
@@ -50,7 +50,7 @@ void simple(void *uniform _p) {
 // CHECK_ISPC_TASK-NOT: %full_mask_memory = alloca
 // CHECK_ISPC_TASK: define void @simple_entry_point__
 // CHECK_ISPC_TASK: %full_mask_memory = alloca
-// CHECK_ISPC_TASK: define void @simple_entry_point(
+// CHECK_ISPC_TASK: define void @simple_entry_point[[TARGET_SUFFIX:_.*]](
 // CHECK_ISPC_TASK-NOT: %full_mask_memory = alloca
 task void simple_task(void *uniform _p) {
     Parameters *uniform p = (Parameters * uniform) _p;

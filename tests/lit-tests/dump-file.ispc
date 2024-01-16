@@ -15,7 +15,7 @@
 
 #define NUM 1024
 
-// CHECK_ALL-LABEL: @foo(
+// CHECK_ALL-LABEL: @foo{{[_0-9a-z]*}}(
 
 // CHECK_PRE:   getelementptr
 // CHECK_PRE:   load

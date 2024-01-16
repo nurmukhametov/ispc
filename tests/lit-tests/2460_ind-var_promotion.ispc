@@ -5,11 +5,11 @@
 // RUN: %{ispc} -DVECTOR=0 %s -o - -O2 --nostdlib --emit-asm --target=avx2-i32x4 --arch=x86-64 --x86-asm-syntax=intel | FileCheck %s --check-prefix=CHECK_ASM
 // RUN: %{ispc} -DVECTOR=1 %s -o - -O2 --nostdlib --emit-asm --target=avx2-i32x4 --arch=x86-64 --x86-asm-syntax=intel | FileCheck %s --check-prefix=CHECK_ASM
 
-// CHECK_ASM-LABEL:  Max_Uniform_FVector4f:
+// CHECK_ASM-LABEL:  Max_Uniform_FVector4f{{[_0-9a-z]*}}:
 // CHECK_ASM:        .{{.*}}:
 // CHECK_ASM-NOT:      cdqe
 // CHECK_ASM-NOT:      movsxd
-// CHECK_ASM-LABEL:  Max1_Uniform_FVector4f:
+// CHECK_ASM-LABEL:  Max1_Uniform_FVector4f{{[_0-9a-z]*}}:
 // CHECK_ASM:        .{{.*}}:
 // CHECK_ASM-NOT:      cdqe
 // CHECK_ASM-NOT:      movsxd

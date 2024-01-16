@@ -1,6 +1,6 @@
 // RUN: %{ispc} --target=host --nowrap --nostdlib -O2 --emit-llvm-text %s -o - | FileCheck %s
 
-// CHECK-LABEL: @to_float16___vyhvyh(
+// CHECK-LABEL: @to_float16___vyhvyh{{[_0-9a-z]*}}(
 // CHECK-NEXT: allocas:
 // CHECK-NEXT: [[CMP:%.*]] = fcmp olt <[[WIDTH:.*]] x [[TYPE:.*]]> %a, %b
 // CHECK-NEXT: [[CAST:%.*]] = uitofp <[[WIDTH]] x i1> [[CMP]] to <[[WIDTH]] x [[TYPE]]>
@@ -8,7 +8,7 @@
 
 float16 to_float16(float16 a, float16 b) { return a < b; }
 
-// CHECK-LABEL: @to_float___vyfvyf(
+// CHECK-LABEL: @to_float___vyfvyf{{[_0-9a-z]*}}(
 // CHECK-NEXT: allocas:
 // CHECK-NEXT: [[CMP:%.*]] = fcmp olt <[[WIDTH:.*]] x [[TYPE:.*]]> %a, %b
 // CHECK-NEXT: [[CAST:%.*]] = uitofp <[[WIDTH]] x i1> [[CMP]] to <[[WIDTH]] x [[TYPE]]>
@@ -16,7 +16,7 @@ float16 to_float16(float16 a, float16 b) { return a < b; }
 
 float to_float(float a, float b) { return a < b; }
 
-// CHECK-LABEL: @to_double___vydvyd(
+// CHECK-LABEL: @to_double___vydvyd{{[_0-9a-z]*}}(
 // CHECK-NEXT: allocas:
 // CHECK-NEXT: [[CMP:%.*]] = fcmp olt <[[WIDTH:.*]] x [[TYPE:.*]]> %a, %b
 // CHECK-NEXT: [[CAST:%.*]] = uitofp <[[WIDTH]] x i1> [[CMP]] to <[[WIDTH]] x [[TYPE]]>
@@ -24,7 +24,7 @@ float to_float(float a, float b) { return a < b; }
 
 double to_double(double a, double b) { return a < b; }
 
-// CHECK-LABEL: @to_int8___vytvyt(
+// CHECK-LABEL: @to_int8___vytvyt{{[_0-9a-z]*}}(
 // CHECK-NEXT: allocas:
 // CHECK-NEXT: [[CMP:%.*]] = icmp slt <[[WIDTH:.*]] x [[TYPE:.*]]> %a, %b
 // CHECK-NEXT: [[CAST:%.*]] = zext <[[WIDTH]] x i1> [[CMP]] to <[[WIDTH]] x [[TYPE]]>
@@ -32,7 +32,7 @@ double to_double(double a, double b) { return a < b; }
 
 int8 to_int8(int8 a, int8 b) { return a < b; }
 
-// CHECK-LABEL: @to_uint8___vyTvyT(
+// CHECK-LABEL: @to_uint8___vyTvyT{{[_0-9a-z]*}}(
 // CHECK-NEXT: allocas:
 // CHECK-NEXT: [[CMP:%.*]] = icmp ugt <[[WIDTH:.*]] x [[TYPE:.*]]> %a, %b
 // CHECK-NEXT: [[CAST:%.*]] = zext <[[WIDTH]] x i1> [[CMP]] to <[[WIDTH]] x [[TYPE]]>
@@ -40,7 +40,7 @@ int8 to_int8(int8 a, int8 b) { return a < b; }
 
 uint8 to_uint8(uint8 a, uint8 b) { return a > b; }
 
-// CHECK-LABEL: @to_int16___vysvys(
+// CHECK-LABEL: @to_int16___vysvys{{[_0-9a-z]*}}(
 // CHECK-NEXT: allocas:
 // CHECK-NEXT: [[CMP:%.*]] = icmp slt <[[WIDTH:.*]] x [[TYPE:.*]]> %a, %b
 // CHECK-NEXT: [[CAST:%.*]] = zext <[[WIDTH]] x i1> [[CMP]] to <[[WIDTH]] x [[TYPE]]>
@@ -48,7 +48,7 @@ uint8 to_uint8(uint8 a, uint8 b) { return a > b; }
 
 int16 to_int16(int16 a, int16 b) { return a < b; }
 
-// CHECK-LABEL: @to_uint16___vySvyS(
+// CHECK-LABEL: @to_uint16___vySvyS{{[_0-9a-z]*}}(
 // CHECK-NEXT: allocas:
 // CHECK-NEXT: [[CMP:%.*]] = icmp ugt <[[WIDTH:.*]] x [[TYPE:.*]]> %a, %b
 // CHECK-NEXT: [[CAST:%.*]] = zext <[[WIDTH]] x i1> [[CMP]] to <[[WIDTH]] x [[TYPE]]>
@@ -56,7 +56,7 @@ int16 to_int16(int16 a, int16 b) { return a < b; }
 
 uint16 to_uint16(uint16 a, uint16 b) { return a > b; }
 
-// CHECK-LABEL: @to_int32___vyivyi(
+// CHECK-LABEL: @to_int32___vyivyi{{[_0-9a-z]*}}(
 // CHECK-NEXT: allocas:
 // CHECK-NEXT: [[CMP:%.*]] = icmp slt <[[WIDTH:.*]] x [[TYPE:.*]]> %a, %b
 // CHECK-NEXT: [[CAST:%.*]] = zext <[[WIDTH]] x i1> [[CMP]] to <[[WIDTH]] x [[TYPE]]>
@@ -64,7 +64,7 @@ uint16 to_uint16(uint16 a, uint16 b) { return a > b; }
 
 int32 to_int32(int32 a, int32 b) { return a < b; }
 
-// CHECK-LABEL: @to_uint32___vyuvyu(
+// CHECK-LABEL: @to_uint32___vyuvyu{{[_0-9a-z]*}}(
 // CHECK-NEXT: allocas:
 // CHECK-NEXT: [[CMP:%.*]] = icmp ugt <[[WIDTH:.*]] x [[TYPE:.*]]> %a, %b
 // CHECK-NEXT: [[CAST:%.*]] = zext <[[WIDTH]] x i1> [[CMP]] to <[[WIDTH]] x [[TYPE]]>
@@ -72,7 +72,7 @@ int32 to_int32(int32 a, int32 b) { return a < b; }
 
 uint32 to_uint32(uint32 a, uint32 b) { return a > b; }
 
-// CHECK-LABEL: @to_int64___vyIvyI(
+// CHECK-LABEL: @to_int64___vyIvyI{{[_0-9a-z]*}}(
 // CHECK-NEXT: allocas:
 // CHECK-NEXT: [[CMP:%.*]] = icmp slt <[[WIDTH:.*]] x [[TYPE:.*]]> %a, %b
 // CHECK-NEXT: [[CAST:%.*]] = zext <[[WIDTH]] x i1> [[CMP]] to <[[WIDTH]] x [[TYPE]]>
@@ -80,7 +80,7 @@ uint32 to_uint32(uint32 a, uint32 b) { return a > b; }
 
 int64 to_int64(int64 a, int64 b) { return a < b; }
 
-// CHECK-LABEL: @to_uint64___vyUvyU(
+// CHECK-LABEL: @to_uint64___vyUvyU{{[_0-9a-z]*}}(
 // CHECK-NEXT: allocas:
 // CHECK-NEXT: [[CMP:%.*]] = icmp ugt <[[WIDTH:.*]] x [[TYPE:.*]]> %a, %b
 // CHECK-NEXT: [[CAST:%.*]] = zext <[[WIDTH]] x i1> [[CMP]] to <[[WIDTH]] x [[TYPE]]>

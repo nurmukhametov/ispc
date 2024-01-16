@@ -1,8 +1,8 @@
 // Basic check of template operators (issue #2634)
 // RUN: %{ispc}  %s --emit-llvm-text --target=host --nostdlib -o - | FileCheck %s
 
-// CHECK: define %v{{[0-9]*}}_varying_FMatrix @"operator*___s_5B_vyFMatrixF_5D____REFs_5B__c_vyFMatrix_5D_REFs_5B__c_vyFMatrixF_5D_"({{.*}} %A, {{.*}} %B, <{{[0-9]*}} x {{.*}}> %__mask)
-// CHECK: define weak_odr %v{{[0-9]*}}_varying_FMatrix @"operator*___s_5B_vyFMatrixI_5D____REFs_5B__c_vyFMatrix_5D_REFs_5B__c_vyFMatrixI_5D_"({{.*}} %A, {{.*}} %B, <{{[0-9]*}} x {{.*}}> %__mask)
+// CHECK: define %v{{[0-9]*}}_varying_FMatrix @"operator*___s_5B_vyFMatrixF_5D____REFs_5B__c_vyFMatrix_5D_REFs_5B__c_vyFMatrixF_5D_{{[_0-9a-z]*}}"({{.*}} %A, {{.*}} %B, <{{[0-9]*}} x {{.*}}> %__mask)
+// CHECK: define weak_odr %v{{[0-9]*}}_varying_FMatrix @"operator*___s_5B_vyFMatrixI_5D____REFs_5B__c_vyFMatrix_5D_REFs_5B__c_vyFMatrixI_5D_{{[_0-9a-z]*}}"({{.*}} %A, {{.*}} %B, <{{[0-9]*}} x {{.*}}> %__mask)
 
 // CHECK-LABEL: define <{{[0-9]*}} x double> @DoMath___
 // CHECK: call %v{{[0-9]*}}_varying_FMatrix @"operator*___{{.*}}"({{.*}} %A, {{.*}} %B, <{{[0-9]*}} x {{.*}}> %__mask)

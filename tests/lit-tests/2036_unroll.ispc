@@ -1,4 +1,4 @@
-// RUN: %{ispc} %s --target=avx2-i32x8 --arch=x86-64 --emit-asm -o - | FileCheck %s
+// RUN: %{ispc} %s --target=avx2-i32x8 --arch=x86-64 --emit-asm -o - | FileCheck %s --enable-var-scope
 
 // REQUIRES: X86_ENABLED
 
