@@ -3394,7 +3394,7 @@ int Module::CompileAndOutput(const char *srcFile, Arch arch, const char *cpu, st
             return 1;
 
         g->singleTargetCompilation = true;
-        g->mangleFunctionsWithTarget = true;
+        // g->mangleFunctionsWithTarget = true;
 
         m = new Module(srcFile);
         const int compileResult = m->CompileFile();

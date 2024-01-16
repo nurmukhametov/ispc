@@ -1221,6 +1221,15 @@ void ispc::DefineStdlib(SymbolTable *symbolTable, llvm::LLVMContext *ctx, llvm::
             Assert(stdlib);
             llvm::Module *stdlibBCModule = stdlib->getLLVMModule();
 
+            if (!g->singleTargetCompilation) {
+                for (llvm::Function &F : stdlibBCModule->functions()) {
+                    if (!F.isDeclaration() && !F.getName().startswith("llvm")) {
+                        // printf("Rename: %s\n", F.getName().str().c_str());
+                        F.setName(F.getName() + "_" + g->target->GetISAString());
+                    }
+                }
+            }
+
             llvm::StringMap<int> stdlibFunctions;
             for (llvm::Function &F : stdlibBCModule->functions()) {
                 stdlibFunctions[F.getName()] = 1;
@@ -1276,7 +1285,11 @@ void ispc::DefineStdlib(SymbolTable *symbolTable, llvm::LLVMContext *ctx, llvm::
 
     // if (once) {
     if (!g->genStdlib) {
-        lDefineConstantIntFunc("__fast_masked_vload", (int)g->opt.fastMaskedVload, module, symbolTable, debug_symbols);
+        std::string fastMaskedLoadName = "__fast_masked_vload";
+        // if (!g->singleTargetCompilation) {
+        //     fastMaskedLoadName += std::string("_") + g->target->GetISAString();
+        // }
+        lDefineConstantIntFunc(fastMaskedLoadName.c_str(), (int)g->opt.fastMaskedVload, module, symbolTable, debug_symbols);
     }
 
     // IGC cannot deal with global references, so to keep debug capabilities

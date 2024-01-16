@@ -8,7 +8,7 @@
 
 // Effectively it checks that LoopFullUnrollPass happens before ReplaceStdlibShiftPass.
 
-// CHECK-LABEL: gang_scan___vyi_avx2
+// CHECK-LABEL: gang_scan___vyi
 // CHECK: vpblendd
 // CHECK: vpaddd
 // CHECK: vpblendd
@@ -25,7 +25,7 @@ int32 gang_scan(int32 v) {
     return v;
 }
 
-// CHECK-LABEL: gang_scan_manual_unroll___vyi_avx2
+// CHECK-LABEL: gang_scan_manual_unroll___vyi
 // CHECK: vpblendd
 // CHECK: vpaddd
 // CHECK: vpblendd
