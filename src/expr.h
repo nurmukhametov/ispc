@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2010-2023, Intel Corporation
+  Copyright (c) 2010-2024, Intel Corporation
 
   SPDX-License-Identifier: BSD-3-Clause
 */
@@ -518,7 +518,6 @@ class ConstExpr : public Expr {
         varying. */
     int Count() const;
 
-  private:
     AtomicType::BasicType getBasicType() const;
 
     const Type *type;
@@ -533,6 +532,8 @@ class ConstExpr : public Expr {
         int64_t int64Val[ISPC_MAX_NVEC];
         uint64_t uint64Val[ISPC_MAX_NVEC];
     };
+
+  private:
     std::vector<llvm::APFloat> fpVal;
 };
 

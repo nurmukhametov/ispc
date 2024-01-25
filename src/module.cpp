@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2010-2023, Intel Corporation
+  Copyright (c) 2010-2024, Intel Corporation
 
   SPDX-License-Identifier: BSD-3-Clause
 */
@@ -536,8 +536,43 @@ void Module::AddGlobalVariable(const std::string &name, const Type *type, Expr *
                 // the same type as the global.  (But not if it's an
                 // ExprList; they don't have types per se / can't type
                 // convert themselves anyway.)
-                if (llvm::dyn_cast<ExprList>(initExpr) == nullptr)
+                if (llvm::dyn_cast<ExprList>(initExpr) == nullptr) {
                     initExpr = TypeConvertExpr(initExpr, type, "initializer");
+                } else {
+                    ExprList *exprList = llvm::dyn_cast<ExprList>(initExpr);
+
+                    // If we have exprList that initalizes const varying int, e.g.:
+                    // static const int x = { 0, 1, 2, 3 };
+                    // then we need to convert initExpr to constExpr that can
+                    // be utilized later in arithmetic expressions that can be
+                    // calculated in compile time (Optimize function call below),
+                    if (type->IsConstType() && type->IsVaryingType()) {
+                        const int N = g->target->getVectorWidth();
+                        int32_t *vals = (int32_t *)alloca(N * sizeof(int32_t));
+                        memset(vals, 0, N * sizeof(int32_t));
+                        int i = 0;
+                        bool canInitVaryingConst = true;
+                        for (const Expr *e : exprList->exprs) {
+                            const ConstExpr *ce = llvm::dyn_cast<ConstExpr>(e);
+                            if (!ce || ce->Count() != 1) {
+                                canInitVaryingConst = false;
+                                break;
+                            }
+                            const Type *t = ce->GetType();
+                            if (!t || !t->IsUniformType() || !t->IsAtomicType() ||
+                                ce->getBasicType() != AtomicType::TYPE_INT32) {
+
+                                canInitVaryingConst = false;
+                                break;
+                            }
+                            // TODO! support other types.
+                            vals[i++] = ce->int32Val[0];
+                        }
+                        if (canInitVaryingConst) {
+                            initExpr = new ConstExpr(type, vals, pos);
+                        }
+                    }
+                }
 
                 if (initExpr != nullptr) {
                     initExpr = Optimize(initExpr);
