@@ -471,6 +471,173 @@ void Module::AddTypeDef(const std::string &name, const Type *type, SourcePos pos
     symbolTable->AddType(name.c_str(), type, pos);
 }
 
+Expr *lConvertExprListToConstExpr(Expr *initExpr, const Type *type, const std::string &name, SourcePos pos) {
+    ExprList *exprList = llvm::dyn_cast<ExprList>(initExpr);
+    if (type->IsConstType() && type->IsVaryingType() && type->IsAtomicType()) {
+        const AtomicType::BasicType basicType = CastType<AtomicType>(type)->basicType;
+        const int N = g->target->getVectorWidth();
+        bool *vals_bool = (bool *)alloca(N * sizeof(bool));
+        for (size_t j = 0; j < N; j++) {
+            vals_bool[j] = false;
+        }
+        std::vector<int8_t> vals_int8(N, 0);
+        std::vector<uint8_t> vals_uint8(N, 0);
+        std::vector<int16_t> vals_int16(N, 0);
+        std::vector<uint16_t> vals_uint16(N, 0);
+        std::vector<int32_t> vals_int32(N, 0);
+        std::vector<uint32_t> vals_uint32(N, 0);
+        std::vector<int64_t> vals_int64(N, 0);
+        std::vector<uint64_t> vals_uint64(N, 0);
+        std::vector<llvm::APFloat> fpVals;
+        for (size_t j = 0; j < N; j++) {
+            switch (basicType) {
+            case AtomicType::TYPE_FLOAT16:
+                fpVals.push_back(llvm::APFloat::getZero(llvm::APFloat::IEEEhalf()));
+                break;
+            case AtomicType::TYPE_FLOAT:
+                fpVals.push_back(llvm::APFloat::getZero(llvm::APFloat::IEEEsingle()));
+                break;
+            case AtomicType::TYPE_DOUBLE:
+                fpVals.push_back(llvm::APFloat::getZero(llvm::APFloat::IEEEdouble()));
+                break;
+            default:
+                break;
+            }
+        }
+        int i = 0;
+        bool canInitVaryingConst = true;
+        for (Expr *expr : exprList->exprs) {
+            Expr *e = Optimize(expr);
+            const ConstExpr *ce = llvm::dyn_cast<ConstExpr>(e);
+            if (!ce || ce->Count() != 1) {
+                canInitVaryingConst = false;
+                break;
+            }
+            const Type *t = ce->GetType();
+            if (!t || !t->IsUniformType() || !t->IsAtomicType()) {
+                canInitVaryingConst = false;
+                break;
+            }
+            switch (basicType) {
+            case AtomicType::TYPE_BOOL:
+                ce->GetValues(&vals_bool[i++]);
+                break;
+            case AtomicType::TYPE_INT8:
+                ce->GetValues(&vals_int8[i++]);
+                break;
+            case AtomicType::TYPE_UINT8:
+                ce->GetValues(&vals_uint8[i++]);
+                break;
+            case AtomicType::TYPE_INT16:
+                ce->GetValues(&vals_int16[i++]);
+                break;
+            case AtomicType::TYPE_UINT16:
+                ce->GetValues(&vals_uint16[i++]);
+                break;
+            case AtomicType::TYPE_INT32:
+                ce->GetValues(&vals_int32[i++]);
+                break;
+            case AtomicType::TYPE_UINT32:
+                ce->GetValues(&vals_uint32[i++]);
+                break;
+            case AtomicType::TYPE_INT64:
+                ce->GetValues(&vals_int64[i++]);
+                break;
+            case AtomicType::TYPE_UINT64:
+                ce->GetValues(&vals_uint64[i++]);
+                break;
+            case AtomicType::TYPE_FLOAT16:
+            case AtomicType::TYPE_FLOAT:
+            case AtomicType::TYPE_DOUBLE: {
+                std::vector<llvm::APFloat> ce_vals;
+                llvm::Type *to_type = type->GetAsUniformType()->LLVMType(g->ctx);
+                ce->GetValues(ce_vals, to_type);
+                fpVals[i++] = ce_vals[0];
+                break;
+            }
+            default:
+                // Unsupported types.
+                break;
+            }
+        }
+        if (i == 1) {
+            while (i < N) {
+            switch (basicType) {
+            case AtomicType::TYPE_BOOL:
+                vals_bool[i++] = vals_bool[0];
+                break;
+            case AtomicType::TYPE_INT8:
+                vals_int8[i++] = vals_int8[0];
+                break;
+            case AtomicType::TYPE_UINT8:
+                vals_uint8[i++] = vals_uint8[0];
+                break;
+            case AtomicType::TYPE_INT16:
+                vals_int16[i++] = vals_int16[0];
+                break;
+            case AtomicType::TYPE_UINT16:
+                vals_uint16[i++] = vals_uint16[0];
+                break;
+            case AtomicType::TYPE_INT32:
+                vals_int32[i++] = vals_int32[0];
+                break;
+            case AtomicType::TYPE_UINT32:
+                vals_uint32[i++] = vals_uint32[0];
+                break;
+            case AtomicType::TYPE_INT64:
+                vals_int64[i++] = vals_int64[0];
+                break;
+            case AtomicType::TYPE_UINT64:
+                vals_uint64[i++] = vals_uint64[0];
+                break;
+            case AtomicType::TYPE_FLOAT16:
+            case AtomicType::TYPE_FLOAT:
+            case AtomicType::TYPE_DOUBLE: {
+                fpVals[i++] = fpVals[0];
+                break;
+            }
+            default:
+                // Unsupported types.
+                return nullptr;
+            }
+            }
+        } else if (i != N) {
+            Error(pos, "Initializer list for %s \"%s\" must have %d elements (has %d).",
+                  name.c_str(), type->GetString().c_str(), N, (int)exprList->exprs.size());
+        }
+        if (canInitVaryingConst) {
+            switch (basicType) {
+            case AtomicType::TYPE_BOOL:
+                return new ConstExpr(type, vals_bool, pos);
+            case AtomicType::TYPE_INT8:
+                return new ConstExpr(type, vals_int8.data(), pos);
+            case AtomicType::TYPE_UINT8:
+                return new ConstExpr(type, vals_uint8.data(), pos);
+            case AtomicType::TYPE_INT16:
+                return new ConstExpr(type, vals_int16.data(), pos);
+            case AtomicType::TYPE_UINT16:
+                return new ConstExpr(type, vals_uint16.data(), pos);
+            case AtomicType::TYPE_INT32:
+                return new ConstExpr(type, vals_int32.data(), pos);
+            case AtomicType::TYPE_UINT32:
+                return new ConstExpr(type, vals_uint32.data(), pos);
+            case AtomicType::TYPE_INT64:
+                return new ConstExpr(type, vals_int64.data(), pos);
+            case AtomicType::TYPE_UINT64:
+                return new ConstExpr(type, vals_uint64.data(), pos);
+            case AtomicType::TYPE_FLOAT16:
+            case AtomicType::TYPE_FLOAT:
+            case AtomicType::TYPE_DOUBLE:
+                return new ConstExpr(type, fpVals, pos);
+            default:
+                // Unsupported types.
+                return nullptr;
+            }
+        }
+    }
+    return nullptr;
+}
+
 void Module::AddGlobalVariable(const std::string &name, const Type *type, Expr *initExpr, bool isConst,
                                StorageClass storageClass, SourcePos pos) {
     // These may be nullptr due to errors in parsing; just gracefully return
@@ -544,133 +711,9 @@ void Module::AddGlobalVariable(const std::string &name, const Type *type, Expr *
                     // then we need to convert initExpr to constExpr that can
                     // be utilized later in arithmetic expressions that can be
                     // calculated in compile time (Optimize function call below),
-                    ExprList *exprList = llvm::dyn_cast<ExprList>(initExpr);
-                    if (type->IsConstType() && type->IsVaryingType() && type->IsAtomicType()) {
-                        const AtomicType::BasicType basicType = CastType<AtomicType>(type)->basicType;
-                        const int N = g->target->getVectorWidth();
-                        bool *vals_bool = (bool *)alloca(N * sizeof(bool));
-                        for (size_t j = 0; j < N; j++) {
-                            vals_bool[j] = false;
-                        }
-                        std::vector<int8_t> vals_int8(N, 0);
-                        std::vector<uint8_t> vals_uint8(N, 0);
-                        std::vector<int16_t> vals_int16(N, 0);
-                        std::vector<uint16_t> vals_uint16(N, 0);
-                        std::vector<int32_t> vals_int32(N, 0);
-                        std::vector<uint32_t> vals_uint32(N, 0);
-                        std::vector<int64_t> vals_int64(N, 0);
-                        std::vector<uint64_t> vals_uint64(N, 0);
-                        std::vector<llvm::APFloat> fpVals;
-                        for (size_t j = 0; j < N; j++) {
-                            switch (basicType) {
-                            case AtomicType::TYPE_FLOAT16:
-                                fpVals.push_back(llvm::APFloat::getZero(llvm::APFloat::IEEEhalf()));
-                                break;
-                            case AtomicType::TYPE_FLOAT:
-                                fpVals.push_back(llvm::APFloat::getZero(llvm::APFloat::IEEEsingle()));
-                                break;
-                            case AtomicType::TYPE_DOUBLE:
-                                fpVals.push_back(llvm::APFloat::getZero(llvm::APFloat::IEEEdouble()));
-                                break;
-                            default:
-                                break;
-                            }
-                        }
-                        int i = 0;
-                        bool canInitVaryingConst = true;
-                        for (Expr *expr : exprList->exprs) {
-                            Expr *e = Optimize(expr);
-                            const ConstExpr *ce = llvm::dyn_cast<ConstExpr>(e);
-                            if (!ce || ce->Count() != 1) {
-                                canInitVaryingConst = false;
-                                break;
-                            }
-                            const Type *t = ce->GetType();
-                            if (!t || !t->IsUniformType() || !t->IsAtomicType()) {
-                                canInitVaryingConst = false;
-                                break;
-                            }
-                            switch (basicType) {
-                            case AtomicType::TYPE_BOOL:
-                                ce->GetValues(&vals_bool[i++]);
-                                break;
-                            case AtomicType::TYPE_INT8:
-                                ce->GetValues(&vals_int8[i++]);
-                                break;
-                            case AtomicType::TYPE_UINT8:
-                                ce->GetValues(&vals_uint8[i++]);
-                                break;
-                            case AtomicType::TYPE_INT16:
-                                ce->GetValues(&vals_int16[i++]);
-                                break;
-                            case AtomicType::TYPE_UINT16:
-                                ce->GetValues(&vals_uint16[i++]);
-                                break;
-                            case AtomicType::TYPE_INT32:
-                                ce->GetValues(&vals_int32[i++]);
-                                break;
-                            case AtomicType::TYPE_UINT32:
-                                ce->GetValues(&vals_uint32[i++]);
-                                break;
-                            case AtomicType::TYPE_INT64:
-                                ce->GetValues(&vals_int64[i++]);
-                                break;
-                            case AtomicType::TYPE_UINT64:
-                                ce->GetValues(&vals_uint64[i++]);
-                                break;
-                            case AtomicType::TYPE_FLOAT16:
-                            case AtomicType::TYPE_FLOAT:
-                            case AtomicType::TYPE_DOUBLE: {
-                                std::vector<llvm::APFloat> ce_vals;
-                                llvm::Type *to_type = type->GetAsUniformType()->LLVMType(g->ctx);
-                                ce->GetValues(ce_vals, to_type);
-                                fpVals[i++] = ce_vals[0];
-                                break;
-                            }
-                            default:
-                                // Unsupported types.
-                                break;
-                            }
-                        }
-                        if (canInitVaryingConst) {
-                            switch (basicType) {
-                            case AtomicType::TYPE_BOOL:
-                                initExpr = new ConstExpr(type, vals_bool, pos);
-                                break;
-                            case AtomicType::TYPE_INT8:
-                                initExpr = new ConstExpr(type, vals_int8.data(), pos);
-                                break;
-                            case AtomicType::TYPE_UINT8:
-                                initExpr = new ConstExpr(type, vals_uint8.data(), pos);
-                                break;
-                            case AtomicType::TYPE_INT16:
-                                initExpr = new ConstExpr(type, vals_int16.data(), pos);
-                                break;
-                            case AtomicType::TYPE_UINT16:
-                                initExpr = new ConstExpr(type, vals_uint16.data(), pos);
-                                break;
-                            case AtomicType::TYPE_INT32:
-                                initExpr = new ConstExpr(type, vals_int32.data(), pos);
-                                break;
-                            case AtomicType::TYPE_UINT32:
-                                initExpr = new ConstExpr(type, vals_uint32.data(), pos);
-                                break;
-                            case AtomicType::TYPE_INT64:
-                                initExpr = new ConstExpr(type, vals_int64.data(), pos);
-                                break;
-                            case AtomicType::TYPE_UINT64:
-                                initExpr = new ConstExpr(type, vals_uint64.data(), pos);
-                                break;
-                            case AtomicType::TYPE_FLOAT16:
-                            case AtomicType::TYPE_FLOAT:
-                            case AtomicType::TYPE_DOUBLE:
-                                initExpr = new ConstExpr(type, fpVals, pos);
-                                break;
-                            default:
-                                // Unsupported types.
-                                break;
-                            }
-                        }
+                    Expr *ce = lConvertExprListToConstExpr(initExpr, type, name, pos);
+                    if (ce) {
+                        initExpr = ce; 
                     }
                 }
 

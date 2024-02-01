@@ -1,58 +1,19 @@
-// RUN: %{ispc} -DTYPE_BOOL --target=avx2-i32x4 --nostdlib --nowrap --emit-llvm-text -o - %s 2>&1 | FileCheck %s --check-prefix=BOOL
-// RUN: %{ispc} -DTYPE_INT8 --target=avx2-i32x4 --nostdlib --nowrap --emit-llvm-text -o - %s 2>&1 | FileCheck %s --check-prefix=INT8
-// RUN: %{ispc} -DTYPE_UINT8 --target=avx2-i32x4 --nostdlib --nowrap --emit-llvm-text -o - %s 2>&1 | FileCheck %s --check-prefix=INT8
-// RUN: %{ispc} -DTYPE_INT16 --target=avx2-i32x4 --nostdlib --nowrap --emit-llvm-text -o - %s 2>&1 | FileCheck %s --check-prefix=INT16
-// RUN: %{ispc} -DTYPE_UINT16 --target=avx2-i32x4 --nostdlib --nowrap --emit-llvm-text -o - %s 2>&1 | FileCheck %s --check-prefix=INT16
-// RUN: %{ispc} -DTYPE_INT --target=avx2-i32x4 --nostdlib --nowrap --emit-llvm-text -o - %s 2>&1 | FileCheck %s --check-prefix=INT
-// RUN: %{ispc} -DTYPE_UINT --target=avx2-i32x4 --nostdlib --nowrap --emit-llvm-text -o - %s 2>&1 | FileCheck %s --check-prefix=INT
-// RUN: %{ispc} -DTYPE_INT64 --target=avx2-i32x4 --nostdlib --nowrap --emit-llvm-text -o - %s 2>&1 | FileCheck %s --check-prefix=INT64
-// RUN: %{ispc} -DTYPE_UINT64 --target=avx2-i32x4 --nostdlib --nowrap --emit-llvm-text -o - %s 2>&1 | FileCheck %s --check-prefix=INT64
-// RUN: %{ispc} -DTYPE_FLOAT16 --target=avx2-i32x4 --nostdlib --nowrap --emit-llvm-text -o - %s 2>&1 | FileCheck %s --check-prefix=FLOAT16
-// RUN: %{ispc} -DTYPE_FLOAT --target=avx2-i32x4 --nostdlib --nowrap --emit-llvm-text -o - %s 2>&1 | FileCheck %s --check-prefix=FLOAT
-// RUN: %{ispc} -DTYPE_DOUBLE --target=avx2-i32x4 --nostdlib --nowrap --emit-llvm-text -o - %s 2>&1 | FileCheck %s --check-prefix=DOUBLE
+// RUN: not %{ispc} -DTYPE_BOOL --target=avx2-i32x4 --nostdlib --nowrap --emit-llvm-text -o - %s 2>&1 | FileCheck %s
+// RUN: not %{ispc} -DTYPE_INT8 --target=avx2-i32x4 --nostdlib --nowrap --emit-llvm-text -o - %s 2>&1 | FileCheck %s
+// RUN: not %{ispc} -DTYPE_UINT8 --target=avx2-i32x4 --nostdlib --nowrap --emit-llvm-text -o - %s 2>&1 | FileCheck %s
+// RUN: not %{ispc} -DTYPE_INT16 --target=avx2-i32x4 --nostdlib --nowrap --emit-llvm-text -o - %s 2>&1 | FileCheck %s
+// RUN: not %{ispc} -DTYPE_UINT16 --target=avx2-i32x4 --nostdlib --nowrap --emit-llvm-text -o - %s 2>&1 | FileCheck %s
+// RUN: not %{ispc} -DTYPE_INT --target=avx2-i32x4 --nostdlib --nowrap --emit-llvm-text -o - %s 2>&1 | FileCheck %s
+// RUN: not %{ispc} -DTYPE_UINT --target=avx2-i32x4 --nostdlib --nowrap --emit-llvm-text -o - %s 2>&1 | FileCheck %s
+// RUN: not %{ispc} -DTYPE_INT64 --target=avx2-i32x4 --nostdlib --nowrap --emit-llvm-text -o - %s 2>&1 | FileCheck %s
+// RUN: not %{ispc} -DTYPE_UINT64 --target=avx2-i32x4 --nostdlib --nowrap --emit-llvm-text -o - %s 2>&1 | FileCheck %s
+// RUN: not %{ispc} -DTYPE_FLOAT16 --target=avx2-i32x4 --nostdlib --nowrap --emit-llvm-text -o - %s 2>&1 | FileCheck %s
+// RUN: not %{ispc} -DTYPE_FLOAT --target=avx2-i32x4 --nostdlib --nowrap --emit-llvm-text -o - %s 2>&1 | FileCheck %s
+// RUN: not %{ispc} -DTYPE_DOUBLE --target=avx2-i32x4 --nostdlib --nowrap --emit-llvm-text -o - %s 2>&1 | FileCheck %s
 
 // REQUIRES: X86_ENABLED
 
-// BOOL-LABEL: @foo___
-// BOOL-NEXT: allocas:
-// BOOL-NEXT: ret <4 x i32> <i32 0, i32 -1, i32 -1, i32 -1>
-
-// INT8-LABEL: @foo___
-// INT8-NEXT: allocas:
-// INT8-NEXT: ret <4 x i8> <i8 1, i8 2, i8 1, i8 1>
-
-// INT16-LABEL: @foo___
-// INT16-NEXT: allocas:
-// INT16-NEXT: ret <4 x i16> <i16 1, i16 2, i16 1, i16 1>
-
-// INT-LABEL: @foo___
-// INT-NEXT: allocas:
-// INT-NEXT: ret <4 x i32> <i32 1, i32 2, i32 1, i32 1>
-
-// INT64-LABEL: @foo___
-// INT64-NEXT: allocas:
-// INT64-NEXT: ret <4 x i64> <i64 1, i64 2, i64 1, i64 1>
-
-// FLOAT16-LABEL: @foo___
-// FLOAT16-NEXT: allocas:
-// FLOAT16-NEXT: ret <4 x half> <half 0xH3C00, half 0xH4000, half 0xH3C00, half 0xH3C00>
-
-// FLOAT-LABEL: @foo___
-// FLOAT-NEXT: allocas:
-// FLOAT-NEXT: ret <4 x float> <float 1.000000e+00, float 2.000000e+00, float 1.000000e+00, float 1.000000e+00>
-
-// DOUBLE-LABEL: @foo___
-// DOUBLE-NEXT: allocas:
-// DOUBLE-NEXT: ret <4 x double> <double 1.000000e+00, double 2.000000e+00, double 1.000000e+00, double 1.000000e+00>
-
-// BOOL-NOT: Error: Initializer for global variable "y" must be a constant.
-// INT8-NOT: Error: Initializer for global variable "y" must be a constant.
-// INT16-NOT: Error: Initializer for global variable "y" must be a constant.
-// INT-NOT: Error: Initializer for global variable "y" must be a constant.
-// INT64-NOT: Error: Initializer for global variable "y" must be a constant.
-// FLOAT16-NOT: Error: Initializer for global variable "y" must be a constant.
-// FLOAT-NOT: Error: Initializer for global variable "y" must be a constant.
-// DOUBLE-NOT: Error: Initializer for global variable "y" must be a constant.
+// CHECK: Error: Initializer list for {{.*}} must have 4 elements
 
 #define FP_INITIALIZER 0.0, 1.0
 #define INT_INITIALIZER 0, 1
