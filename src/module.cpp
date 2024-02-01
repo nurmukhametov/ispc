@@ -471,6 +471,41 @@ void Module::AddTypeDef(const std::string &name, const Type *type, SourcePos pos
     symbolTable->AddType(name.c_str(), type, pos);
 }
 
+template <class T>
+Expr *lOne(const AtomicType::BasicType basicType) {
+    const int N = g->target->getVectorWidth();
+    std::vector<int8_t> vals_int8(N, 0);
+    int i = 0;
+    bool canInitVaryingConst = true;
+    for (Expr *expr : exprList->exprs) {
+        Expr *e = Optimize(expr);
+        const ConstExpr *ce = llvm::dyn_cast<ConstExpr>(e);
+        if (!ce || ce->Count() != 1) {
+            canInitVaryingConst = false;
+            break;
+        }
+        const Type *t = ce->GetType();
+        if (!t || !t->IsUniformType() || !t->IsAtomicType()) {
+            canInitVaryingConst = false;
+            break;
+        }
+        ce->GetValues(&vals_int8[i++]);
+        break;
+    }
+    if (i == 1) {
+        while (i < N) {
+            vals_int8[i++] = vals_int8[0];
+        }
+    } else if (i != N) {
+        Error(pos, "Initializer list for %s \"%s\" must have %d elements (has %d).",
+              name.c_str(), type->GetString().c_str(), N, (int)exprList->exprs.size());
+    }
+    if (canInitVaryingConst) {
+        return new ConstExpr(type, vals_int8.data(), pos);
+    }
+    return nullptr;
+}
+
 Expr *lConvertExprListToConstExpr(Expr *initExpr, const Type *type, const std::string &name, SourcePos pos) {
     ExprList *exprList = llvm::dyn_cast<ExprList>(initExpr);
     if (type->IsConstType() && type->IsVaryingType() && type->IsAtomicType()) {
