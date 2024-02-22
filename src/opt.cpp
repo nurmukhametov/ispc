@@ -26,6 +26,7 @@
 #include <llvm/Analysis/BasicAliasAnalysis.h>
 #include <llvm/Analysis/ConstantFolding.h>
 #include <llvm/Analysis/GlobalsModRef.h>
+#include <llvm/Analysis/MemorySSA.h>
 #include <llvm/Analysis/OptimizationRemarkEmitter.h>
 #include <llvm/Analysis/Passes.h>
 #include <llvm/Analysis/ScopedNoAliasAA.h>
@@ -641,6 +642,7 @@ void ispc::Optimize(llvm::Module *module, int optLevel) {
 
         // We provide the opt remark emitter pass for LICM to use.
         optPM.addFunctionPass(llvm::RequireAnalysisPass<llvm::OptimizationRemarkEmitterAnalysis, llvm::Function>());
+        // optPM.addFunctionPass(llvm::RequireAnalysisPass<llvm::MemorySSAAnalysis, llvm::Function>());
 
         optPM.initLoopPassManager();
         // Loop passes using MemorySSA

@@ -13,7 +13,7 @@ list(APPEND LIT_ARGS "--path=${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${CMAKE_CFG_INTDI
 # Path to LLVM utils
 list(APPEND LIT_ARGS "--path=${LLVM_TOOLS_BINARY_DIR}")
 # Path to llvm lit tests
-list(APPEND LIT_ARGS "${CMAKE_CURRENT_SOURCE_DIR}/lit-tests")
+list(APPEND LIT_TESTS_DIR "${CMAKE_CURRENT_SOURCE_DIR}/lit-tests")
 # Path to tests execution directory
 list(APPEND LIT_ARGS "-Dispc_test_exec_root=${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${CMAKE_CFG_INTDIR}/tests")
 # LLVM version used to build ISPC
@@ -29,7 +29,7 @@ list(APPEND LIT_ARGS "-Dmacos_arm_enabled=$<IF:$<BOOL:${ISPC_MACOS_ARM_TARGET}>,
 # ISPC opaque pointers
 list(APPEND LIT_ARGS "-Dopaque_mode=$<IF:$<BOOL:${ISPC_OPAQUE_PTR_MODE}>,ON,OFF>")
 add_custom_target(check-all DEPENDS ispc
-    COMMAND ${LIT_COMMAND} ${LIT_ARGS} "--verbose"
+    COMMAND ${LIT_COMMAND} ${LIT_ARGS} "--verbose" ${LIT_TESTS_DIR}/$ENV{LIT_TEST}
     COMMENT "Running lit tests"
     USES_TERMINAL
     )
