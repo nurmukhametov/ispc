@@ -195,7 +195,10 @@ class DebugModulePassManager {
     // Start a new group of loop passes
     void initLoopPassManager();
     // Add loop passes to the FunctionPassManager
-    void commitLoopToFunctionPassManager(bool memorySSA = false, bool blocksFreq = false);
+    void commitLoopToFunctionPassManager();
+
+    void setMemorySSA(bool v) { m_memorySSA = v; }
+    void setBlocksFreq(bool v) { m_blocksFreq = v; }
 
   private:
     llvm::TargetMachine *targetMachine;
@@ -223,6 +226,8 @@ class DebugModulePassManager {
 
     bool m_isFPMOpen{false};
     bool m_isLPMOpen{false};
+    bool m_memorySSA{false};
+    bool m_blocksFreq{false};
     int m_passNumber;
     int m_optLevel;
 
@@ -378,7 +383,7 @@ void DebugModulePassManager::initLoopPassManager() {
 }
 
 // Add loop passes to the FunctionPassManager
-void DebugModulePassManager::commitLoopToFunctionPassManager(bool memorySSA, bool useBlockFrequencyInfo) {
+void DebugModulePassManager::commitLoopToFunctionPassManager() {
     Assert(m_isLPMOpen && "LoopPassManager has not been initialized or already committed.");
     if (fpmVec.empty() || lpmVec.empty()) {
         return;
@@ -386,7 +391,7 @@ void DebugModulePassManager::commitLoopToFunctionPassManager(bool memorySSA, boo
     // Get the last element of lpmVec
     llvm::LoopPassManager *lastLPM = lpmVec.back().get();
     fpmVec.back()->addPass(
-        llvm::createFunctionToLoopPassAdaptor(std::move(*lastLPM), memorySSA, useBlockFrequencyInfo));
+        llvm::createFunctionToLoopPassAdaptor(std::move(*lastLPM), m_memorySSA, m_blocksFreq));
     m_isLPMOpen = false;
 }
 
@@ -517,9 +522,11 @@ void ispc::Optimize(llvm::Module *module, int optLevel) {
         optPM.addFunctionPass(llvm::SimplifyCFGPass(simplifyCFGopt));
         optPM.addFunctionPass(llvm::PromotePass());
         optPM.addFunctionPass(llvm::ReassociatePass());
+        optPM.setBlocksFreq(true);
         optPM.initLoopPassManager();
         optPM.addLoopPass(llvm::LoopFullUnrollPass());
-        optPM.commitLoopToFunctionPassManager(false, true);
+        optPM.commitLoopToFunctionPassManager();
+        optPM.setBlocksFreq(false);
         optPM.addFunctionPass(ReplaceStdlibShiftPass(), 229);
         optPM.addFunctionPass(llvm::InstCombinePass());
         optPM.addFunctionPass(llvm::SimplifyCFGPass(simplifyCFGopt));
@@ -644,6 +651,8 @@ void ispc::Optimize(llvm::Module *module, int optLevel) {
         optPM.addFunctionPass(llvm::RequireAnalysisPass<llvm::OptimizationRemarkEmitterAnalysis, llvm::Function>());
         // optPM.addFunctionPass(llvm::RequireAnalysisPass<llvm::MemorySSAAnalysis, llvm::Function>());
 
+        optPM.setMemorySSA(true);
+        optPM.setBlocksFreq(true);
         optPM.initLoopPassManager();
         // Loop passes using MemorySSA
         optPM.addLoopPass(llvm::LoopRotatePass(), 291);
@@ -663,7 +672,9 @@ void ispc::Optimize(llvm::Module *module, int optLevel) {
             // Note: enable both trivial and non-trivial loop unswitching.
             optPM.addLoopPass(llvm::SimpleLoopUnswitchPass(true /* NonTrivial */, true /* Trivial */), 293);
         }
-        optPM.commitLoopToFunctionPassManager(true, true);
+        optPM.commitLoopToFunctionPassManager();
+        optPM.setMemorySSA(false);
+        optPM.setBlocksFreq(false);
 
         optPM.addFunctionPass(llvm::InstCombinePass());
         optPM.addFunctionPass(InstructionSimplifyPass());
