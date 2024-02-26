@@ -21,9 +21,16 @@
 // This file has to be the only place to declare builtin names that used across
 // ISPC code base. The list is alphabetically sorted for convenience.
 
+#include <string>
+#include <unordered_map>
+
 namespace ispc {
 
 namespace builtin {
+
+bool isPersistent(std::string name);
+
+extern std::unordered_map<std::string, int> persistentFuncs;
 
 extern const char *const __acos_uniform_double;
 extern const char *const __acos_uniform_float;
@@ -324,7 +331,6 @@ extern const char *const __is_compile_time_constant_varying_int32;
 extern const char *const ISPCAlloc;
 extern const char *const ISPCLaunch;
 extern const char *const ISPCSync;
-extern const char *const __keep_funcs_live;
 extern const char *const __log_uniform_double;
 extern const char *const __log_uniform_float;
 extern const char *const __log_uniform_half;
