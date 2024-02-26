@@ -253,6 +253,7 @@ static void lDefineConstantIntFunc(const char *name, int val, llvm::Module *modu
     func->addFnAttr(llvm::Attribute::AlwaysInline);
     llvm::BasicBlock *bblock = llvm::BasicBlock::Create(*g->ctx, "entry", func, 0);
     llvm::ReturnInst::Create(*g->ctx, LLVMInt32(val), bblock);
+    func->setLinkage(llvm::GlobalValue::InternalLinkage);
 
     sym->function = func;
     symbolTable->AddVariable(sym);
