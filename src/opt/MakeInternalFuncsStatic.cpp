@@ -12,7 +12,7 @@ namespace ispc {
 using namespace builtin;
 
 llvm::PreservedAnalyses MakeInternalFuncsStaticPass::run(llvm::Module &M, llvm::ModuleAnalysisManager &MAM) {
-    llvm::GlobalVariable *llvmUsed = M.getNamedGlobal("llvm.used");
+    llvm::GlobalVariable *llvmUsed = M.getNamedGlobal("llvm.compiler.used");
     if (llvmUsed) {
         llvmUsed->eraseFromParent();
     }

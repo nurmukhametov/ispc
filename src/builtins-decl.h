@@ -22,15 +22,37 @@
 // ISPC code base. The list is alphabetically sorted for convenience.
 
 #include <string>
+#include <vector>
 #include <unordered_map>
 
 namespace ispc {
 
 namespace builtin {
 
+enum class PersistentGroup {
+    GATHER_DOUBLE = 0, 
+    GATHER_FLOAT, 
+    GATHER_HALF, 
+    GATHER_I16, 
+    GATHER_I32, 
+    GATHER_I64, 
+    GATHER_I8,
+    PREFETCH_READ,
+    PREFETCH_WRITE,
+    SCATTER_DOUBLE,
+    SCATTER_FLOAT,
+    SCATTER_HALF,
+    SCATTER_I16,
+    SCATTER_I32,
+    SCATTER_I64,
+    SCATTER_I8,
+};
+
 bool isPersistent(std::string name);
 
 extern std::unordered_map<std::string, int> persistentFuncs;
+extern std::unordered_map<std::string, std::vector<const char *>> persistentMapList;
+extern std::unordered_map<PersistentGroup, std::vector<const char*>> persistentGroups;
 
 extern const char *const __acos_uniform_double;
 extern const char *const __acos_uniform_float;

@@ -3800,7 +3800,8 @@ define <WIDTH x half> @__masked_load_half(i8 * %ptr, <WIDTH x MASK> %mask) reado
 
 define(`stdlib_core', `
 
-declare i32 @__fast_masked_vload()
+;; It should match unmasked declaration in stdlib.isph
+declare i32 @__fast_masked_vload___UM_()
 
 declare i8* @ISPCAlloc(i8**, i64, i32) nounwind
 declare void @ISPCLaunch(i8**, i8*, i8*, i32, i32, i32) nounwind
@@ -5009,7 +5010,7 @@ entry:
   %mm_and_high_shift_i1 = trunc i64 %mm_and_high_shift to i1
   %can_vload = and i1 %mm_and_low_i1, %mm_and_high_shift_i1
 
-  %fast32 = call i32 @__fast_masked_vload()
+  %fast32 = call i32 @__fast_masked_vload___UM_()
   %fast_i1 = trunc i32 %fast32 to i1
   %can_vload_maybe_fast = or i1 %fast_i1, %can_vload
 

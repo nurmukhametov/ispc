@@ -478,6 +478,7 @@ target_sources(${PROJECT_NAME}
 )
 
 set(BITCODE_FOLDER ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${CMAKE_CFG_INTDIR}/../share/ispc)
+set(INCLUDE_FOLDER ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${CMAKE_CFG_INTDIR}/../include)
 message(STATUS "BITCODE_FOLDER is ${BITCODE_FOLDER}")
 file(MAKE_DIRECTORY ${BITCODE_FOLDER})
 
@@ -503,10 +504,15 @@ if (WIN32)
     source_group("ISPC" FILES "${CMAKE_CURRENT_SOURCE_DIR}/stdlib.ispc")
 endif()
 
-add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
-                   COMMAND ${CMAKE_COMMAND} -E copy
-                           ${CMAKE_SOURCE_DIR}/stdlib.isph
-                           $<TARGET_FILE_DIR:${PROJECT_NAME}>/../include/stdlib.isph)
+add_custom_command(
+    OUTPUT ${INCLUDE_FOLDER}/stdlib.isph
+    DEPENDS ${CMAKE_SOURCE_DIR}/stdlib.isph
+    COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/stdlib.isph ${INCLUDE_FOLDER}/stdlib.isph)
+
+add_custom_target(
+    stdlib-header ALL
+    DEPENDS ${INCLUDE_FOLDER}/stdlib.isph
+)
 
 # Build definitions
 string(TIMESTAMP BUILD_DATE "%Y%m%d" UTC)

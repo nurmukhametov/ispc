@@ -125,6 +125,8 @@ function(create_stdlib_commands stdlibInitStr)
         DEPENDS ${PROJECT_NAME} builtins ${STDLIB_BC_FILES}
     )
 
+    set_property(GLOBAL PROPERTY ADDITIONAL_MAKE_CLEAN_FILES ${STDLIB_BC_FILES})
+
     set(tmpStdlibInitStr "")
     foreach(elem IN LISTS BITCODE_LIB_CONSTRUCTORS)
         set(tmpStdlibInitStr "${tmpStdlibInitStr}\n    ${elem}, ")

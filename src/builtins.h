@@ -37,6 +37,10 @@ void LinkTargetBuiltins(SymbolTable *symbolTable, llvm::Module *module);
 
 void LinkStdlib(SymbolTable *symbolTable, llvm::Module *module);
 
+void addPersistentToLLVMUsed(llvm::Module &M);
+
+void removeUnused(llvm::Module *M);
+
 void debugDumpModule(llvm::Module *module, std::string name);
 
 void AddModuleSymbols(llvm::Module *module, SymbolTable *symbolTable);

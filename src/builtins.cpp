@@ -389,7 +389,7 @@ void ispc::AddDeclarationsToModule(llvm::Module *bcModule, llvm::Module *module)
     }
 }
 
-void removeUnused(llvm::Module *M) {
+void ispc::removeUnused(llvm::Module *M) {
     // llvm::legacy::PassManager PM;
     // PM.add(llvm::createGlobalDCEPass());
     // PM.run(*M);
@@ -452,7 +452,7 @@ void ispc::LinkCommonBuiltins(SymbolTable *symbolTable, llvm::Module *module) {
     lSetAsInternal(module, commonBuiltins);
 }
 
-void addPersistentToLLVMUsed(llvm::Module &M) {
+void addPersistentToLLVMUsed_1(llvm::Module &M) {
     llvm::LLVMContext &Context = M.getContext();
     
     // Bitcast all function pointer to i8*
@@ -473,6 +473,78 @@ void addPersistentToLLVMUsed(llvm::Module &M) {
     llvm::GlobalVariable *llvmUsed = new llvm::GlobalVariable(M, ArrayInit->getType(), false,
                                                               llvm::GlobalValue::AppendingLinkage, ArrayInit,
                                                               "llvm.used");
+    llvmUsed->setSection("llvm.metadata");
+}
+
+llvm::Constant *lFuncAsConstInt8Ptr(llvm::Module &M, const char *name) {
+    llvm::LLVMContext &Context = M.getContext();
+    llvm::Function *F = M.getFunction(name);
+    if (F) {
+        return llvm::ConstantExpr::getBitCast(F, llvm::Type::getInt8PtrTy(Context));
+    }
+    // printf("nullptr %s\n", name);
+    return nullptr;
+}
+
+void ispc::addPersistentToLLVMUsed(llvm::Module &M) {
+    llvm::LLVMContext &Context = M.getContext();
+    
+    // Bitcast all function pointer to i8*
+    std::vector<llvm::Constant*> ConstPtrs;
+    for (auto const& [group, functions] : persistentGroups) {
+        bool isGroupUsed = false;
+        for (auto const& name : functions) {
+            llvm::Function *F = M.getFunction(name);
+            if (F && F->getNumUses() > 0) {
+                isGroupUsed = true;
+                break;
+            }
+        }
+        // TODO comment that we don't need to preserve unused symbols chains
+        if (isGroupUsed) {
+            for (auto const& name : functions) {
+                if (llvm::Constant *C = lFuncAsConstInt8Ptr(M, name)) {
+                    ConstPtrs.push_back(C);
+                }
+            }
+        }
+    }
+
+    for (auto const& [name, val] : persistentFuncs) {
+        llvm::Function *F = M.getFunction(name);
+        if (F) {
+            llvm::Constant *FuncAsConst = llvm::ConstantExpr::getBitCast(F, llvm::Type::getInt8PtrTy(Context));
+            ConstPtrs.push_back(FuncAsConst);
+        }
+    }
+
+    // for (auto const& [name, dependent] : persistentMapList) {
+    //     if (llvm::Constant *C = lFuncAsConstInt8Ptr(M, name.c_str())) {
+    //         ConstPtrs.push_back(C);
+    //     }
+    //     if (dependent.empty() || !M.getFunction(name)) {
+    //         // TODO comment that we don't need to preserve unused symbols chains
+    //         continue;
+    //     }
+    //     for (auto const& dep_name : dependent) {
+    //         if (llvm::Constant *C = lFuncAsConstInt8Ptr(M, dep_name)) {
+    //             ConstPtrs.push_back(C);
+    //         }
+    //     }
+    // }
+
+    if (ConstPtrs.empty()) {
+        return;
+    }
+
+    // Create the array of i8* that llvm.used will hold
+    llvm::ArrayType *ATy = llvm::ArrayType::get(llvm::Type::getInt8PtrTy(Context), ConstPtrs.size());
+    llvm::Constant *ArrayInit = llvm::ConstantArray::get(ATy, ConstPtrs);
+
+    // Create llvm.used and initialize it with the functions
+    llvm::GlobalVariable *llvmUsed = new llvm::GlobalVariable(M, ArrayInit->getType(), false,
+                                                              llvm::GlobalValue::AppendingLinkage, ArrayInit,
+                                                              "llvm.compiler.used");
     llvmUsed->setSection("llvm.metadata");
 }
 
@@ -500,7 +572,7 @@ void ispc::LinkTargetBuiltins(SymbolTable *symbolTable, llvm::Module *module) {
 
     AddModuleSymbols(module, symbolTable);
     lSetAsInternal(module, targetBuiltins);
-    addPersistentToLLVMUsed(*module);
+    //removeUnused(module);
 }
 
 void ispc::LinkStdlib(SymbolTable *symbolTable, llvm::Module *module) {
@@ -522,9 +594,13 @@ void ispc::LinkStdlib(SymbolTable *symbolTable, llvm::Module *module) {
         stdlibFunctions[F.getName()] = 1;
     }
 
-    removeUnused(module);
+    // addPersistentToLLVMUsed(*module);
+
+    // remove dead symbols after IR generation. TODO! outline?
+    // removeUnused(module);
 
     // TODO! add dump/debug functionality
     AddBitcodeToModule(stdlibBCModule, module);
     lSetAsInternal(module, stdlibFunctions);
+    // removeUnused(module);
 }

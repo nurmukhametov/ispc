@@ -332,6 +332,11 @@ function (generate_target_builtins targetBuiltinsInitStr dispatchInitStr)
         DEPENDS ${tmpDispatchList}
     )
 
+    set_property(
+        GLOBAL PROPERTY ADDITIONAL_MAKE_CLEAN_FILES
+        ${tmpBitcodeList} ${tmpDispatchList}
+    )
+
     # Return the list
     set(${targetBuiltinsInitStr} ${tmpTargetBuiltinsInitStr} PARENT_SCOPE)
     set(${dispatchInitStr} ${tmpDispatchBuiltinsInitStr} PARENT_SCOPE)
@@ -461,6 +466,8 @@ function (generate_common_builtins commonBuiltinsInitStr)
         common-builtins ALL
         DEPENDS ${tmpBitcodeList}
     )
+
+    set_property(GLOBAL PROPERTY ADDITIONAL_MAKE_CLEAN_FILES ${tmpBitcodeList})
 
     set(${commonBuiltinsInitStr} ${tmpCommonBuiltinsInitStr} PARENT_SCOPE)
 endfunction()

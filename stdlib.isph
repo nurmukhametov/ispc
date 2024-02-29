@@ -35,6 +35,18 @@ static const uniform int32 programCount = TARGET_WIDTH;
 
 static const int32 programIndex = { PROGRAM_INDEX_INITIALIZER };
 
+#ifdef ISPC_FAST_MASKED_VLOAD
+#define ISPC_FAST_MASKED_VLOAD_VAL 1
+#else
+#define ISPC_FAST_MASKED_VLOAD_VAL 0
+#endif
+
+uniform int32 __fast_masked_vload = ISPC_FAST_MASKED_VLOAD_VAL;
+
+// unmasked uniform int32 __fast_masked_vload() {
+//     return ISPC_FAST_MASKED_VLOAD_VAL;
+// }
+
 #if (ISPC_MASK_BITS == 1)
 #define IntMaskType bool
 #define UIntMaskType bool

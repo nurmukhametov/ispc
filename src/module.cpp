@@ -567,15 +567,21 @@ int Module::CompileFile() {
         llvm::TimeTraceScope TimeScope("DefineStdlib");
         if (g->includeStdlib) {
             LinkStdlib(symbolTable, module);
+            // removeUnused(module);
             debugDumpModule(module, "construct_4_LinkStdlib.ll");
         }
+        addPersistentToLLVMUsed(*module);
         LinkCommonBuiltins(symbolTable, module);
+        removeUnused(module);
         debugDumpModule(module, "construct_5_LinkCommonBuiltins.ll");
 
         LinkTargetBuiltins(symbolTable, module);
+        removeUnused(module);
         debugDumpModule(module, "construct_6_LinkTargetBuiltins.ll");
 
-        lDefineConstantFunc(module, symbolTable);
+        // removeUnused(module);
+
+        // lDefineConstantFunc(module, symbolTable);
         lCheckModuleIntrinsics(module);
     }
 
@@ -3129,6 +3135,10 @@ static void lSetPreprocessorOptions(const std::shared_ptr<clang::PreprocessorOpt
     opts->addMacroDef(TARGET_ELEMENT_WIDTH);
 
     opts->addMacroDef(targetMacro);
+
+    if (g->opt.fastMaskedVload) {
+        opts->addMacroDef("ISPC_FAST_MASKED_LOAD=1");
+    }
 
     // Define mask bits
     std::string ispc_mask_bits = "ISPC_MASK_BITS=" + std::to_string(g->target->getMaskBitCount());
