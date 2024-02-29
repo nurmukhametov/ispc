@@ -43,9 +43,45 @@ static const int32 programIndex = { PROGRAM_INDEX_INITIALIZER };
 
 uniform int32 __fast_masked_vload = ISPC_FAST_MASKED_VLOAD_VAL;
 
-// unmasked uniform int32 __fast_masked_vload() {
-//     return ISPC_FAST_MASKED_VLOAD_VAL;
-// }
+#ifndef ISPC_MATH_LIB_VAL
+#error ISPC_MATH_LIB_VAL undefined
+#endif
+
+static uniform int32 __math_lib = ISPC_MATH_LIB_VAL;
+
+#ifndef ISPC_MATH_LIB_ISPC_VAL
+#error ISPC_MATH_LIB_ISPC_VAL undefined
+#endif
+
+static uniform int32 __math_lib_ispc = ISPC_MATH_LIB_ISPC_VAL;
+
+#ifndef ISPC_MATH_LIB_ISPC_FAST_VAL
+#error ISPC_MATH_LIB_ISPC_FAST_VAL undefined
+#endif
+
+static uniform int32 __math_lib_ispc_fast = ISPC_MATH_LIB_ISPC_FAST_VAL;
+
+#ifndef ISPC_MATH_LIB_SVML_VAL
+#error ISPC_MATH_LIB_SVML_VAL undefined
+#endif
+
+static uniform int32 __math_lib_svml = ISPC_MATH_LIB_SVML_VAL;
+
+#ifndef ISPC_MATH_LIB_SYSTEM_VAL
+#error ISPC_MATH_LIB_SYSTEM_VAL undefined
+#endif
+
+static uniform int32 __math_lib_system = ISPC_MATH_LIB_SYSTEM_VAL;
+// static uniform int32
+// static uniform int32
+// static uniform int32
+// static uniform int32
+// static uniform int32
+// static uniform int32
+// static uniform int32
+// static uniform int32
+// static uniform int32
+// static uniform int32
 
 #if (ISPC_MASK_BITS == 1)
 #define IntMaskType bool

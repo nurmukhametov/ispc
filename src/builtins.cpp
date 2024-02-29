@@ -390,9 +390,6 @@ void ispc::AddDeclarationsToModule(llvm::Module *bcModule, llvm::Module *module)
 }
 
 void ispc::removeUnused(llvm::Module *M) {
-    // llvm::legacy::PassManager PM;
-    // PM.add(llvm::createGlobalDCEPass());
-    // PM.run(*M);
     llvm::FunctionAnalysisManager FAM;
     llvm::ModuleAnalysisManager MAM;
     llvm::ModulePassManager PM;
@@ -403,11 +400,11 @@ void ispc::removeUnused(llvm::Module *M) {
 }
 
 void ispc::debugDumpModule(llvm::Module *module, std::string name, int stage) {
-    name = std::string("pre_") + std::to_string(stage) + "_" + name + ".ll";
     if (!(g->off_stages.find(stage) == g->off_stages.end() && g->debug_stages.find(stage) != g->debug_stages.end())) {
         return;
     }
 
+    name = std::string("pre_") + std::to_string(stage) + "_" + name + ".ll";
     if (g->dumpFile && !g->dumpFilePath.empty()) {
         std::error_code EC;
         llvm::SmallString<128> path(g->dumpFilePath);
@@ -433,7 +430,6 @@ void ispc::debugDumpModule(llvm::Module *module, std::string name, int stage) {
         // dump to stdout
         module->print(llvm::outs(), nullptr);
     }
-    // TODO! print to stdout/stderr?
 }
 
 void ispc::LinkDispatcher(llvm::Module *module) {

@@ -307,12 +307,12 @@ void lDefineConstants(llvm::Module *module, SymbolTable *symbolTable) {
 
     // Define __math_lib stuff.  This is used by stdlib.ispc, for example, to
     // figure out which math routines to end up calling...
-    lDefineConstantInt("__math_lib", (int)g->mathLib, module, symbolTable, debug_symbols);
-    lDefineConstantInt("__math_lib_ispc", (int)Globals::MathLib::Math_ISPC, module, symbolTable, debug_symbols);
-    lDefineConstantInt("__math_lib_ispc_fast", (int)Globals::MathLib::Math_ISPCFast, module, symbolTable,
-                       debug_symbols);
-    lDefineConstantInt("__math_lib_svml", (int)Globals::MathLib::Math_SVML, module, symbolTable, debug_symbols);
-    lDefineConstantInt("__math_lib_system", (int)Globals::MathLib::Math_System, module, symbolTable, debug_symbols);
+    // lDefineConstantInt("__math_lib", (int)g->mathLib, module, symbolTable, debug_symbols);
+    // lDefineConstantInt("__math_lib_ispc", (int)Globals::MathLib::Math_ISPC, module, symbolTable, debug_symbols);
+    // lDefineConstantInt("__math_lib_ispc_fast", (int)Globals::MathLib::Math_ISPCFast, module, symbolTable,
+    //                    debug_symbols);
+    // lDefineConstantInt("__math_lib_svml", (int)Globals::MathLib::Math_SVML, module, symbolTable, debug_symbols);
+    // lDefineConstantInt("__math_lib_system", (int)Globals::MathLib::Math_System, module, symbolTable, debug_symbols);
 
     lDefineConstantInt("__have_native_half_converts", g->target->hasHalfConverts(), module, symbolTable, debug_symbols);
     lDefineConstantInt("__have_native_half_full_support", g->target->hasHalfFullSupport(), module, symbolTable,
@@ -474,7 +474,6 @@ int Module::CompileFile() {
     debugDumpModule(module, "DefineBuiltinsDeclarations", pre_stage++);
 
     bool runPreprocessor = g->runCPP;
-
     if (runPreprocessor) {
         llvm::TimeTraceScope TimeScope("Frontend parser");
         if (!IsStdin(filename)) {
@@ -542,9 +541,9 @@ int Module::CompileFile() {
         llvm::TimeTraceScope TimeScope("DefineStdlib");
         if (g->includeStdlib) {
             LinkStdlib(symbolTable, module);
-            // removeUnused(module);
             debugDumpModule(module, "LinkStdlib", pre_stage++);
         }
+
         addPersistentToLLVMUsed(*module);
         LinkCommonBuiltins(symbolTable, module);
         removeUnused(module);
@@ -553,8 +552,6 @@ int Module::CompileFile() {
         LinkTargetBuiltins(symbolTable, module);
         removeUnused(module);
         debugDumpModule(module, "LinkTargetBuiltins", pre_stage++);
-
-        // removeUnused(module);
 
         lCheckModuleIntrinsics(module);
     }
@@ -3101,18 +3098,29 @@ static void lSetPreprocessorOptions(const std::shared_ptr<clang::PreprocessorOpt
     }
 
     // Add 'TARGET_WIDTH' macro to expose vector width to user.
-    std::string TARGET_WIDTH = "TARGET_WIDTH=" + std::to_string(g->target->getVectorWidth());
-    opts->addMacroDef(TARGET_WIDTH);
+    std::string target_width = "TARGET_WIDTH=" + std::to_string(g->target->getVectorWidth());
+    opts->addMacroDef(target_width);
 
     // Add 'TARGET_ELEMENT_WIDTH' macro to expose element width to user.
-    std::string TARGET_ELEMENT_WIDTH = "TARGET_ELEMENT_WIDTH=" + std::to_string(g->target->getDataTypeWidth() / 8);
-    opts->addMacroDef(TARGET_ELEMENT_WIDTH);
+    std::string target_element_width = "TARGET_ELEMENT_WIDTH=" + std::to_string(g->target->getDataTypeWidth() / 8);
+    opts->addMacroDef(target_element_width);
 
     opts->addMacroDef(targetMacro);
 
     if (g->opt.fastMaskedVload) {
-        opts->addMacroDef("ISPC_FAST_MASKED_LOAD=1");
+        opts->addMacroDef("ISPC_FAST_MASKED_VLOAD");
     }
+
+    std::string math_lib = "ISPC_MATH_LIB_VAL=" + std::to_string((int)g->mathLib);
+    opts->addMacroDef(math_lib);
+    std::string math_lib_ispc = "ISPC_MATH_LIB_ISPC_VAL=" + std::to_string((int)Globals::MathLib::Math_ISPC);
+    opts->addMacroDef(math_lib_ispc);
+    std::string math_lib_ispc_fast = "ISPC_MATH_LIB_ISPC_FAST_VAL=" + std::to_string((int)Globals::MathLib::Math_ISPCFast);
+    opts->addMacroDef(math_lib_ispc_fast);
+    std::string math_lib_svml = "ISPC_MATH_LIB_SVML_VAL=" + std::to_string((int)Globals::MathLib::Math_SVML);
+    opts->addMacroDef(math_lib_svml);
+    std::string math_lib_system = "ISPC_MATH_LIB_SYSTEM_VAL=" + std::to_string((int)Globals::MathLib::Math_System);
+    opts->addMacroDef(math_lib_system);
 
     // Define mask bits
     std::string ispc_mask_bits = "ISPC_MASK_BITS=" + std::to_string(g->target->getMaskBitCount());
