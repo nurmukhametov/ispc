@@ -241,24 +241,6 @@ static void lCheckModuleIntrinsics(llvm::Module *module) {
     }
 }
 
-static void lDefineConstantIntFunc(const char *name, int val, llvm::Module *module, SymbolTable *symbolTable,
-                                   std::vector<llvm::Constant *> &dbg_sym) {
-    llvm::SmallVector<const Type *, 8> args;
-    FunctionType *ft = new FunctionType(AtomicType::UniformInt32, args, SourcePos());
-    Symbol *sym = new Symbol(name, SourcePos(), ft, SC_STATIC);
-
-    llvm::Function *func = module->getFunction(name);
-    dbg_sym.push_back(func);
-    Assert(func != nullptr); // it should be declared already...
-    func->addFnAttr(llvm::Attribute::AlwaysInline);
-    llvm::BasicBlock *bblock = llvm::BasicBlock::Create(*g->ctx, "entry", func, 0);
-    llvm::ReturnInst::Create(*g->ctx, LLVMInt32(val), bblock);
-    func->setLinkage(llvm::GlobalValue::InternalLinkage);
-
-    sym->function = func;
-    symbolTable->AddVariable(sym);
-}
-
 /** Utility routine that defines a constant int32 with given value, adding
     the symbol to both the ispc symbol table and the given LLVM module.
  */
@@ -349,14 +331,6 @@ void lDefineConstants(llvm::Module *module, SymbolTable *symbolTable) {
 #endif
     lDefineConstantInt("__is_xe_target", (int)(g->target->isXeTarget()), module, symbolTable, debug_symbols);
 
-    lEmitLLVMUsed(module, debug_symbols);
-}
-
-void lDefineConstantFunc(llvm::Module *module, SymbolTable *symbolTable) {
-    std::vector<llvm::Constant *> debug_symbols;
-    std::string fastMaskedLoadName = "__fast_masked_vload";
-
-    lDefineConstantIntFunc(fastMaskedLoadName.c_str(), (int)g->opt.fastMaskedVload, module, symbolTable, debug_symbols);
     lEmitLLVMUsed(module, debug_symbols);
 }
 
@@ -480,7 +454,8 @@ int Module::CompileFile() {
         "CompileFile", llvm::StringRef(filename + ("_" + std::string(g->target->GetISAString()))));
     ParserInit();
 
-    debugDumpModule(module, "construct_0_Empty.ll");
+    int pre_stage = PRE_OPT_NUMBER;
+    debugDumpModule(module, "Empty", pre_stage++);
 
     lDefineConstants(module, symbolTable);
 
@@ -489,14 +464,14 @@ int Module::CompileFile() {
         alignment->setInitializer(LLVMInt32(g->forceAlignment));
     }
 
-    debugDumpModule(module, "construct_1_DefineConstants.ll");
+    debugDumpModule(module, "DefineConstants", pre_stage++);
 
     {
         llvm::TimeTraceScope TimeScope("DefineBuiltinsDeclarations");
         lDefineBuiltinDeclarations(symbolTable, module);
     }
 
-    debugDumpModule(module, "construct_2_DefineBuiltinsDeclarations.ll");
+    debugDumpModule(module, "DefineBuiltinsDeclarations", pre_stage++);
 
     bool runPreprocessor = g->runCPP;
 
@@ -561,27 +536,26 @@ int Module::CompileFile() {
         g->target->markFuncWithTargetAttr(&f);
     ast->GenerateIR();
 
-    debugDumpModule(module, "construct_3_GenerateIR.ll");
+    debugDumpModule(module, "GenerateIR", pre_stage++);
 
     if (!g->genStdlib) {
         llvm::TimeTraceScope TimeScope("DefineStdlib");
         if (g->includeStdlib) {
             LinkStdlib(symbolTable, module);
             // removeUnused(module);
-            debugDumpModule(module, "construct_4_LinkStdlib.ll");
+            debugDumpModule(module, "LinkStdlib", pre_stage++);
         }
         addPersistentToLLVMUsed(*module);
         LinkCommonBuiltins(symbolTable, module);
         removeUnused(module);
-        debugDumpModule(module, "construct_5_LinkCommonBuiltins.ll");
+        debugDumpModule(module, "LinkCommonBuiltins", pre_stage++);
 
         LinkTargetBuiltins(symbolTable, module);
         removeUnused(module);
-        debugDumpModule(module, "construct_6_LinkTargetBuiltins.ll");
+        debugDumpModule(module, "LinkTargetBuiltins", pre_stage++);
 
         // removeUnused(module);
 
-        // lDefineConstantFunc(module, symbolTable);
         lCheckModuleIntrinsics(module);
     }
 

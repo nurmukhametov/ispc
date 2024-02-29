@@ -5101,8 +5101,6 @@ define void @__masked_store_blend_half(<WIDTH x half> * nocapture, <WIDTH x half
 
 define(`stdlib_core', `
 
-;; It should match unmasked declaration in stdlib.isph
-;; declare i32 @__fast_masked_vload___UM_()
 @__fast_masked_vload = external global i32
 
 declare i8* @ISPCAlloc(i8**, i64, i32) nounwind
@@ -6526,7 +6524,6 @@ entry:
   %mm_and_high_shift_i1 = trunc i64 %mm_and_high_shift to i1
   %can_vload = and i1 %mm_and_low_i1, %mm_and_high_shift_i1
 
-  ;; %fast32 = call i32 @__fast_masked_vload___UM_()
   %fast32 = load i32, i32* @__fast_masked_vload
   %fast_i1 = trunc i32 %fast32 to i1
   %can_vload_maybe_fast = or i1 %fast_i1, %can_vload

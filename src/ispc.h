@@ -42,6 +42,12 @@
  */
 #define ISPC_MAX_NVEC 64
 
+// Number of first construction phase
+#define PRE_OPT_NUMBER 0
+
+// Number of initial optimization phase
+#define INIT_OPT_NUMBER 10
+
 // Number of final optimization phase
 #define LAST_OPT_NUMBER 1000
 

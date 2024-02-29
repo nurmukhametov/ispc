@@ -41,7 +41,7 @@ void addPersistentToLLVMUsed(llvm::Module &M);
 
 void removeUnused(llvm::Module *M);
 
-void debugDumpModule(llvm::Module *module, std::string name);
+void debugDumpModule(llvm::Module *module, std::string name, int stage);
 
 void AddModuleSymbols(llvm::Module *module, SymbolTable *symbolTable);
 

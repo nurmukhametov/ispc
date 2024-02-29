@@ -402,7 +402,12 @@ void ispc::removeUnused(llvm::Module *M) {
     PM.run(*M, MAM);
 }
 
-void ispc::debugDumpModule(llvm::Module *module, std::string name) {
+void ispc::debugDumpModule(llvm::Module *module, std::string name, int stage) {
+    name = std::string("pre_") + std::to_string(stage) + "_" + name + ".ll";
+    if (!(g->off_stages.find(stage) == g->off_stages.end() && g->debug_stages.find(stage) != g->debug_stages.end())) {
+        return;
+    }
+
     if (g->dumpFile && !g->dumpFilePath.empty()) {
         std::error_code EC;
         llvm::SmallString<128> path(g->dumpFilePath);
@@ -424,7 +429,11 @@ void ispc::debugDumpModule(llvm::Module *module, std::string name) {
 
         module->print(OS, nullptr);
         OS.flush();
+    } else {
+        // dump to stdout
+        module->print(llvm::outs(), nullptr);
     }
+    // TODO! print to stdout/stderr?
 }
 
 void ispc::LinkDispatcher(llvm::Module *module) {
@@ -452,37 +461,12 @@ void ispc::LinkCommonBuiltins(SymbolTable *symbolTable, llvm::Module *module) {
     lSetAsInternal(module, commonBuiltins);
 }
 
-void addPersistentToLLVMUsed_1(llvm::Module &M) {
-    llvm::LLVMContext &Context = M.getContext();
-    
-    // Bitcast all function pointer to i8*
-    std::vector<llvm::Constant*> FuncPtrs;
-    for (auto const& [name, val] : persistentFuncs) {
-        llvm::Function *F = M.getFunction(name);
-        if (F) {
-            llvm::Constant *FuncAsConst = llvm::ConstantExpr::getBitCast(F, llvm::Type::getInt8PtrTy(Context));
-            FuncPtrs.push_back(FuncAsConst);
-        }
-    }
-
-    // Create the array of i8* that llvm.used will hold
-    llvm::ArrayType *ATy = llvm::ArrayType::get(llvm::Type::getInt8PtrTy(Context), FuncPtrs.size());
-    llvm::Constant *ArrayInit = llvm::ConstantArray::get(ATy, FuncPtrs);
-
-    // Create llvm.used and initialize it with the functions
-    llvm::GlobalVariable *llvmUsed = new llvm::GlobalVariable(M, ArrayInit->getType(), false,
-                                                              llvm::GlobalValue::AppendingLinkage, ArrayInit,
-                                                              "llvm.used");
-    llvmUsed->setSection("llvm.metadata");
-}
-
 llvm::Constant *lFuncAsConstInt8Ptr(llvm::Module &M, const char *name) {
     llvm::LLVMContext &Context = M.getContext();
     llvm::Function *F = M.getFunction(name);
     if (F) {
         return llvm::ConstantExpr::getBitCast(F, llvm::Type::getInt8PtrTy(Context));
     }
-    // printf("nullptr %s\n", name);
     return nullptr;
 }
 
@@ -517,21 +501,6 @@ void ispc::addPersistentToLLVMUsed(llvm::Module &M) {
             ConstPtrs.push_back(FuncAsConst);
         }
     }
-
-    // for (auto const& [name, dependent] : persistentMapList) {
-    //     if (llvm::Constant *C = lFuncAsConstInt8Ptr(M, name.c_str())) {
-    //         ConstPtrs.push_back(C);
-    //     }
-    //     if (dependent.empty() || !M.getFunction(name)) {
-    //         // TODO comment that we don't need to preserve unused symbols chains
-    //         continue;
-    //     }
-    //     for (auto const& dep_name : dependent) {
-    //         if (llvm::Constant *C = lFuncAsConstInt8Ptr(M, dep_name)) {
-    //             ConstPtrs.push_back(C);
-    //         }
-    //     }
-    // }
 
     if (ConstPtrs.empty()) {
         return;
@@ -572,7 +541,6 @@ void ispc::LinkTargetBuiltins(SymbolTable *symbolTable, llvm::Module *module) {
 
     AddModuleSymbols(module, symbolTable);
     lSetAsInternal(module, targetBuiltins);
-    //removeUnused(module);
 }
 
 void ispc::LinkStdlib(SymbolTable *symbolTable, llvm::Module *module) {
@@ -594,13 +562,7 @@ void ispc::LinkStdlib(SymbolTable *symbolTable, llvm::Module *module) {
         stdlibFunctions[F.getName()] = 1;
     }
 
-    // addPersistentToLLVMUsed(*module);
-
-    // remove dead symbols after IR generation. TODO! outline?
-    // removeUnused(module);
-
     // TODO! add dump/debug functionality
     AddBitcodeToModule(stdlibBCModule, module);
     lSetAsInternal(module, stdlibFunctions);
-    // removeUnused(module);
 }

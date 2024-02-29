@@ -206,15 +206,15 @@ static void lPrintVersion() {
     printf("    [--debug-llvm]\t\t\tEnable LLVM debugging information (dumps to stderr)\n");
     printf("    [--debug-pm]\t\t\tPrint verbose information from ispc pass manager\n");
     printf("    [--debug-pm-time-trace]\t\tPrint time tracing information from ispc pass manager\n");
-    printf("    [--debug-phase=<value>]\t\tSet optimization phases to dump. "
-           "--debug-phase=first,210:220,300,305,310:last\n");
+    printf("    [--debug-phase=<value>]\t\tSet optimization or construction phases to dump. "
+           "--debug-phase=pre:first,210:220,300,305,310:last\n");
     printf("    [--[no-]discard-value-names]\tDo not discard/Discard value names when generating LLVM IR\n");
     printf("    [--dump-file[=<path>]]\t\tDump module IR to file(s) in "
            "current directory, or to <path> if specified\n");
     printf("    [--gen-stdlib]\t\tEnable special compilation mode to generate LLVM IR for stdlib.ispc.");
     printf("    [--fuzz-seed=<value>]\t\tSeed value for RNG for fuzz testing\n");
     printf("    [--fuzz-test]\t\t\tRandomly perturb program input to test error conditions\n");
-    printf("    [--off-phase=<value>]\t\tSwitch off optimization phases. --off-phase=first,210:220,300,305,310:last\n");
+    printf("    [--off-phase=<value>]\t\tSwitch off optimization phases. --off-phase=pre:first,210:220,300,305,310:last\n");
     printf("    [--opt=<option>]\t\t\tSet optimization option\n");
     printf("        disable-all-on-optimizations\t\tDisable optimizations that take advantage of \"all on\" mask\n");
     printf("        disable-blended-masked-stores\t\tScalarize masked stores on SSE (vs. using vblendps)\n");
@@ -454,8 +454,10 @@ class ArgErrors {
 };
 
 static int ParsingPhaseName(char *stage, ArgErrors &errorHandler) {
-    if (strncmp(stage, "first", 5) == 0) {
-        return 0;
+    if (strncmp(stage, "pre", 3) == 0) {
+        return PRE_OPT_NUMBER;
+    } else if (strncmp(stage, "first", 5) == 0) {
+        return INIT_OPT_NUMBER;
     } else if (strncmp(stage, "last", 4) == 0) {
         return LAST_OPT_NUMBER;
     } else {

@@ -29,6 +29,7 @@ namespace ispc {
 
 namespace builtin {
 
+// Groups of persistent functions.
 enum class PersistentGroup {
     GATHER_DOUBLE = 0, 
     GATHER_FLOAT, 
@@ -48,10 +49,12 @@ enum class PersistentGroup {
     SCATTER_I8,
 };
 
-bool isPersistent(std::string name);
-
+// Functions that should be preserved across optimization pipeline unconditionally.
 extern std::unordered_map<std::string, int> persistentFuncs;
-extern std::unordered_map<std::string, std::vector<const char *>> persistentMapList;
+
+// Groups of function that should be preserved across optimization pipeline.
+// The logic is following: the whole group is to be preserved if any of
+// function from the group is actually used.
 extern std::unordered_map<PersistentGroup, std::vector<const char*>> persistentGroups;
 
 extern const char *const __acos_uniform_double;
