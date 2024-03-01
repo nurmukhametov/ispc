@@ -157,6 +157,7 @@ static void lCreateSymbol(const std::string &name, const Type *returnType, llvm:
     Debug(noPos, "Created builtin symbol \"%s\" [%s]\n", name.c_str(), funcType->GetString().c_str());
 
     Symbol *sym = new Symbol(name, noPos, funcType);
+    sym->Print();
     sym->function = func;
     symbolTable->AddFunction(sym);
 }
@@ -190,6 +191,7 @@ static bool lCreateISPCSymbol(llvm::Function *func, SymbolTable *symbolTable) {
         FunctionType *funcType = new FunctionType(returnType, argTypes, noPos);
 
         Symbol *sym = new Symbol(name, noPos, funcType);
+        sym->Print();
         sym->function = func;
         symbolTable->AddFunction(sym);
         return true;
@@ -534,7 +536,7 @@ void ispc::LinkTargetBuiltins(SymbolTable *symbolTable, llvm::Module *module) {
     // builtin functions (e.g. __masked_store_32(), etc).
     AddBitcodeToModule(targetBCModule, module);
 
-    AddModuleSymbols(module, symbolTable);
+    // AddModuleSymbols(module, symbolTable);
     lSetAsInternal(module, targetBuiltins);
 }
 

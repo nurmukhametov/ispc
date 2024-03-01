@@ -399,7 +399,7 @@ int Module::CompileFile() {
     int pre_stage = PRE_OPT_NUMBER;
     debugDumpModule(module, "Empty", pre_stage++);
 
-    {
+    if (g->genStdlib) {
         llvm::TimeTraceScope TimeScope("DefineBuiltinsDeclarations");
         lDefineBuiltinDeclarations(symbolTable, module);
     }

@@ -14,8 +14,10 @@
 // Ideally we need to have here header with builtins API
 #define ISPC_INTERNAL_STDLIB_COMPILATION
 #include "stdlib.isph"
-#include "target.isph"
 #undef ISPC_INTERNAL_STDLIB_COMPILATION
+
+#include "target.isph"
+// #include "builtins.isph"
 
 ///////////////////////////////////////////////////////////////////////////
 // Low level primitives
