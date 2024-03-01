@@ -307,12 +307,12 @@ void lDefineConstants(llvm::Module *module, SymbolTable *symbolTable) {
 
     // Define __math_lib stuff.  This is used by stdlib.ispc, for example, to
     // figure out which math routines to end up calling...
-    // lDefineConstantInt("__math_lib", (int)g->mathLib, module, symbolTable, debug_symbols);
-    // lDefineConstantInt("__math_lib_ispc", (int)Globals::MathLib::Math_ISPC, module, symbolTable, debug_symbols);
-    // lDefineConstantInt("__math_lib_ispc_fast", (int)Globals::MathLib::Math_ISPCFast, module, symbolTable,
-    //                    debug_symbols);
-    // lDefineConstantInt("__math_lib_svml", (int)Globals::MathLib::Math_SVML, module, symbolTable, debug_symbols);
-    // lDefineConstantInt("__math_lib_system", (int)Globals::MathLib::Math_System, module, symbolTable, debug_symbols);
+    lDefineConstantInt("__math_lib", (int)g->mathLib, module, symbolTable, debug_symbols);
+    lDefineConstantInt("__math_lib_ispc", (int)Globals::MathLib::Math_ISPC, module, symbolTable, debug_symbols);
+    lDefineConstantInt("__math_lib_ispc_fast", (int)Globals::MathLib::Math_ISPCFast, module, symbolTable,
+                       debug_symbols);
+    lDefineConstantInt("__math_lib_svml", (int)Globals::MathLib::Math_SVML, module, symbolTable, debug_symbols);
+    lDefineConstantInt("__math_lib_system", (int)Globals::MathLib::Math_System, module, symbolTable, debug_symbols);
 
     lDefineConstantInt("__have_native_half_converts", g->target->hasHalfConverts(), module, symbolTable, debug_symbols);
     lDefineConstantInt("__have_native_half_full_support", g->target->hasHalfFullSupport(), module, symbolTable,
@@ -454,17 +454,17 @@ int Module::CompileFile() {
         "CompileFile", llvm::StringRef(filename + ("_" + std::string(g->target->GetISAString()))));
     ParserInit();
 
-    int pre_stage = PRE_OPT_NUMBER;
-    debugDumpModule(module, "Empty", pre_stage++);
 
-    lDefineConstants(module, symbolTable);
+    // lDefineConstants(module, symbolTable);
 
     if (g->forceAlignment != -1) {
         llvm::GlobalVariable *alignment = module->getGlobalVariable("memory_alignment", true);
         alignment->setInitializer(LLVMInt32(g->forceAlignment));
     }
 
-    debugDumpModule(module, "DefineConstants", pre_stage++);
+    // debugDumpModule(module, "DefineConstants", pre_stage++);
+    int pre_stage = PRE_OPT_NUMBER;
+    debugDumpModule(module, "Empty", pre_stage++);
 
     {
         llvm::TimeTraceScope TimeScope("DefineBuiltinsDeclarations");
@@ -3121,6 +3121,37 @@ static void lSetPreprocessorOptions(const std::shared_ptr<clang::PreprocessorOpt
     opts->addMacroDef(math_lib_svml);
     std::string math_lib_system = "ISPC_MATH_LIB_SYSTEM_VAL=" + std::to_string((int)Globals::MathLib::Math_System);
     opts->addMacroDef(math_lib_system);
+
+    if (g->target->hasHalfConverts()) {
+        opts->addMacroDef("ISPC_HAVE_NATIVE_HALF_CONVERTS");
+    }
+    if (g->target->hasHalfFullSupport()) {
+        opts->addMacroDef("ISPC_HAVE_NATIVE_HALF_FULL_SUPPORT");
+    }
+    if (g->target->hasRand()) {
+        opts->addMacroDef("ISPC_HAVE_NATIVE_RAND");
+    }
+    if (g->target->hasTranscendentals()) {
+        opts->addMacroDef("ISPC_HAVE_NATIVE_TRANSCENDENTALS");
+    }
+    if (g->target->hasTrigonometry()) {
+        opts->addMacroDef("ISPC_HAVE_NATIVE_TRIGONOMETRY");
+    }
+    if (g->target->hasRsqrtd()) {
+        opts->addMacroDef("ISPC_HAVE_NATIVE_RSQRTD");
+    }
+    if (g->target->hasRcpd()) {
+        opts->addMacroDef("ISPC_HAVE_NATIVE_RCPD");
+    }
+    if (g->target->hasSatArith()) {
+        opts->addMacroDef("ISPC_HAVE_SATURATING_ARITHMETIC");
+    }
+    // TODO! what is the problem to have g->target->hasXePrefetch function returning bool for non XE_ENABLED builds??
+#ifdef ISPC_XE_ENABLED
+    if (g->target->hasXePrefetch()) {
+        opts->addMacroDef("ISPC_HAVE_XE_PREFETCH");
+    }
+#endif
 
     // Define mask bits
     std::string ispc_mask_bits = "ISPC_MASK_BITS=" + std::to_string(g->target->getMaskBitCount());
