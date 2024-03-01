@@ -270,70 +270,6 @@ static void lDefineConstantInt(const char *name, int val, llvm::Module *module, 
     }
 }
 
-static void lEmitLLVMUsed_1(llvm::Module &module, std::vector<llvm::Constant *> &list) {
-    // Convert list to what ConstantArray needs.
-    llvm::SmallVector<llvm::Constant *, 8> UsedArray;
-    UsedArray.reserve(list.size());
-    for (auto c : list) {
-        UsedArray.push_back(llvm::ConstantExpr::getPointerBitCastOrAddrSpaceCast(llvm::cast<llvm::Constant>(c),
-                                                                                 LLVMTypes::Int8PointerType));
-    }
-
-    llvm::ArrayType *ATy = llvm::ArrayType::get(LLVMTypes::Int8PointerType, UsedArray.size());
-
-    auto *GV = new llvm::GlobalVariable(module, ATy, false, llvm::GlobalValue::AppendingLinkage,
-                                        llvm::ConstantArray::get(ATy, UsedArray), "llvm.used");
-
-    GV->setSection("llvm.metadata");
-}
-
-static void lEmitLLVMUsed(llvm::Module *module, std::vector<llvm::Constant *> &list) {
-    // IGC cannot deal with global references, so to keep debug capabilities
-    // on Xe target, ISPC should not generate any global relocations.
-    // When llvm.used is not generated, all previously defined global debug contants will be eliminated,
-    // so there will not be any global relocations passed to IGC.
-    if (!g->target->isXeTarget() && g->generateDebuggingSymbols) {
-        lEmitLLVMUsed_1(*module, list);
-    }
-}
-
-void lDefineConstants(llvm::Module *module, SymbolTable *symbolTable) {
-    // TODO! define them in stdlib.isph with value set by preprocessor with g-> vars.
-
-    // debug_symbols are symbols that supposed to be preserved in debug information.
-    // They will be referenced in llvm.used intrinsic to prevent they removal from
-    // the object file.
-    std::vector<llvm::Constant *> debug_symbols;
-
-    // Define __math_lib stuff.  This is used by stdlib.ispc, for example, to
-    // figure out which math routines to end up calling...
-    lDefineConstantInt("__math_lib", (int)g->mathLib, module, symbolTable, debug_symbols);
-    lDefineConstantInt("__math_lib_ispc", (int)Globals::MathLib::Math_ISPC, module, symbolTable, debug_symbols);
-    lDefineConstantInt("__math_lib_ispc_fast", (int)Globals::MathLib::Math_ISPCFast, module, symbolTable,
-                       debug_symbols);
-    lDefineConstantInt("__math_lib_svml", (int)Globals::MathLib::Math_SVML, module, symbolTable, debug_symbols);
-    lDefineConstantInt("__math_lib_system", (int)Globals::MathLib::Math_System, module, symbolTable, debug_symbols);
-
-    lDefineConstantInt("__have_native_half_converts", g->target->hasHalfConverts(), module, symbolTable, debug_symbols);
-    lDefineConstantInt("__have_native_half_full_support", g->target->hasHalfFullSupport(), module, symbolTable,
-                       debug_symbols);
-    lDefineConstantInt("__have_native_rand", g->target->hasRand(), module, symbolTable, debug_symbols);
-    lDefineConstantInt("__have_native_transcendentals", g->target->hasTranscendentals(), module, symbolTable,
-                       debug_symbols);
-    lDefineConstantInt("__have_native_trigonometry", g->target->hasTrigonometry(), module, symbolTable, debug_symbols);
-    lDefineConstantInt("__have_native_rsqrtd", g->target->hasRsqrtd(), module, symbolTable, debug_symbols);
-    lDefineConstantInt("__have_native_rcpd", g->target->hasRcpd(), module, symbolTable, debug_symbols);
-    lDefineConstantInt("__have_saturating_arithmetic", g->target->hasSatArith(), module, symbolTable, debug_symbols);
-#ifdef ISPC_XE_ENABLED
-    lDefineConstantInt("__have_xe_prefetch", g->target->hasXePrefetch(), module, symbolTable, debug_symbols);
-#else
-    lDefineConstantInt("__have_xe_prefetch", false, module, symbolTable, debug_symbols);
-#endif
-    lDefineConstantInt("__is_xe_target", (int)(g->target->isXeTarget()), module, symbolTable, debug_symbols);
-
-    lEmitLLVMUsed(module, debug_symbols);
-}
-
 void lDefineBuiltinDeclarations(SymbolTable *symbolTable, llvm::Module *module) {
     const BitcodeLib *target =
         g->target_registry->getISPCTargetLib(g->target->getISPCTarget(), g->target_os, g->target->getArch());
@@ -453,9 +389,6 @@ int Module::CompileFile() {
     llvm::TimeTraceScope CompileFileTimeScope(
         "CompileFile", llvm::StringRef(filename + ("_" + std::string(g->target->GetISAString()))));
     ParserInit();
-
-
-    // lDefineConstants(module, symbolTable);
 
     if (g->forceAlignment != -1) {
         llvm::GlobalVariable *alignment = module->getGlobalVariable("memory_alignment", true);
