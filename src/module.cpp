@@ -401,7 +401,9 @@ int Module::CompileFile() {
 
     {
         llvm::TimeTraceScope TimeScope("DefineBuiltinsDeclarations");
-        lDefineBuiltinDeclarations(symbolTable, module);
+        if (g->genStdlib) {
+            lDefineBuiltinDeclarations(symbolTable, module);
+        }
     }
 
     debugDumpModule(module, "DefineBuiltinsDeclarations", pre_stage++);
