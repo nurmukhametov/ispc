@@ -80,6 +80,8 @@ class Symbol : public Traceable {
     /*!< For symbols that are parameters to functions or are
          variables declared inside functions, this gives the
          function they're in. */
+
+    void Print() const;
 };
 
 /**

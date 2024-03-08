@@ -28,6 +28,11 @@ Symbol::Symbol(const std::string &n, SourcePos p, const Type *t, StorageClass sc
     : pos(p), name(n), storageInfo(nullptr), function(nullptr), exportedFunction(nullptr), type(t), constValue(nullptr),
       storageClass(sc), varyingCFDepth(0), parentFunction(nullptr) {}
 
+void Symbol::Print() const {
+    return;
+    printf("%s | %s\n", name.c_str(), type->GetString().c_str());
+}
+
 ///////////////////////////////////////////////////////////////////////////
 // TemplateSymbol
 
