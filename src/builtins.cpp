@@ -384,7 +384,10 @@ void ispc::AddDeclarationsToModule(llvm::Module *bcModule, llvm::Module *module)
         }
 
         for (llvm::Function &f : *bcModule) {
-            module->getOrInsertFunction(f.getName(), f.getFunctionType(), f.getAttributes());
+            // TODO! do we really try to define already included symbol?
+            if (!module->getFunction(f.getName())) {
+                module->getOrInsertFunction(f.getName(), f.getFunctionType(), f.getAttributes());
+            }
         }
     }
 }

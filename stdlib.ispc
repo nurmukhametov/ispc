@@ -15,6 +15,7 @@
 #define ISPC_INTERNAL_STDLIB_COMPILATION
 #include "stdlib.isph"
 #include "target.isph"
+#include "builtins.isph"
 #undef ISPC_INTERNAL_STDLIB_COMPILATION
 
 ///////////////////////////////////////////////////////////////////////////

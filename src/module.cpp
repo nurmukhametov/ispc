@@ -402,7 +402,7 @@ int Module::CompileFile() {
     {
         llvm::TimeTraceScope TimeScope("DefineBuiltinsDeclarations");
         if (g->genStdlib) {
-            lDefineBuiltinDeclarations(symbolTable, module);
+        //    lDefineBuiltinDeclarations(symbolTable, module);
         }
     }
 
@@ -470,16 +470,19 @@ int Module::CompileFile() {
         g->target->markFuncWithTargetAttr(&f);
     ast->GenerateIR();
 
+    if (!g->genStdlib) {
+        addPersistentToLLVMUsed(*module);
+    }
     debugDumpModule(module, "GenerateIR", pre_stage++);
 
     if (!g->genStdlib) {
         llvm::TimeTraceScope TimeScope("DefineStdlib");
         if (g->includeStdlib) {
             LinkStdlib(symbolTable, module);
+            removeUnused(module);
             debugDumpModule(module, "LinkStdlib", pre_stage++);
         }
 
-        addPersistentToLLVMUsed(*module);
         LinkCommonBuiltins(symbolTable, module);
         removeUnused(module);
         debugDumpModule(module, "LinkCommonBuiltins", pre_stage++);
