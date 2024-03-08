@@ -564,28 +564,28 @@ __declspec(safe, cost1) static inline uniform int64 count_trailing_zeros(uniform
 __declspec(safe) static inline unsigned int32 count_leading_zeros(unsigned int32 v) {
     unsigned int32 r;
     for (uniform int i = 0; i < programCount; ++i)
-        r = insert(r, i, __count_leading_zeros_i32(extract(v, i)));
+        r = insert(r, i, (uniform unsigned int32)__count_leading_zeros_i32(extract(v, i)));
     return r;
 }
 
 __declspec(safe) static inline unsigned int64 count_leading_zeros(unsigned int64 v) {
     unsigned int64 r;
     for (uniform int i = 0; i < programCount; ++i)
-        r = insert(r, i, __count_leading_zeros_i64(extract(v, i)));
+        r = insert(r, i, (uniform unsigned int64)__count_leading_zeros_i64(extract(v, i)));
     return r;
 }
 
 __declspec(safe) static inline unsigned int32 count_trailing_zeros(unsigned int32 v) {
     unsigned int32 r;
     for (uniform int i = 0; i < programCount; ++i)
-        r = insert(r, i, __count_trailing_zeros_i32(extract(v, i)));
+        r = insert(r, i, (uniform unsigned int32)__count_trailing_zeros_i32(extract(v, i)));
     return r;
 }
 
 __declspec(safe) static inline unsigned int64 count_trailing_zeros(unsigned int64 v) {
     unsigned int64 r;
     for (uniform int i = 0; i < programCount; ++i)
-        r = insert(r, i, __count_trailing_zeros_i64(extract(v, i)));
+        r = insert(r, i, (uniform unsigned int64)__count_trailing_zeros_i64(extract(v, i)));
     return r;
 }
 

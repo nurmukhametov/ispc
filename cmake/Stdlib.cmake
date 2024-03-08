@@ -107,7 +107,7 @@ function(create_stdlib_commands stdlibInitStr)
                 add_custom_command(
                     OUTPUT ${output}
                     COMMAND ${PROJECT_NAME} --nostdlib --gen-stdlib --target=${ispc_target} --arch=${target_arch} --target-os=${target_os} stdlib.ispc --emit-llvm -o ${output}
-                    DEPENDS ${PROJECT_NAME} stdlib.ispc stdlib.isph target.isph
+                    DEPENDS ${PROJECT_NAME} stdlib.ispc stdlib.isph target.isph builtins.isph
                     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
                 )
 

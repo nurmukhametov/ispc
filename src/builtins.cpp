@@ -539,7 +539,7 @@ void ispc::LinkTargetBuiltins(SymbolTable *symbolTable, llvm::Module *module) {
     // builtin functions (e.g. __masked_store_32(), etc).
     AddBitcodeToModule(targetBCModule, module);
 
-    // AddModuleSymbols(module, symbolTable);
+    AddModuleSymbols(module, symbolTable);
     lSetAsInternal(module, targetBuiltins);
 }
 

@@ -401,9 +401,13 @@ int Module::CompileFile() {
 
     if (g->genStdlib) {
         llvm::TimeTraceScope TimeScope("DefineBuiltinsDeclarations");
-        if (g->genStdlib) {
-        //    lDefineBuiltinDeclarations(symbolTable, module);
-        }
+        // lDefineBuiltinDeclarations(symbolTable, module);
+    } else {
+        // const BitcodeLib *target =
+        //     g->target_registry->getISPCTargetLib(g->target->getISPCTarget(), g->target_os, g->target->getArch());
+        // Assert(target);
+        // llvm::Module *targetBCModule = target->getLLVMModule();
+        // AddDeclarationsToModule(targetBCModule, module);
     }
 
     debugDumpModule(module, "DefineBuiltinsDeclarations", pre_stage++);

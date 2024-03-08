@@ -1351,6 +1351,8 @@ void FunctionEmitContext::SetFunctionFTZ_DAZFlags() {
     llvm::Function *fmm = mm[0]->function;
     std::vector<llvm::Value *> args;
     llvm::Value *oldFTZ = CallInst(fmm, nullptr, args, "");
+    oldFTZ->dump();
+    functionFTZ_DAZValue->dump();
     StoreInst(oldFTZ, functionFTZ_DAZValue);
 }
 
@@ -1374,9 +1376,9 @@ llvm::Value *FunctionEmitContext::Any(llvm::Value *mask) {
     m->symbolTable->LookupFunction(builtin::__any, &mm);
     if (g->target->getMaskBitCount() == 1)
         AssertPos(currentPos, mm.size() == 1);
-    else
-        // There should be one with signed int signature, one unsigned int.
-        AssertPos(currentPos, mm.size() == 2);
+    // else
+    //     // There should be one with signed int signature, one unsigned int.
+    //     AssertPos(currentPos, mm.size() == 2);
     // We can actually call either one, since both are i32s as far as
     // LLVM's type system is concerned...
     llvm::Function *fmm = mm[0]->function;
@@ -1390,9 +1392,9 @@ llvm::Value *FunctionEmitContext::All(llvm::Value *mask) {
     m->symbolTable->LookupFunction(builtin::__all, &mm);
     if (g->target->getMaskBitCount() == 1)
         AssertPos(currentPos, mm.size() == 1);
-    else
-        // There should be one with signed int signature, one unsigned int.
-        AssertPos(currentPos, mm.size() == 2);
+    // else
+    //     // There should be one with signed int signature, one unsigned int.
+    //     AssertPos(currentPos, mm.size() == 2);
     // We can actually call either one, since both are i32s as far as
     // LLVM's type system is concerned...
     llvm::Function *fmm = mm[0]->function;
@@ -1422,9 +1424,10 @@ llvm::Value *FunctionEmitContext::LaneMask(llvm::Value *v) {
     m->symbolTable->LookupFunction(builtin::__movmsk, &mm);
     if (g->target->getMaskBitCount() == 1)
         AssertPos(currentPos, mm.size() == 1);
-    else
-        // There should be one with signed int signature, one unsigned int.
-        AssertPos(currentPos, mm.size() == 2);
+    // TODO! no sense right?
+    // else
+    //     // There should be one with signed int signature, one unsigned int.
+    //     AssertPos(currentPos, mm.size() == 2);
     // We can actually call either one, since both are i32s as far as
     // LLVM's type system is concerned...
     llvm::Function *fmm = mm[0]->function;
