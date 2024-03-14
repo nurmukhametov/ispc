@@ -987,8 +987,8 @@ static void lSetInternalFunctions(llvm::Module *module) {
     @param symbolTable Symbol table to add definitions to
  */
 void ispc::AddBitcodeToModule(const BitcodeLib *lib, llvm::Module *module, SymbolTable *symbolTable) {
-    llvm::StringRef sb = llvm::StringRef((const char *)lib->getLib(), lib->getSize());
-    llvm::MemoryBufferRef bcBuf = llvm::MemoryBuffer::getMemBuffer(sb)->getMemBufferRef();
+    llvm::StringRef sb = llvm::StringRef(lib->getLib(), lib->getSize());
+    llvm::MemoryBufferRef bcBuf = llvm::MemoryBuffer::getMemBuffer(sb, "", false)->getMemBufferRef();
 
     llvm::Expected<std::unique_ptr<llvm::Module>> ModuleOrErr = llvm::parseBitcodeFile(bcBuf, *g->ctx);
     if (!ModuleOrErr) {

@@ -420,6 +420,15 @@ else()
 endif()
 message(STATUS "ISPC opaque pointers mode is " ${ISPC_OPAQUE_PTR_MODE})
 
+# TODO!
+set(LLVM_OBJCOPY_FLAGS)
+if (WIN32)
+elseif (APPLE)
+else()
+  set(LLVM_OBJCOPY_FLAGS -I binary -O elf64-x86-64 --binary-architecture i386:x86-64)
+endif()
+message(STATUS "llvm-objcopy flags: ${LLVM_OBJCOPY_FLAGS}")
+
 get_llvm_libfiles(LLVM_LIBRARY_LIST ${LLVM_COMPONENTS})
 get_llvm_cppflags(LLVM_CPP_FLAGS)
 
@@ -438,6 +447,7 @@ target_sources(${PROJECT_NAME}
         "src/ast.h"
         "src/bitcode_lib.cpp"
         "src/bitcode_lib.h"
+        "src/bitcode_resources.cpp"
         "src/builtins.cpp"
         "src/builtins.h"
         "src/builtins-decl.cpp"

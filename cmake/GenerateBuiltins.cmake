@@ -42,8 +42,8 @@ list(APPEND M4_IMPLICIT_DEPENDENCIES
     builtins/util.m4)
 
 function(target_ll_to_cpp llFileName bit os_name resultFileName)
-    set(inputFilePath builtins/${llFileName}.ll)
-    set(includePath builtins)
+    set(inputFilePath ${CMAKE_CURRENT_SOURCE_DIR}/builtins/${llFileName}.ll)
+    set(includePath ${CMAKE_CURRENT_SOURCE_DIR}/builtins)
     string(TOUPPER ${os_name} os_name_macro)
 
     # Neon targets constrains: neon-i8x16 and neon-i16x8 are implemented only for 32 bit ARM.
@@ -58,37 +58,37 @@ function(target_ll_to_cpp llFileName bit os_name resultFileName)
         return()
     endif()
 
-    set(output ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_CFG_INTDIR}/builtins-${llFileName}-${bit}bit-${os_name}.cpp)
+    set(bc_file builtins-${llFileName}-${bit}bit-${os_name}.bc)
+    set(output builtins-${llFileName}-${bit}bit-${os_name}.o)
     add_custom_command(
         OUTPUT ${output}
-        COMMAND ${M4_EXECUTABLE} -I${includePath}
-            -DLLVM_VERSION=${LLVM_VERSION} -DBUILD_OS=${os_name_macro} -DRUNTIME=${bit} ${inputFilePath}
-            | \"${Python3_EXECUTABLE}\" bitcode2cpp.py ${inputFilePath} --type=ispc-target --runtime=${bit} --os=${os_name_macro} --llvm_as ${LLVM_AS_EXECUTABLE} --opaque_flags="${LLVM_TOOLS_OPAQUE_FLAGS}"
-            > ${output}
-        DEPENDS ${inputFilePath} bitcode2cpp.py ${M4_IMPLICIT_DEPENDENCIES}
-        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+        COMMAND ${M4_EXECUTABLE} -I${includePath} -DBUILD_OS=${os_name_macro} -DRUNTIME=${bit} ${inputFilePath}
+            | \"${LLVM_AS_EXECUTABLE}\" ${LLVM_TOOLS_OPAQUE_FLAGS} -o ${bc_file}
+        COMMAND ${LLVM_OBJCOPY_EXECUTABLE} ${LLVM_OBJCOPY_FLAGS} ${bc_file} ${output}
+        DEPENDS ${inputFilePath} ${M4_IMPLICIT_DEPENDENCIES}
+        WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
     )
     set(${resultFileName} ${output} PARENT_SCOPE)
     set_source_files_properties(${resultFileName} PROPERTIES GENERATED true)
 endfunction()
 
 function(dispatch_ll_to_cpp llFileName os_name resultFileName)
-    set(inputFilePath builtins/${llFileName}.ll)
-    set(output ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_CFG_INTDIR}/builtins-${llFileName}.cpp)
+    set(inputFilePath ${CMAKE_CURRENT_SOURCE_DIR}/builtins/${llFileName}.ll)
+    set(bc_file builtins-${llFileName}.bc)
+    set(output builtins-${llFileName}.o)
     add_custom_command(
         OUTPUT ${output}
-        COMMAND ${M4_EXECUTABLE} -DLLVM_VERSION=${LLVM_VERSION} ${inputFilePath}
-            | \"${Python3_EXECUTABLE}\" bitcode2cpp.py ${inputFilePath} --type=dispatch --os=${os_name} --llvm_as ${LLVM_AS_EXECUTABLE} --opaque_flags="${LLVM_TOOLS_OPAQUE_FLAGS}"
-            > ${output}
-        DEPENDS ${inputFilePath} bitcode2cpp.py
-        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+        COMMAND ${M4_EXECUTABLE} ${inputFilePath} | \"${LLVM_AS_EXECUTABLE}\" ${LLVM_TOOLS_OPAQUE_FLAGS} -o ${bc_file}
+        COMMAND ${LLVM_OBJCOPY_EXECUTABLE} ${LLVM_OBJCOPY_FLAGS} ${bc_file} ${output}
+        DEPENDS ${inputFilePath}
+        WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
     )
     set(${resultFileName} ${output} PARENT_SCOPE)
     set_source_files_properties(${resultFileName} PROPERTIES GENERATED true)
 endfunction()
 
 function(builtin_to_cpp bit os_name arch supported_archs supported_oses resultFileName)
-    set(inputFilePath builtins/builtins-c-cpu.cpp)
+    set(inputFilePath ${CMAKE_CURRENT_SOURCE_DIR}/builtins/builtins-c-cpu.cpp)
     set(includePath "")
     set(SKIP OFF)
     if (NOT ${arch} IN_LIST supported_archs OR NOT ${os_name} IN_LIST supported_oses)
@@ -260,27 +260,26 @@ function(builtin_to_cpp bit os_name arch supported_archs supported_oses resultFi
     # Compose target flags
     set(target_flags --target=${triple} ${fpic} ${includePath})
 
-    set(output ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_CFG_INTDIR}/builtins-cpp-${bit}-${os_name}-${target_arch}.cpp)
+    set(bc_file builtins-cpp-${bit}-${os_name}-${target_arch}.bc)
+    set(output builtins-cpp-${bit}-${os_name}-${target_arch}.o)
     if (${os_name} STREQUAL "web")
         if("${bit}" STREQUAL "64")
             list(APPEND emcc_flags "-sMEMORY64")
         endif()
         add_custom_command(
             OUTPUT ${output}
-            COMMAND ${EMCC_EXECUTABLE} -DWASM -s WASM_OBJECT_FILES=0 ${emcc_flags} ${ISPC_OPAQUE_FLAGS} -I${CMAKE_SOURCE_DIR} -c ${inputFilePath} --std=gnu++17 -S -emit-llvm -c -o -
-                | \"${Python3_EXECUTABLE}\" bitcode2cpp.py c --type=builtins-c --runtime=${bit} --os=${os_name} --arch=${target_arch} --llvm_as ${LLVM_AS_EXECUTABLE} --opaque_flags="${LLVM_TOOLS_OPAQUE_FLAGS}"
-                > ${output}
-            DEPENDS ${inputFilePath} bitcode2cpp.py
-            WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+            COMMAND ${EMCC_EXECUTABLE} -DWASM -s WASM_OBJECT_FILES=0 ${emcc_flags} ${ISPC_OPAQUE_FLAGS} -I${CMAKE_SOURCE_DIR} -c ${inputFilePath} --std=gnu++17 -emit-llvm -c -o ${bc_file}
+            COMMAND ${LLVM_OBJCOPY_EXECUTABLE} ${LLVM_OBJCOPY_FLAGS} ${bc_file} ${output}
+            DEPENDS ${inputFilePath}
+            WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
         )
     else()
         add_custom_command(
             OUTPUT ${output}
-            COMMAND ${CLANGPP_EXECUTABLE} ${target_flags} -I${CMAKE_SOURCE_DIR} -m${bit} -S -emit-llvm ${ISPC_OPAQUE_FLAGS} --std=gnu++17 -c ${inputFilePath} -o -
-                | \"${Python3_EXECUTABLE}\" bitcode2cpp.py c --type=builtins-c --runtime=${bit} --os=${os_name} --arch=${target_arch} --llvm_as ${LLVM_AS_EXECUTABLE} --opaque_flags="${LLVM_TOOLS_OPAQUE_FLAGS}"
-                > ${output}
-            DEPENDS ${inputFilePath} bitcode2cpp.py
-            WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+            COMMAND ${CLANGPP_EXECUTABLE} ${target_flags} -I${CMAKE_SOURCE_DIR} -m${bit} -emit-llvm ${ISPC_OPAQUE_FLAGS} --std=gnu++17 -c ${inputFilePath} -o ${bc_file}
+            COMMAND ${LLVM_OBJCOPY_EXECUTABLE} ${LLVM_OBJCOPY_FLAGS} ${bc_file} ${output}
+            DEPENDS ${inputFilePath}
+            WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
         )
     endif()
 
@@ -289,7 +288,7 @@ function(builtin_to_cpp bit os_name arch supported_archs supported_oses resultFi
 endfunction()
 
 function(builtin_xe_to_cpp bit resultFileName)
-    set(inputFilePath builtins/builtins-cm-${bit}.ll)
+    set(inputFilePath ${CMAKE_CURRENT_SOURCE_DIR}/builtins/builtins-cm-${bit}.ll)
     set(SKIP OFF)
     if (WIN32)
         set(os_name "windows")
@@ -305,15 +304,14 @@ function(builtin_xe_to_cpp bit resultFileName)
     endif()
 
     if (NOT SKIP)
-      set(output ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_CFG_INTDIR}/builtins-cm-${bit}.cpp)
+      set(bc_file builtins-cm-${bit}.bc)
+      set(output builtins-cm-${bit}.o)
       add_custom_command(
           OUTPUT ${output}
-          COMMAND cat ${inputFilePath}
-              | \"${Python3_EXECUTABLE}\" bitcode2cpp.py cm --type=builtins-c --runtime=${bit}
-              --os=${os_name} --arch=${target_arch} --llvm_as ${LLVM_AS_EXECUTABLE} --opaque_flags="${LLVM_TOOLS_OPAQUE_FLAGS}"
-              > ${output}
-          DEPENDS ${inputFilePath} bitcode2cpp.py
-          WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+          COMMAND ${LLVM_AS_EXECUTABLE} ${LLVM_TOOLS_OPAQUE_FLAGS} ${inputFilePath} -o ${bc_file}
+          COMMAND ${LLVM_OBJCOPY_EXECUTABLE} ${LLVM_OBJCOPY_FLAGS} ${bc_file} ${output}
+          DEPENDS ${inputFilePath}
+          WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
           )
       set(${resultFileName} ${output} PARENT_SCOPE)
       set_source_files_properties(${resultFileName} PROPERTIES GENERATED true)

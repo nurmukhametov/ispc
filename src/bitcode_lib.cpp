@@ -15,18 +15,18 @@
 using namespace ispc;
 
 // Dispatch constructor
-BitcodeLib::BitcodeLib(const unsigned char lib[], int size, TargetOS os)
+BitcodeLib::BitcodeLib(const char lib[], int size, TargetOS os)
     : m_type(BitcodeLibType::Dispatch), m_lib(lib), m_size(size), m_os(os), m_arch(Arch::none),
       m_target(ISPCTarget::none) {
     TargetLibRegistry::RegisterTarget(this);
 }
 // Builtins-c constructor
-BitcodeLib::BitcodeLib(const unsigned char lib[], int size, TargetOS os, Arch arch)
+BitcodeLib::BitcodeLib(const char lib[], int size, TargetOS os, Arch arch)
     : m_type(BitcodeLibType::Builtins_c), m_lib(lib), m_size(size), m_os(os), m_arch(arch), m_target(ISPCTarget::none) {
     TargetLibRegistry::RegisterTarget(this);
 }
 // ISPC-target constructor
-BitcodeLib::BitcodeLib(const unsigned char lib[], int size, ISPCTarget target, TargetOS os, Arch arch)
+BitcodeLib::BitcodeLib(const char lib[], int size, ISPCTarget target, TargetOS os, Arch arch)
     : m_type(BitcodeLibType::ISPC_target), m_lib(lib), m_size(size), m_os(os), m_arch(arch), m_target(target) {
     TargetLibRegistry::RegisterTarget(this);
 }
@@ -55,7 +55,7 @@ void BitcodeLib::print() const {
 }
 
 BitcodeLib::BitcodeLibType BitcodeLib::getType() const { return m_type; }
-const unsigned char *BitcodeLib::getLib() const { return m_lib; }
+const char *BitcodeLib::getLib() const { return m_lib; }
 size_t BitcodeLib::getSize() const { return m_size; }
 TargetOS BitcodeLib::getOS() const { return m_os; }
 Arch BitcodeLib::getArch() const { return m_arch; }

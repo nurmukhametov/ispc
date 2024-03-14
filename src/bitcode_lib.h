@@ -23,7 +23,7 @@ class BitcodeLib {
     BitcodeLibType m_type;
 
     // The code and its size
-    const unsigned char *m_lib;
+    const char *m_lib;
     const size_t m_size;
 
     // Identification of the library: OS, Arch, ISPCTarget
@@ -33,15 +33,15 @@ class BitcodeLib {
 
   public:
     // Dispatch constructor
-    BitcodeLib(const unsigned char lib[], int size, TargetOS os);
+    BitcodeLib(const char lib[], int size, TargetOS os);
     // Builtins-c constructor
-    BitcodeLib(const unsigned char lib[], int size, TargetOS os, Arch arch);
+    BitcodeLib(const char lib[], int size, TargetOS os, Arch arch);
     // ISPC-target constructor
-    BitcodeLib(const unsigned char lib[], int size, ISPCTarget target, TargetOS os, Arch arch);
+    BitcodeLib(const char lib[], int size, ISPCTarget target, TargetOS os, Arch arch);
     void print() const;
 
     BitcodeLibType getType() const;
-    const unsigned char *getLib() const;
+    const char *getLib() const;
     size_t getSize() const;
     TargetOS getOS() const;
     Arch getArch() const;
