@@ -423,6 +423,7 @@ message(STATUS "ISPC opaque pointers mode is " ${ISPC_OPAQUE_PTR_MODE})
 # TODO!
 set(LLVM_OBJCOPY_FLAGS)
 if (WIN32)
+  set(LLVM_OBJCOPY_FLAGS -I binary -O pe-x86-64 --binary-architecture i386:x86-64)
 elseif (APPLE)
 else()
   set(LLVM_OBJCOPY_FLAGS -I binary -O elf64-x86-64 --binary-architecture i386:x86-64)

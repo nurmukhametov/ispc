@@ -51,6 +51,7 @@ find_program(LLVM_OBJCOPY_EXECUTABLE NAMES llvm-objcopy
     if (NOT LLVM_OBJCOPY_EXECUTABLE)
         message(FATAL_ERROR "Failed to find llvm-objcopy" )
     endif()
+    # set(LLVM_OBJCOPY_EXECUTABLE C:/msys64/ucrt64/bin/objcopy.exe)
     message(STATUS "LLVM_OBJCOPY_EXECUTABLE: ${LLVM_OBJCOPY_EXECUTABLE}")
 
 if (ISPC_INCLUDE_TESTS)

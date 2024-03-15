@@ -16,17 +16,17 @@ using namespace ispc;
 #define    LIB_NAME(NAME) NAME ## _lib
 
 #define DISPATCH_LIB(NAME, OS) \
-  extern const char START_NAME(NAME), END_NAME(NAME); \
+  extern "C" { extern const char START_NAME(NAME), END_NAME(NAME); } \
   size_t LENGTH_NAME(NAME) = & END_NAME(NAME) - & START_NAME(NAME); \
   static BitcodeLib LIB_NAME(NAME)( & START_NAME(NAME), LENGTH_NAME(NAME), OS);
 
 #define CPP_LIB(NAME, OS, ARCH) \
-  extern const char START_NAME(NAME), END_NAME(NAME); \
+  extern "C" { extern const char START_NAME(NAME), END_NAME(NAME); } \
   size_t LENGTH_NAME(NAME) = & END_NAME(NAME) - & START_NAME(NAME); \
   static BitcodeLib LIB_NAME(NAME)( & START_NAME(NAME), LENGTH_NAME(NAME), OS, ARCH);
 
 #define TARGET_LIB(NAME, TARGET, OS, ARCH) \
-  extern const char START_NAME(NAME), END_NAME(NAME); \
+  extern "C" { extern const char START_NAME(NAME), END_NAME(NAME); } \
   size_t LENGTH_NAME(NAME) = & END_NAME(NAME) - & START_NAME(NAME); \
   static BitcodeLib LIB_NAME(NAME)( & START_NAME(NAME), LENGTH_NAME(NAME), TARGET, OS, ARCH);
 
@@ -90,9 +90,10 @@ CPP_LIB(cpp_64_web_wasm64, TargetOS::web, Arch::wasm64)
 DISPATCH_LIB(dispatch_macos, TargetOS::macos)
 #endif // ISPC_MACOS_TARGET_OFF
 
-#ifndef ISPC_LINUX_TARGET_OFF
+// #ifndef ISPC_LINUX_TARGET_OFF
+// TODO! strangly enough this TargetOS has no sense and this dispatch lib is used on windows
 DISPATCH_LIB(dispatch, TargetOS::linux)
-#endif // ISPC_LINUX_TARGET_OFF
+// #endif // ISPC_LINUX_TARGET_OFF
 
 #ifdef ISPC_X86_ENABLED
 
