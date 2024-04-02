@@ -865,6 +865,49 @@ jobs:
         name: ispc_llvm16_lto_macos
         path: build/build-ispc-stage2/src/ispc-stage2-build/ispc-trunk-macOS.universal.tar.gz
 
+  macos-14-build-ispc-llvm17:
+    needs: [define-flow]
+    runs-on: macos-14
+    env:
+      LLVM_VERSION: "17.0"
+      LLVM_TAR: llvm-17.0.6-macos-Release+Asserts-universal-x86.arm.wasm.tar.xz
+
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        submodules: true
+
+    - name: Install dependencies
+      run: |
+        ls -al /Library/Developer/CommandLineTools/SDKs/
+        xcrun --show-sdk-path
+        [ -n "$LLVM_REPO" ] && wget --retry-connrefused --waitretry=5 --read-timeout=20 --timeout=15 -t 5 --no-verbose $LLVM_REPO/releases/download/llvm-$LLVM_VERSION-ispc-dev/$LLVM_TAR
+        tar xf $LLVM_TAR
+        echo "${GITHUB_WORKSPACE}/bin-$LLVM_VERSION/bin" >> $GITHUB_PATH
+        brew install bison flex
+        echo "/opt/homebrew/opt/bison/bin" >> $GITHUB_PATH
+        echo "/opt/homebrew/opt/flex/bin" >> $GITHUB_PATH
+
+    - name: Check environment
+      run: |
+        which -a clang
+        llvm-config --system-libs
+        sysctl -n machdep.cpu.brand_string
+
+    - name: Build package
+      run: |
+        .github/workflows/scripts/build-ispc.sh
+
+    - name: Sanity testing (make check-all, make test)
+      run: |
+        .github/workflows/scripts/check-ispc.sh
+
+    - name: Upload package
+      uses: actions/upload-artifact@v4
+      with:
+        name: ispc_llvm17_macos_14
+        path: build/ispc-trunk-macos.tar.gz
+
   macos-build-ispc-llvm17:
     needs: [define-flow]
     runs-on: macos-12
@@ -1050,6 +1093,54 @@ jobs:
       if: failure()
       with:
         name: alloy_results.llvm16_lto.macos.sse4
+        path: alloy_results_*
+
+  macos-14-test-ispc-llvm17:
+    needs: [define-flow, macos-build-ispc-llvm17]
+    runs-on: macos-12
+    continue-on-error: false
+    strategy:
+      fail-fast: false
+    steps:
+    - uses: actions/checkout@v4
+    - name: Download package
+      uses: actions/download-artifact@v4
+      with:
+        name: ispc_llvm17_macos_14
+
+    - name: Install dependencies and unpack artifacts
+      run: |
+        tar xf ispc-trunk-macos.tar.gz
+        echo "$GITHUB_WORKSPACE/ispc-trunk-macos/bin" >> $GITHUB_PATH
+        echo "ISPC_HOME=$GITHUB_WORKSPACE" >> $GITHUB_ENV
+        echo "LLVM_HOME=$GITHUB_WORKSPACE" >> $GITHUB_ENV
+
+    - name: Check environment
+      run: |
+        sysctl -n machdep.cpu.brand_string
+
+    - name: Running tests
+      run: |
+        echo PATH=$PATH
+        ./alloy.py -r --only="stability current aarch64 -O0 -O2" --time --update-errors=FP
+
+    - name: Check
+      run: |
+        # Print fails to the log.
+        git diff --exit-code
+
+    - name: Upload fail_db.txt
+      uses: actions/upload-artifact@v4
+      if: failure()
+      with:
+        name: fail_db.llvm17.macos14.txt
+        path: fail_db.txt
+
+    - name: Upload alloy logs
+      uses: actions/upload-artifact@v3
+      if: failure()
+      with:
+        name: alloy_results.llvm17.macos14
         path: alloy_results_*
 
   macos-test-ispc-llvm17:
