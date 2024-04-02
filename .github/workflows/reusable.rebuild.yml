@@ -37,6 +37,18 @@ on:
         description: Win SDK version string. For example, '10.0.18362.0'.
         required: true
         type: string
+      # I have been forced to proceed with enable_all (not more granular) due
+      # to limitation to input parameters (no more than 10).
+      enable_all:
+        description: Enable all builds
+        type: boolean
+        default: true
+      release_type:
+        description: Choose release type for builds (ignored if enable_all true)
+        type: string
+      build_type:
+        description: Choose build type for builds (ignored if enable_all true)
+        type: string
   workflow_dispatch:
     inputs:
       version:
@@ -74,6 +86,26 @@ on:
         required: true
         type: string
         default: '10.0.18362.0'
+      # I have been forced to proceed with enable_all (not more granular) due
+      # to limitation to input parameters (no more than 10).
+      enable_all:
+        description: Enable all builds
+        type: boolean
+        default: false
+      release_type:
+        description: Choose release type for builds (ignored if enable_all true)
+        type: choice
+        options:
+          - release
+          - release_and_asserts
+      build_type:
+        description: Choose build type for builds (ignored if enable_all true)
+        type: choice
+        options:
+          - linux_aarch64
+          - linux_x86_64
+          - mac
+          - win
 
 
 jobs:
@@ -83,6 +115,7 @@ jobs:
   # to finish the full job in less than 6 hours.
   linux-build-1:
     runs-on: ubuntu-latest
+    if: ${{ inputs.enable_all || (inputs.release_type == 'release_and_asserts' && inputs.build_type == 'linux_x86_64') }}
 
     steps:
     - uses: actions/checkout@v4
@@ -147,6 +180,7 @@ jobs:
 
   linux-build-release-1:
     runs-on: ubuntu-latest
+    if: ${{ inputs.enable_all || (inputs.release_type == 'release' && inputs.build_type == 'linux_x86_64') }}
 
     steps:
     - uses: actions/checkout@v4
@@ -212,7 +246,8 @@ jobs:
   linux-arm-build-1:
     runs-on: [self-hosted, linux, ARM64]
     # Disabling this rebuild for non ispc/ispc repo, as it requires self-hosted runner
-    if: github.repository == 'ispc/ispc'
+    if: ${{ github.repository == 'ispc/ispc' &&
+            (inputs.enable_all || (inputs.release_type == 'release_and_asserts' && inputs.build_type == 'linux_aarch64')) }}
     steps:
     - uses: actions/checkout@v4
       with:
@@ -281,7 +316,8 @@ jobs:
   linux-arm-build-release-1:
     runs-on: [self-hosted, linux, ARM64]
     # Disabling this rebuild for non ispc/ispc repo, as it requires self-hosted runner
-    if: github.repository == 'ispc/ispc'
+    if: ${{ github.repository == 'ispc/ispc' &&
+            (inputs.enable_all || (inputs.release_type == 'release' && inputs.build_type == 'linux_aarch64')) }}
     steps:
     - uses: actions/checkout@v4
       with:
@@ -348,6 +384,8 @@ jobs:
 
   win-build:
     runs-on: windows-2019
+    if: ${{ inputs.enable_all ||
+            (inputs.release_type == 'release_and_asserts' && inputs.build_type == 'win') }}
 
     steps:
     - uses: actions/checkout@v4
@@ -392,6 +430,8 @@ jobs:
 
   win-build-release:
     runs-on: windows-2019
+    if: ${{ inputs.enable_all ||
+            (inputs.release_type == 'release' && inputs.build_type == 'win') }}
 
     steps:
     - uses: actions/checkout@v4
@@ -437,6 +477,8 @@ jobs:
   mac-build:
     # This job is not capable to build on a shared runner, so need to use self-hosted.
     runs-on: [self-hosted, macOS]
+    if: ${{ inputs.enable_all ||
+            (inputs.release_type == 'release_and_asserts' && inputs.build_type == 'mac') }}
 
     steps:
     - uses: actions/checkout@v4
@@ -473,6 +515,8 @@ jobs:
   mac-build-release:
     # This job is not capable to build on a shared runner, so need to use self-hosted.
     runs-on: [self-hosted, macOS]
+    if: ${{ inputs.enable_all ||
+            (inputs.release_type == 'release' && inputs.build_type == 'mac') }}
 
     steps:
     - uses: actions/checkout@v4
