@@ -604,6 +604,13 @@ list(APPEND LLVM_STAGE1_CMAKE_ARGS
 message(STATUS "LLVM stage1 cmake arguments ${LLVM_STAGE1_CMAKE_ARGS}")
 
 
+list(APPEND LLVM_STAGE1_INSTALL_TARGETS
+    install
+    install-compiler-rt
+)
+message(STATUS "LLVM stage1 install targets ${LLVM_STAGE1_INSTALL_TARGETS}")
+
+
 # LLVM stage2 install targets.
 if (FULL_STAGE2_LLVM)
     list(APPEND LLVM_STAGE2_INSTALL_TARGETS install)
@@ -1328,7 +1335,7 @@ if (PGO OR NOT SKIP_STAGE2)
             BUILD_IN_SOURCE OFF
             BUILD_COMMAND ""
             BUILD_COMMAND ${NINJA_COMMAND_WITH_ENV_STAGE1}
-            INSTALL_COMMAND ${NINJA_COMMAND_WITH_ENV_STAGE1} install
+            INSTALL_COMMAND ${NINJA_COMMAND_WITH_ENV_STAGE1} ${LLVM_STAGE1_INSTALL_TARGETS}
             )
         # Note: We may rebuild instead stage2 clang/lld with stage1 toolchain to
         # generate more performant stage2 compiler.
