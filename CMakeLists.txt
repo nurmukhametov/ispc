@@ -226,6 +226,10 @@ if (UNIX)
     else()
         option(ISPC_STATIC_LINK "Link statically (all except glibc)" OFF)
     endif()
+    if (ISPC_STATIC_LINK)
+        set(ISPC_STATIC_STDCXX_LINK ON)
+    endif()
+    option(ISPC_USE_LLVM_LIBCXX "Link with LLVM libc++" OFF)
     option(ISPC_USE_ASAN "Build ispc with address sanitizer instrumentation using clang compiler" OFF)
 endif()
 
@@ -682,10 +686,12 @@ else()
 endif()
 
 if (ISPC_STATIC_STDCXX_LINK OR ISPC_STATIC_LINK)
-    list(APPEND LINK_OPTIONS_PUBLIC
-        -static-libgcc
-        -static-libstdc++
-    )
+    if (NOT ISPC_USE_LLVM_LIBCXX)
+        list(APPEND LINK_OPTIONS_PUBLIC
+            -static-libgcc
+            -static-libstdc++
+        )
+    endif()
 endif()
 
 if (ISPC_USE_ASAN)
@@ -730,6 +736,27 @@ endif()
 
 if (NOT WIN32 AND NOT APPLE)
     list(APPEND LINK_LIBRARIES "-Wl,--end-group")
+endif()
+
+if (ISPC_USE_LLVM_LIBCXX AND UNIX AND NOT APPLE)
+    list(APPEND COMPILE_OPTIONS --start-no-unused-arguments --rtlib=compiler-rt -stdlib=libc++ --end-no-unused-arguments)
+    list(APPEND LINK_LIBRARIES -nodefaultlibs)
+
+    if (ISPC_STATIC_STDCXX_LINK)
+        list(APPEND LINK_LIBRARIES -Wl,-Bstatic)
+    else()
+        list(APPEND LINK_LIBRARIES -Wl,-Bdynamic)
+    endif()
+    # These are supposed to be built with LLVM both as shared and static.
+    list(APPEND LINK_LIBRARIES -lc++ -lc++abi -lunwind)
+    list(APPEND LINK_LIBRARIES -Wl,-Bdynamic -lm -lc)
+
+    if(CMAKE_SYSTEM_PROCESSOR MATCHES "aarch64" AND UNIX AND NOT APPLE)
+        # Clang is supposed to link builtins automatically when
+        # --rtlib=compiler-rt provided but for aarch64 linux it doesn't happen
+        # for out Clang build.
+        list(APPEND LINK_LIBRARIES -lclang_rt.builtins)
+    endif()
 endif()
 
 # System libraries, our own and transitive dependencies from LLVM libs.
