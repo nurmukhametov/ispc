@@ -42,6 +42,7 @@ jobs:
       run: |
           cmake -B build \
               -DISPC_USE_LLVM_LIBCXX=ON \
+              -DISPC_STATIC_LIBSTDCXX=ON \
               -DCMAKE_C_COMPILER=clang \
               -DCMAKE_CXX_COMPILER=clang++ \
               -DCMAKE_C_FLAGS="-Werror" \
@@ -77,6 +78,7 @@ jobs:
       run: |
           cmake -B build \
               -DISPC_USE_LLVM_LIBCXX=ON \
+              -DISPC_STATIC_LIBSTDCXX=ON \
               -DCMAKE_C_COMPILER=gcc-11 \
               -DCMAKE_CXX_COMPILER=g++-11 \
               -DCMAKE_C_FLAGS="-Werror -Wno-attributes" \

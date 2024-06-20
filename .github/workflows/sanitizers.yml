@@ -41,6 +41,7 @@ jobs:
       run: |
           cmake -B build \
               -DISPC_USE_LLVM_LIBCXX=ON \
+              -DISPC_STATIC_LIBSTDCXX=ON \
               -DCMAKE_C_FLAGS="-fsanitize=address -O0 -g3" \
               -DCMAKE_CXX_FLAGS="-fsanitize=address -O0 -g3"
           cmake --build build --target ispc ispc-opt -j4
