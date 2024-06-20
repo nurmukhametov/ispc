@@ -124,42 +124,6 @@ jobs:
         name: ispc_llvm${{ matrix.llvm.short_version }}_linux.aarch64
         path: build/ispc-trunk-linux.aarch64.tar.gz
 
-  linux-build-ispc-ubuntu-sys-llvm:
-    needs: [define-flow]
-    runs-on: ubuntu-latest
-
-    steps:
-    - uses: actions/checkout@v4
-      with:
-        submodules: true
-
-    - name: Install dependencies
-      run: |
-        sudo apt update && \
-        sudo apt install -y \
-            cmake ninja-build g++ g++-multilib libc6-dev-i386 \
-            libtbb-dev bison flex m4 \
-            clang-15 libclang-15-dev llvm-15-dev llvm-15-tools
-
-    - name: Check environment
-      run: |
-        which -a gcc
-        cat /proc/cpuinfo
-
-    - name: Build package
-      run: |
-        PATH=/usr/lib/llvm-15/bin:$PATH \
-        cmake -B build \
-            -G Ninja \
-            -DISPC_PACKAGE_NAME=ispc-trunk-linux
-        cmake --build build -j4
-
-    - name: Upload package
-      uses: actions/upload-artifact@v4
-      with:
-        name: ispc_ubuntu_sys_llvm_linux
-        path: build/ispc-trunk-linux.tar.gz
-
   linux-build-ispc:
     needs: [define-flow]
     runs-on: ubuntu-latest

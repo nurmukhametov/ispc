@@ -51,10 +51,6 @@ jobs:
 
   gcc-11:
     runs-on: ubuntu-latest
-    env:
-      LLVM_VERSION: "17.0"
-      LLVM_TAR: llvm-17.0.6-ubuntu18.04-Release+Asserts-x86.arm.wasm.tar.xz
-      ISPC_OPAQUE_PTR_MODE: "ON"
 
     steps:
     - uses: actions/checkout@v4
@@ -63,7 +59,11 @@ jobs:
 
     - name: Install dependencies
       run: |
-        .github/workflows/scripts/install-build-deps.sh
+        sudo apt update && \
+        sudo apt install -y \
+            cmake ninja-build g++ g++-multilib libc6-dev-i386 \
+            libtbb-dev bison flex m4 \
+            clang-15 libclang-15-dev llvm-15-dev llvm-15-tools
 
     - name: Check environment
       run: |
@@ -76,14 +76,15 @@ jobs:
       # LLVM 16.0-17.0 causes error here because of incorrect visibility in SROAPass:
       # error: 'llvm::SROAPass' declared with greater visibility than the type of its field 'llvm::SROAPass::SelectsToRewrite'
       run: |
-          cmake -B build \
-              -DISPC_USE_LLVM_LIBCXX=ON \
-              -DISPC_STATIC_LIBSTDCXX=ON \
-              -DCMAKE_C_COMPILER=gcc-11 \
-              -DCMAKE_CXX_COMPILER=g++-11 \
-              -DCMAKE_C_FLAGS="-Werror -Wno-attributes" \
-              -DCMAKE_CXX_FLAGS="-Werror -Wno-attributes"
-          cmake --build build --target all -j4
+        PATH=/usr/lib/llvm-15/bin:$PATH \
+        cmake -B build \
+            -G Ninja \
+            -DCMAKE_C_COMPILER=gcc-11 \
+            -DCMAKE_CXX_COMPILER=g++-11 \
+            -DCMAKE_C_FLAGS="-Werror -Wno-attributes" \
+            -DCMAKE_CXX_FLAGS="-Werror -Wno-attributes"
+        cmake --build build -j4
+        cmake --build build --target all -j4
 
   msvc-2022:
     runs-on: windows-2022
