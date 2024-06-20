@@ -739,7 +739,12 @@ if (NOT WIN32 AND NOT APPLE)
 endif()
 
 if (ISPC_USE_LLVM_LIBCXX AND UNIX AND NOT APPLE)
-    list(APPEND COMPILE_OPTIONS --start-no-unused-arguments --rtlib=compiler-rt -stdlib=libc++ --end-no-unused-arguments)
+    if (NOT CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+        list(APPEND COMPILE_OPTIONS
+             --start-no-unused-arguments
+             --rtlib=compiler-rt -stdlib=libc++
+             --end-no-unused-arguments)
+    endif()
     list(APPEND LINK_LIBRARIES -nodefaultlibs)
 
     if (ISPC_STATIC_STDCXX_LINK)

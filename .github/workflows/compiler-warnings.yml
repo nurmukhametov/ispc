@@ -16,7 +16,7 @@ env:
   LLVM_REPO: https://github.com/ispc/ispc.dependencies
 
 jobs:
-  clang-16:
+  clang:
     runs-on: ubuntu-latest
     env:
       LLVM_VERSION: "17.0"
@@ -41,7 +41,7 @@ jobs:
     - name: Build ISPC with clang in -Werror mode
       run: |
           cmake -B build \
-              -DUSE_LLVM_LIBCXX=ON \
+              -DISPC_USE_LLVM_LIBCXX=ON \
               -DCMAKE_C_COMPILER=clang \
               -DCMAKE_CXX_COMPILER=clang++ \
               -DCMAKE_C_FLAGS="-Werror" \
