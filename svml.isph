@@ -1,0 +1,40 @@
+// -*- mode: c++ -*-
+/*
+  Copyright (c) 2024, Intel Corporation
+
+  SPDX-License-Identifier: BSD-3-Clause
+*/
+
+/** @file svml.isph
+
+    @brief TODO!
+*/
+
+// TODO! nounwind readnone alwaysinline
+extern "C"  varying float __svml_sinf(varying float );
+extern "C"  varying float __svml_asinf(varying float );
+extern "C"  varying float __svml_cosf(varying float );
+extern "C"  varying float __svml_acosf(varying float );
+extern "C"  void __svml_sincosf(varying float , uniform int8 * uniform , uniform int8 * uniform );
+extern "C"  varying float __svml_tanf(varying float );
+extern "C"  varying float __svml_atanf(varying float );
+extern "C"  varying float __svml_atan2f(varying float , varying float );
+extern "C"  varying float __svml_expf(varying float );
+extern "C"  varying float __svml_logf(varying float );
+extern "C"  varying float __svml_powf(varying float , varying float );
+extern "C"  varying float __svml_sqrtf(varying float );
+extern "C"  varying float __svml_invsqrtf(varying float );
+
+extern "C"  varying double __svml_sind(varying double );
+extern "C"  varying double __svml_asind(varying double );
+extern "C"  varying double __svml_cosd(varying double );
+extern "C"  varying double __svml_acosd(varying double );
+extern "C"  void __svml_sincosd(varying double , uniform int8 * uniform , uniform int8 * uniform );
+extern "C"  varying double __svml_tand(varying double );
+extern "C"  varying double __svml_atand(varying double );
+extern "C"  varying double __svml_atan2d(varying double , varying double );
+extern "C"  varying double __svml_expd(varying double );
+extern "C"  varying double __svml_logd(varying double );
+extern "C"  varying double __svml_powd(varying double , varying double );
+extern "C"  varying double __svml_sqrtd(varying double );
+extern "C"  varying double __svml_invsqrtd(varying double );
