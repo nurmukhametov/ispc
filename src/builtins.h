@@ -16,20 +16,29 @@
 
 namespace ispc {
 
-/** Adds declarations and definitions of ispc standard library functions
-    and types to the given module.
+/** Add dispatcher to the given module.
 
+    @param module          Module in which to add the declarations/definitions
+ */
+void LinkDispatcher(llvm::Module *module);
+
+/** Add declarations and definitions for the standard library to the given module.
+
+    @param module          Module in which to add the declarations/definitions
     @param symbolTable     SymbolTable in which to add symbol definitions for
                            stdlib stuff
-    @param ctx             llvm::LLVMContext to use for getting types and the
-                           like for standard library definitions
-    @param module          Module in which to add the declarations/definitions
-    @param includeStdlib   Indicates whether the definitions from the stdlib.ispc
-                           file should be added to the module.
+    @param debug_num       Debug number to use for debug output filename
  */
-void DefineStdlib(SymbolTable *symbolTable, llvm::LLVMContext *ctx, llvm::Module *module, bool includeStdlib);
+void LinkStandardLibraries(llvm::Module *module, SymbolTable *symbolTable, int &debug_num);
 
-void AddBitcodeToModule(const BitcodeLib *lib, llvm::Module *module, SymbolTable *symbolTable = nullptr);
+/** Dump the given module to a file with the given name.
+
+    @param module          Module to dump
+    @param name            Name of the file to which to dump the module
+    @param stage           Number to append to the filename to help identify
+                           the stage of compilation
+ */
+void debugDumpModule(llvm::Module *module, std::string name, int stage);
 
 /** Create ISPC symbol for LLVM intrinsics and add it to the given module.
 

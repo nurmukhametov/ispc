@@ -929,7 +929,7 @@ class FunctionType : public Type {
     FunctionType(const Type *returnType, const llvm::SmallVector<const Type *, 8> &argTypes,
                  const llvm::SmallVector<std::string, 8> &argNames, const llvm::SmallVector<Expr *, 8> &argDefaults,
                  const llvm::SmallVector<SourcePos, 8> &argPos, bool isTask, bool isExported, bool isExternC,
-                 bool isExternSYCL, bool isUnmasked, bool isVectorCall, bool isRegCall);
+                 bool isExternSYCL, bool isUnmasked, bool isVectorCall, bool isRegCall, SourcePos p);
     // Structure holding the mangling suffix and prefix for function
     struct FunctionMangledName {
         std::string prefix;
@@ -997,6 +997,10 @@ class FunctionType : public Type {
     /* Get string representation of calling convention */
     const std::string GetNameForCallConv() const;
 
+    bool IsInStdlib() const;
+
+    const SourcePos &GetSourcePos() const { return pos; };
+
     int GetNumParameters() const { return (int)paramTypes.size(); }
     const Type *GetParameterType(int i) const;
     Expr *GetParameterDefault(int i) const;
@@ -1057,6 +1061,8 @@ class FunctionType : public Type {
     const llvm::SmallVector<SourcePos, 8> paramPositions;
 
     mutable const FunctionType *asMaskedType, *asUnmaskedType;
+
+    const SourcePos pos;
 };
 
 /* Efficient dynamic casting of Types.  First, we specify a default

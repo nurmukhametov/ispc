@@ -1363,13 +1363,7 @@ llvm::Value *FunctionEmitContext::Any(llvm::Value *mask) {
 
     std::vector<Symbol *> mm;
     m->symbolTable->LookupFunction(builtin::__any, &mm);
-    if (g->target->getMaskBitCount() == 1)
-        AssertPos(currentPos, mm.size() == 1);
-    else
-        // There should be one with signed int signature, one unsigned int.
-        AssertPos(currentPos, mm.size() == 2);
-    // We can actually call either one, since both are i32s as far as
-    // LLVM's type system is concerned...
+    AssertPos(currentPos, mm.size() == 1);
     llvm::Function *fmm = mm[0]->function;
     return CallInst(fmm, nullptr, mask, llvm::Twine(mask->getName()) + "_any");
 }
@@ -1379,13 +1373,7 @@ llvm::Value *FunctionEmitContext::All(llvm::Value *mask) {
     // into an i64 value
     std::vector<Symbol *> mm;
     m->symbolTable->LookupFunction(builtin::__all, &mm);
-    if (g->target->getMaskBitCount() == 1)
-        AssertPos(currentPos, mm.size() == 1);
-    else
-        // There should be one with signed int signature, one unsigned int.
-        AssertPos(currentPos, mm.size() == 2);
-    // We can actually call either one, since both are i32s as far as
-    // LLVM's type system is concerned...
+    AssertPos(currentPos, mm.size() == 1);
     llvm::Function *fmm = mm[0]->function;
     return CallInst(fmm, nullptr, mask, llvm::Twine(mask->getName()) + "_all");
 }
@@ -1395,13 +1383,7 @@ llvm::Value *FunctionEmitContext::None(llvm::Value *mask) {
     // into an i64 value
     std::vector<Symbol *> mm;
     m->symbolTable->LookupFunction(builtin::__none, &mm);
-    if (g->target->getMaskBitCount() == 1)
-        AssertPos(currentPos, mm.size() == 1);
-    else
-        // There should be one with signed int signature, one unsigned int.
-        AssertPos(currentPos, mm.size() == 2);
-    // We can actually call either one, since both are i32s as far as
-    // LLVM's type system is concerned...
+    AssertPos(currentPos, mm.size() == 1);
     llvm::Function *fmm = mm[0]->function;
     return CallInst(fmm, nullptr, mask, llvm::Twine(mask->getName()) + "_none");
 }
@@ -1411,13 +1393,7 @@ llvm::Value *FunctionEmitContext::LaneMask(llvm::Value *v) {
     // into an i64 value
     std::vector<Symbol *> mm;
     m->symbolTable->LookupFunction(builtin::__movmsk, &mm);
-    if (g->target->getMaskBitCount() == 1)
-        AssertPos(currentPos, mm.size() == 1);
-    else
-        // There should be one with signed int signature, one unsigned int.
-        AssertPos(currentPos, mm.size() == 2);
-    // We can actually call either one, since both are i32s as far as
-    // LLVM's type system is concerned...
+    AssertPos(currentPos, mm.size() == 1);
     llvm::Function *fmm = mm[0]->function;
     return CallInst(fmm, nullptr, v, llvm::Twine(v->getName()) + "_movmsk");
 }
@@ -2600,13 +2576,7 @@ llvm::Value *FunctionEmitContext::LoadInst(llvm::Value *ptr, llvm::Value *mask, 
         // into an i64 value
         std::vector<Symbol *> mm;
         m->symbolTable->LookupFunction(builtin::__movmsk, &mm);
-        if (g->target->getMaskBitCount() == 1)
-            AssertPos(currentPos, mm.size() == 1);
-        else
-            // There should be one with signed int signature, one unsigned int.
-            AssertPos(currentPos, mm.size() == 2);
-        // We can actually call either one, since both are i32s as far as
-        // LLVM's type system is concerned...
+        AssertPos(currentPos, mm.size() == 1);
         llvm::Function *fmm = mm[0]->function;
         llvm::Value *int_mask = CallInst(fmm, nullptr, mask, llvm::Twine(mask->getName()) + "_movmsk");
         std::vector<Symbol *> lz;

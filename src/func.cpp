@@ -703,12 +703,14 @@ void Function::GenerateIR() {
             // Xe kernel should have "dllexport" and "CMGenxMain" attribute,
             // otherss have "CMStackCall" attribute
             if (g->target->isXeTarget()) {
-                if (type->IsISPCExternal()) {
-                    appFunction->addFnAttr("CMStackCall");
+                if (!type->IsInStdlib()) {
+                    if (type->IsISPCExternal()) {
+                        appFunction->addFnAttr("CMStackCall");
 
-                } else if (type->IsISPCKernel()) {
-                    appFunction->setDLLStorageClass(llvm::GlobalValue::DLLExportStorageClass);
-                    appFunction->addFnAttr("CMGenxMain");
+                    } else if (type->IsISPCKernel()) {
+                        appFunction->setDLLStorageClass(llvm::GlobalValue::DLLExportStorageClass);
+                        appFunction->addFnAttr("CMGenxMain");
+                    }
                 }
             } else {
                 // Make application function callable from DLLs.
@@ -746,7 +748,10 @@ void Function::GenerateIR() {
             // We create regular functions with ExternalLinkage by default.
             // Fix it to InternalLinkage only if the function is static or inline
             if (sc == SC_STATIC || isInline) {
-                function->setLinkage(llvm::GlobalValue::InternalLinkage);
+                if (!g->genStdlib) {
+                    // We use stdlib as library so do not add internal attr for its functions.
+                    function->setLinkage(llvm::GlobalValue::InternalLinkage);
+                }
             }
 
             if (g->target->isXeTarget()) {
@@ -1258,7 +1263,10 @@ llvm::Function *TemplateInstantiation::createLLVMFunction(Symbol *functionSym) {
 
     llvm::GlobalValue::LinkageTypes linkage = llvm::GlobalValue::ExternalLinkage;
     if (functionSym->storageClass == SC_STATIC || isInline) {
-        linkage = llvm::GlobalValue::InternalLinkage;
+        if (!g->genStdlib) {
+            // We use stdlib as library so do not add internal attr for its functions.
+            linkage = llvm::GlobalValue::InternalLinkage;
+        }
     } else {
         // If the linkage is not internal, apply the Clang linkage rules for templates.
         switch (kind) {
