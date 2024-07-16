@@ -1342,6 +1342,8 @@ void FunctionEmitContext::SetFunctionFTZ_DAZFlags() {
     llvm::Function *fmm = mm[0]->function;
     std::vector<llvm::Value *> args;
     llvm::Value *oldFTZ = CallInst(fmm, nullptr, args, "");
+    // oldFTZ->dump();
+    // functionFTZ_DAZValue->getType()->dump();
     StoreInst(oldFTZ, functionFTZ_DAZValue);
 }
 
@@ -1365,9 +1367,9 @@ llvm::Value *FunctionEmitContext::Any(llvm::Value *mask) {
     m->symbolTable->LookupFunction(builtin::__any, &mm);
     if (g->target->getMaskBitCount() == 1)
         AssertPos(currentPos, mm.size() == 1);
-    else
-        // There should be one with signed int signature, one unsigned int.
-        AssertPos(currentPos, mm.size() == 2);
+    // else
+    //     // There should be one with signed int signature, one unsigned int.
+    //     AssertPos(currentPos, mm.size() == 2);
     // We can actually call either one, since both are i32s as far as
     // LLVM's type system is concerned...
     llvm::Function *fmm = mm[0]->function;
@@ -1381,9 +1383,9 @@ llvm::Value *FunctionEmitContext::All(llvm::Value *mask) {
     m->symbolTable->LookupFunction(builtin::__all, &mm);
     if (g->target->getMaskBitCount() == 1)
         AssertPos(currentPos, mm.size() == 1);
-    else
-        // There should be one with signed int signature, one unsigned int.
-        AssertPos(currentPos, mm.size() == 2);
+    // else
+    //     // There should be one with signed int signature, one unsigned int.
+    //     AssertPos(currentPos, mm.size() == 2);
     // We can actually call either one, since both are i32s as far as
     // LLVM's type system is concerned...
     llvm::Function *fmm = mm[0]->function;
@@ -1397,9 +1399,9 @@ llvm::Value *FunctionEmitContext::None(llvm::Value *mask) {
     m->symbolTable->LookupFunction(builtin::__none, &mm);
     if (g->target->getMaskBitCount() == 1)
         AssertPos(currentPos, mm.size() == 1);
-    else
-        // There should be one with signed int signature, one unsigned int.
-        AssertPos(currentPos, mm.size() == 2);
+    // else
+    //     // There should be one with signed int signature, one unsigned int.
+    //     AssertPos(currentPos, mm.size() == 2);
     // We can actually call either one, since both are i32s as far as
     // LLVM's type system is concerned...
     llvm::Function *fmm = mm[0]->function;
@@ -1413,9 +1415,10 @@ llvm::Value *FunctionEmitContext::LaneMask(llvm::Value *v) {
     m->symbolTable->LookupFunction(builtin::__movmsk, &mm);
     if (g->target->getMaskBitCount() == 1)
         AssertPos(currentPos, mm.size() == 1);
-    else
-        // There should be one with signed int signature, one unsigned int.
-        AssertPos(currentPos, mm.size() == 2);
+    // TODO! no sense right?
+    // else
+    //     // There should be one with signed int signature, one unsigned int.
+    //     AssertPos(currentPos, mm.size() == 2);
     // We can actually call either one, since both are i32s as far as
     // LLVM's type system is concerned...
     llvm::Function *fmm = mm[0]->function;
@@ -2602,9 +2605,9 @@ llvm::Value *FunctionEmitContext::LoadInst(llvm::Value *ptr, llvm::Value *mask, 
         m->symbolTable->LookupFunction(builtin::__movmsk, &mm);
         if (g->target->getMaskBitCount() == 1)
             AssertPos(currentPos, mm.size() == 1);
-        else
-            // There should be one with signed int signature, one unsigned int.
-            AssertPos(currentPos, mm.size() == 2);
+        // else
+        //     // There should be one with signed int signature, one unsigned int.
+        //     AssertPos(currentPos, mm.size() == 2);
         // We can actually call either one, since both are i32s as far as
         // LLVM's type system is concerned...
         llvm::Function *fmm = mm[0]->function;
@@ -2878,6 +2881,21 @@ AddressInfo *FunctionEmitContext::AllocaInst(const Type *ptrType, const llvm::Tw
 
     return AllocaInst(llvmStorageType, name, align, atEntryBlock);
 }
+
+// const FunctionType *lGetFunctionType(const char *name, SourcePos pos) {
+//     std::vector<Symbol*> matches;
+//     if (m->symbolTable->LookupFunction(name, &matches)) {
+//         Assert(matches.size() == 1);
+//         for (Symbol* sym : matches) {
+//             const FunctionType* funcType = CastType<FunctionType>(sym->type);
+//             if (funcType) {
+//                 return funcType;
+//             }
+//         }
+//     }
+//     Error(pos, "No function \"%s\" found in symbo table.", name);
+//     return nullptr;
+// }
 
 /** Code to store the given varying value to the given location, only
     storing the elements that correspond to active program instances as
@@ -3490,6 +3508,13 @@ llvm::Value *FunctionEmitContext::CallInst(llvm::Value *func, const FunctionType
             Assert(funcType != nullptr);
             func_type = funcType->LLVMFunctionType(g->ctx, disableMask);
         }
+        // printf("Function name: %s\n", func->getName().str().c_str());
+        // func_type->dump();
+        // for (unsigned int i = 0; i < func_type->getNumParams(); i++) {
+        //     func_type->getParamType(i)->dump();
+        //     argVals[i]->dump();
+        //     // Assert(func_type->getParamType(i) != argVals[i]->getType());
+        // }
         llvm::CallInst *callinst = llvm::CallInst::Create(func_type, func, argVals, name, bblock);
 
         // We could be dealing with a function pointer in which case this will not be a 'llvm::Function'.
