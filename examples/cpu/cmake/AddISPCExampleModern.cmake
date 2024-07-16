@@ -33,6 +33,7 @@ function(add_ispc_example)
         CXX_STANDARD_REQUIRED YES)
 
     set_property(TARGET ${example_NAME} PROPERTY POSITION_INDEPENDENT_CODE ON)
+    message(STATUS "ISPC_TARGETS: ${ISPC_TARGETS}")
     set_property(TARGET ${example_NAME} PROPERTY ISPC_INSTRUCTION_SETS "${ISPC_TARGETS}")
     target_compile_options(${example_NAME} PRIVATE $<$<COMPILE_LANGUAGE:ISPC>:${example_ISPC_FLAGS}>)
     target_compile_options(${example_NAME} PRIVATE $<$<COMPILE_LANGUAGE:ISPC>:--arch=${ISPC_ARCH}>)

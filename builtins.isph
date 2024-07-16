@@ -1,0 +1,641 @@
+// -*- mode: c++ -*-
+/*
+  Copyright (c) 2024, Intel Corporation
+
+  SPDX-License-Identifier: BSD-3-Clause
+*/
+
+/** @file builtins.isph
+
+    @brief TODO!
+*/
+
+extern "C" varying int32 __padds_vi32(varying int32, varying int32);
+extern "C" varying int32 __paddus_vi32(varying int32, varying int32);
+extern "C" varying int64 __padds_vi64(varying int64, varying int64);
+extern "C" varying int64 __paddus_vi64(varying int64, varying int64);
+extern "C" uniform int8 __padds_ui8(uniform int8, uniform int8);
+extern "C" uniform int8 __paddus_ui8(uniform int8, uniform int8);
+extern "C" uniform int16 __padds_ui16(uniform int16, uniform int16);
+extern "C" uniform int16 __paddus_ui16(uniform int16, uniform int16);
+extern "C" uniform int32 __padds_ui32(uniform int32, uniform int32);
+extern "C" uniform int32 __paddus_ui32(uniform int32, uniform int32);
+extern "C" uniform int64 __padds_ui64(uniform int64, uniform int64);
+extern "C" uniform int64 __paddus_ui64(uniform int64, uniform int64);
+extern "C" varying int32 __psubs_vi32(varying int32, varying int32);
+extern "C" varying int32 __psubus_vi32(varying int32, varying int32);
+extern "C" varying int64 __psubs_vi64(varying int64, varying int64);
+extern "C" varying int64 __psubus_vi64(varying int64, varying int64);
+extern "C" uniform int8 __psubs_ui8(uniform int8, uniform int8);
+extern "C" uniform int8 __psubus_ui8(uniform int8, uniform int8);
+extern "C" uniform int16 __psubs_ui16(uniform int16, uniform int16);
+extern "C" uniform int16 __psubus_ui16(uniform int16, uniform int16);
+extern "C" uniform int32 __psubs_ui32(uniform int32, uniform int32);
+extern "C" uniform int32 __psubus_ui32(uniform int32, uniform int32);
+extern "C" uniform int64 __psubs_ui64(uniform int64, uniform int64);
+extern "C" uniform int64 __psubus_ui64(uniform int64, uniform int64);
+extern "C" varying int8 __pmuls_vi8(varying int8, varying int8);
+extern "C" varying int8 __pmulus_vi8(varying int8, varying int8);
+extern "C" varying int16 __pmuls_vi16(varying int16, varying int16);
+extern "C" varying int16 __pmulus_vi16(varying int16, varying int16);
+extern "C" varying int32 __pmuls_vi32(varying int32, varying int32);
+extern "C" varying int32 __pmulus_vi32(varying int32, varying int32);
+extern "C" varying int64 __pmuls_vi64(varying int64, varying int64);
+extern "C" varying int64 __pmulus_vi64(varying int64, varying int64);
+extern "C" uniform int8 __pmuls_ui8(uniform int8, uniform int8);
+extern "C" uniform int8 __pmulus_ui8(uniform int8, uniform int8);
+extern "C" uniform int16 __pmuls_ui16(uniform int16, uniform int16);
+extern "C" uniform int16 __pmulus_ui16(uniform int16, uniform int16);
+extern "C" uniform int32 __pmuls_ui32(uniform int32, uniform int32);
+extern "C" uniform int32 __pmulus_ui32(uniform int32, uniform int32);
+extern "C" uniform int64 __pmuls_ui64(uniform int64, uniform int64);
+extern "C" uniform int64 __pmulus_ui64(uniform int64, uniform int64);
+extern "C" varying int8 __pdivs_vi8(varying int8, varying int8);
+extern "C" varying int8 __pdivus_vi8(varying int8, varying int8);
+extern "C" varying int16 __pdivs_vi16(varying int16, varying int16);
+extern "C" varying int16 __pdivus_vi16(varying int16, varying int16);
+extern "C" varying int32 __pdivs_vi32(varying int32, varying int32);
+extern "C" varying int32 __pdivus_vi32(varying int32, varying int32);
+extern "C" varying int64 __pdivs_vi64(varying int64, varying int64);
+extern "C" varying int64 __pdivus_vi64(varying int64, varying int64);
+extern "C" uniform int8 __pdivs_ui8(uniform int8, uniform int8);
+extern "C" uniform int8 __pdivus_ui8(uniform int8, uniform int8);
+extern "C" uniform int16 __pdivs_ui16(uniform int16, uniform int16);
+extern "C" uniform int16 __pdivus_ui16(uniform int16, uniform int16);
+extern "C" uniform int32 __pdivs_ui32(uniform int32, uniform int32);
+extern "C" uniform int32 __pdivus_ui32(uniform int32, uniform int32);
+extern "C" uniform int64 __pdivs_ui64(uniform int64, uniform int64);
+extern "C" uniform int64 __pdivus_ui64(uniform int64, uniform int64);
+extern "C" uniform int64 __abs_ui64(uniform int64);
+extern "C" varying int64 __abs_vi64(varying int64);
+extern "C" void __streaming_store_varying_half(uniform int8 *uniform, varying float16);
+extern "C" void __streaming_store_varying_float(uniform int8 *uniform, varying float);
+extern "C" void __streaming_store_varying_double(uniform int8 *uniform, varying double);
+extern "C" void __streaming_store_varying_i8(uniform int8 *uniform, varying int8);
+extern "C" void __streaming_store_varying_i16(uniform int8 *uniform, varying int16);
+extern "C" void __streaming_store_varying_i32(uniform int8 *uniform, varying int32);
+extern "C" void __streaming_store_varying_i64(uniform int8 *uniform, varying int64);
+extern "C" void __streaming_store_uniform_half(uniform int8 *uniform, uniform float16);
+extern "C" void __streaming_store_uniform_float(uniform int8 *uniform, uniform float);
+extern "C" void __streaming_store_uniform_double(uniform int8 *uniform, uniform double);
+extern "C" void __streaming_store_uniform_i8(uniform int8 *uniform, uniform int8);
+extern "C" void __streaming_store_uniform_i16(uniform int8 *uniform, uniform int16);
+extern "C" void __streaming_store_uniform_i32(uniform int8 *uniform, uniform int32);
+extern "C" void __streaming_store_uniform_i64(uniform int8 *uniform, uniform int64);
+extern "C" varying float16 __streaming_load_varying_half(uniform int8 *uniform);
+extern "C" varying float __streaming_load_varying_float(uniform int8 *uniform);
+extern "C" varying double __streaming_load_varying_double(uniform int8 *uniform);
+extern "C" varying int8 __streaming_load_varying_i8(uniform int8 *uniform);
+extern "C" varying int16 __streaming_load_varying_i16(uniform int8 *uniform);
+extern "C" varying int32 __streaming_load_varying_i32(uniform int8 *uniform);
+extern "C" varying int64 __streaming_load_varying_i64(uniform int8 *uniform);
+extern "C" uniform float16 __streaming_load_uniform_half(uniform int8 *uniform);
+extern "C" uniform float __streaming_load_uniform_float(uniform int8 *uniform);
+extern "C" uniform double __streaming_load_uniform_double(uniform int8 *uniform);
+extern "C" uniform int8 __streaming_load_uniform_i8(uniform int8 *uniform);
+extern "C" uniform int16 __streaming_load_uniform_i16(uniform int8 *uniform);
+extern "C" uniform int32 __streaming_load_uniform_i32(uniform int8 *uniform);
+extern "C" uniform int64 __streaming_load_uniform_i64(uniform int8 *uniform);
+extern "C" varying int32 __atomic_compare_exchange_varying_int32_global(varying int64, varying int32, varying int32,
+                                                                        UIntMaskType);
+extern "C" varying int64 __atomic_compare_exchange_varying_int64_global(varying int64, varying int64, varying int64,
+                                                                        UIntMaskType);
+extern "C" varying float __atomic_compare_exchange_varying_float_global(varying int64, varying float, varying float,
+                                                                        UIntMaskType);
+extern "C" varying double __atomic_compare_exchange_varying_double_global(varying int64, varying double, varying double,
+                                                                          UIntMaskType);
+extern "C" varying int32 __atomic_swap_varying_int32_global(varying int64, varying int32, UIntMaskType);
+extern "C" varying int64 __atomic_swap_varying_int64_global(varying int64, varying int64, UIntMaskType);
+extern "C" varying float __atomic_swap_varying_float_global(varying int64, varying float, UIntMaskType);
+extern "C" varying double __atomic_swap_varying_double_global(varying int64, varying double, UIntMaskType);
+extern "C" varying int32 __atomic_add_varying_int32_global(varying int64, varying int32, UIntMaskType);
+extern "C" varying int32 __atomic_sub_varying_int32_global(varying int64, varying int32, UIntMaskType);
+extern "C" varying int32 __atomic_and_varying_int32_global(varying int64, varying int32, UIntMaskType);
+extern "C" varying int32 __atomic_or_varying_int32_global(varying int64, varying int32, UIntMaskType);
+extern "C" varying int32 __atomic_xor_varying_int32_global(varying int64, varying int32, UIntMaskType);
+extern "C" varying int32 __atomic_min_varying_int32_global(varying int64, varying int32, UIntMaskType);
+extern "C" varying int32 __atomic_max_varying_int32_global(varying int64, varying int32, UIntMaskType);
+extern "C" varying int32 __atomic_umin_varying_uint32_global(varying int64, varying int32, UIntMaskType);
+extern "C" varying int32 __atomic_umax_varying_uint32_global(varying int64, varying int32, UIntMaskType);
+extern "C" varying int64 __atomic_add_varying_int64_global(varying int64, varying int64, UIntMaskType);
+extern "C" varying int64 __atomic_sub_varying_int64_global(varying int64, varying int64, UIntMaskType);
+extern "C" varying int64 __atomic_and_varying_int64_global(varying int64, varying int64, UIntMaskType);
+extern "C" varying int64 __atomic_or_varying_int64_global(varying int64, varying int64, UIntMaskType);
+extern "C" varying int64 __atomic_xor_varying_int64_global(varying int64, varying int64, UIntMaskType);
+extern "C" varying int64 __atomic_min_varying_int64_global(varying int64, varying int64, UIntMaskType);
+extern "C" varying int64 __atomic_max_varying_int64_global(varying int64, varying int64, UIntMaskType);
+extern "C" varying int64 __atomic_umin_varying_uint64_global(varying int64, varying int64, UIntMaskType);
+extern "C" varying int64 __atomic_umax_varying_uint64_global(varying int64, varying int64, UIntMaskType);
+extern "C" uniform int32 __task_index0();
+extern "C" uniform int32 __task_index1();
+extern "C" uniform int32 __task_index2();
+extern "C" uniform int32 __task_index();
+extern "C" uniform int32 __task_count0();
+extern "C" uniform int32 __task_count1();
+extern "C" uniform int32 __task_count2();
+extern "C" uniform int32 __task_count();
+extern "C" varying int8 __idiv_int8(varying int8, varying int8);
+extern "C" varying int16 __idiv_int16(varying int16, varying int16);
+extern "C" varying int32 __idiv_int32(varying int32, varying int32);
+extern "C" varying int8 __idiv_uint8(varying int8, varying int8);
+extern "C" varying int16 __idiv_uint16(varying int16, varying int16);
+extern "C" varying int32 __idiv_uint32(varying int32, varying int32);
+extern "C" varying int8 __masked_load_private_i8(uniform int8 *uniform, UIntMaskType);
+extern "C" varying int16 __masked_load_private_i16(uniform int8 *uniform, UIntMaskType);
+extern "C" varying int32 __masked_load_private_i32(uniform int8 *uniform, UIntMaskType);
+extern "C" varying int64 __masked_load_private_i64(uniform int8 *uniform, UIntMaskType);
+extern "C" varying float __masked_load_private_float(uniform int8 *uniform, UIntMaskType);
+extern "C" varying double __masked_load_private_double(uniform int8 *uniform, UIntMaskType);
+extern "C" varying int8 __masked_load_blend_i8(uniform int8 *uniform, UIntMaskType);
+extern "C" varying int16 __masked_load_blend_i16(uniform int8 *uniform, UIntMaskType);
+extern "C" varying float16 __masked_load_blend_half(uniform int8 *uniform, UIntMaskType);
+extern "C" varying int32 __masked_load_blend_i32(uniform int8 *uniform, UIntMaskType);
+extern "C" varying int64 __masked_load_blend_i64(uniform int8 *uniform, UIntMaskType);
+extern "C" varying float __masked_load_blend_float(uniform int8 *uniform, UIntMaskType);
+extern "C" varying double __masked_load_blend_double(uniform int8 *uniform, UIntMaskType);
+extern "C" uniform bool __is_compile_time_constant_mask(UIntMaskType);
+extern "C" uniform bool __is_compile_time_constant_uniform_int32(uniform int32);
+extern "C" uniform bool __is_compile_time_constant_varying_int32(varying int32);
+extern "C" uniform bool __extract_bool(IntMaskType, uniform int32);
+extern "C" IntMaskType __insert_bool(IntMaskType, uniform int32, uniform bool);
+extern "C" uniform int8 __extract_int8(varying int8, uniform int32);
+extern "C" varying int8 __insert_int8(varying int8, uniform int32, uniform int8);
+extern "C" uniform int16 __extract_int16(varying int16, uniform int32);
+extern "C" varying int16 __insert_int16(varying int16, uniform int32, uniform int16);
+extern "C" uniform int32 __extract_int32(varying int32, uniform int32);
+extern "C" varying int32 __insert_int32(varying int32, uniform int32, uniform int32);
+extern "C" uniform int64 __extract_int64(varying int64, uniform int32);
+extern "C" varying int64 __insert_int64(varying int64, uniform int32, uniform int64);
+extern "C" varying int16 __intbits_varying_half(varying float16);
+extern "C" uniform int16 __intbits_uniform_half(uniform float16);
+extern "C" varying int32 __intbits_varying_float(varying float);
+extern "C" uniform int32 __intbits_uniform_float(uniform float);
+extern "C" varying int64 __intbits_varying_double(varying double);
+extern "C" uniform int64 __intbits_uniform_double(uniform double);
+extern "C" varying float16 __halfbits_varying_int16(varying int16);
+extern "C" uniform float16 __halfbits_uniform_int16(uniform int16);
+extern "C" varying float __floatbits_varying_int32(varying int32);
+extern "C" uniform float __floatbits_uniform_int32(uniform int32);
+extern "C" varying double __doublebits_varying_int64(varying int64);
+extern "C" uniform double __doublebits_uniform_int64(uniform int64);
+extern "C" varying float __undef_varying();
+extern "C" uniform float __undef_uniform();
+extern "C" uniform int32 __sext_uniform_bool(uniform bool);
+extern "C" varying int32 __sext_varying_bool(bool);
+extern "C" void __memcpy32(uniform int8 *uniform, uniform int8 *uniform, uniform int32);
+extern "C" void __memcpy64(uniform int8 *uniform, uniform int8 *uniform, uniform int64);
+extern "C" void __memmove32(uniform int8 *uniform, uniform int8 *uniform, uniform int32);
+extern "C" void __memmove64(uniform int8 *uniform, uniform int8 *uniform, uniform int64);
+extern "C" void __memset32(uniform int8 *uniform, uniform int8, uniform int32);
+extern "C" void __memset64(uniform int8 *uniform, uniform int8, uniform int64);
+extern "C" void __do_assume_uniform(uniform bool);
+extern "C" uniform int64 __clock();
+extern "C" uniform float __stdlib_sinf(uniform float);
+extern "C" uniform float __stdlib_cosf(uniform float);
+extern "C" void __stdlib_sincosf(uniform float, uniform int8 *uniform, uniform int8 *uniform);
+extern "C" uniform float __stdlib_asinf(uniform float);
+extern "C" uniform float __stdlib_acosf(uniform float);
+extern "C" uniform float __stdlib_tanf(uniform float);
+extern "C" uniform float __stdlib_atanf(uniform float);
+extern "C" uniform float __stdlib_atan2f(uniform float, uniform float);
+extern "C" uniform float __stdlib_logf(uniform float);
+extern "C" uniform float __stdlib_expf(uniform float);
+extern "C" uniform float __stdlib_powf(uniform float, uniform float);
+extern "C" uniform double __stdlib_sin(uniform double);
+extern "C" uniform double __stdlib_asin(uniform double);
+extern "C" uniform double __stdlib_cos(uniform double);
+extern "C" void __stdlib_sincos(uniform double, uniform int8 *uniform, uniform int8 *uniform);
+extern "C" uniform double __stdlib_tan(uniform double);
+extern "C" uniform double __stdlib_atan(uniform double);
+extern "C" uniform double __stdlib_atan2(uniform double, uniform double);
+extern "C" uniform double __stdlib_log(uniform double);
+extern "C" uniform double __stdlib_exp(uniform double);
+extern "C" uniform double __stdlib_pow(uniform double, uniform double);
+extern "C" void __memory_barrier();
+extern "C" varying int32 __atomic_add_int32_global(uniform int8 *uniform, varying int32, UIntMaskType);
+extern "C" varying int32 __atomic_sub_int32_global(uniform int8 *uniform, varying int32, UIntMaskType);
+extern "C" varying int32 __atomic_and_int32_global(uniform int8 *uniform, varying int32, UIntMaskType);
+extern "C" varying int32 __atomic_or_int32_global(uniform int8 *uniform, varying int32, UIntMaskType);
+extern "C" varying int32 __atomic_xor_int32_global(uniform int8 *uniform, varying int32, UIntMaskType);
+extern "C" uniform int32 __atomic_add_uniform_int32_global(uniform int8 *uniform, uniform int32);
+extern "C" uniform int32 __atomic_sub_uniform_int32_global(uniform int8 *uniform, uniform int32);
+extern "C" uniform int32 __atomic_and_uniform_int32_global(uniform int8 *uniform, uniform int32);
+extern "C" uniform int32 __atomic_or_uniform_int32_global(uniform int8 *uniform, uniform int32);
+extern "C" uniform int32 __atomic_xor_uniform_int32_global(uniform int8 *uniform, uniform int32);
+extern "C" uniform int32 __atomic_min_uniform_int32_global(uniform int8 *uniform, uniform int32);
+extern "C" uniform int32 __atomic_max_uniform_int32_global(uniform int8 *uniform, uniform int32);
+extern "C" uniform int32 __atomic_umin_uniform_uint32_global(uniform int8 *uniform, uniform int32);
+extern "C" uniform int32 __atomic_umax_uniform_uint32_global(uniform int8 *uniform, uniform int32);
+extern "C" varying int64 __atomic_add_int64_global(uniform int8 *uniform, varying int64, UIntMaskType);
+extern "C" varying int64 __atomic_sub_int64_global(uniform int8 *uniform, varying int64, UIntMaskType);
+extern "C" varying int64 __atomic_and_int64_global(uniform int8 *uniform, varying int64, UIntMaskType);
+extern "C" varying int64 __atomic_or_int64_global(uniform int8 *uniform, varying int64, UIntMaskType);
+extern "C" varying int64 __atomic_xor_int64_global(uniform int8 *uniform, varying int64, UIntMaskType);
+extern "C" uniform int64 __atomic_add_uniform_int64_global(uniform int8 *uniform, uniform int64);
+extern "C" uniform int64 __atomic_sub_uniform_int64_global(uniform int8 *uniform, uniform int64);
+extern "C" uniform int64 __atomic_and_uniform_int64_global(uniform int8 *uniform, uniform int64);
+extern "C" uniform int64 __atomic_or_uniform_int64_global(uniform int8 *uniform, uniform int64);
+extern "C" uniform int64 __atomic_xor_uniform_int64_global(uniform int8 *uniform, uniform int64);
+extern "C" uniform int64 __atomic_min_uniform_int64_global(uniform int8 *uniform, uniform int64);
+extern "C" uniform int64 __atomic_max_uniform_int64_global(uniform int8 *uniform, uniform int64);
+extern "C" uniform int64 __atomic_umin_uniform_uint64_global(uniform int8 *uniform, uniform int64);
+extern "C" uniform int64 __atomic_umax_uniform_uint64_global(uniform int8 *uniform, uniform int64);
+extern "C" uniform int32 __atomic_swap_uniform_int32_global(uniform int8 *uniform, uniform int32);
+extern "C" uniform int64 __atomic_swap_uniform_int64_global(uniform int8 *uniform, uniform int64);
+extern "C" uniform float __atomic_swap_uniform_float_global(uniform int8 *uniform, uniform float);
+extern "C" uniform double __atomic_swap_uniform_double_global(uniform int8 *uniform, uniform double);
+extern "C" varying int32 __atomic_compare_exchange_int32_global(uniform int8 *uniform, varying int32, varying int32,
+                                                                UIntMaskType);
+extern "C" uniform int32 __atomic_compare_exchange_uniform_int32_global(uniform int8 *uniform, uniform int32,
+                                                                        uniform int32);
+extern "C" varying int64 __atomic_compare_exchange_int64_global(uniform int8 *uniform, varying int64, varying int64,
+                                                                UIntMaskType);
+extern "C" uniform int64 __atomic_compare_exchange_uniform_int64_global(uniform int8 *uniform, uniform int64,
+                                                                        uniform int64);
+extern "C" varying float __atomic_compare_exchange_float_global(uniform int8 *uniform, varying float, varying float,
+                                                                UIntMaskType);
+extern "C" varying double __atomic_compare_exchange_double_global(uniform int8 *uniform, varying double, varying double,
+                                                                  UIntMaskType);
+extern "C" uniform float __atomic_compare_exchange_uniform_float_global(uniform int8 *uniform, uniform float,
+                                                                        uniform float);
+extern "C" uniform double __atomic_compare_exchange_uniform_double_global(uniform int8 *uniform, uniform double,
+                                                                          uniform double);
+extern "C" varying float16 __exclusive_scan_add_half(varying float16, UIntMaskType);
+extern "C" varying int32 __exclusive_scan_add_i32(varying int32, UIntMaskType);
+extern "C" varying float __exclusive_scan_add_float(varying float, UIntMaskType);
+extern "C" varying int64 __exclusive_scan_add_i64(varying int64, UIntMaskType);
+extern "C" varying double __exclusive_scan_add_double(varying double, UIntMaskType);
+extern "C" varying int32 __exclusive_scan_and_i32(varying int32, UIntMaskType);
+extern "C" varying int64 __exclusive_scan_and_i64(varying int64, UIntMaskType);
+extern "C" varying int32 __exclusive_scan_or_i32(varying int32, UIntMaskType);
+extern "C" varying int64 __exclusive_scan_or_i64(varying int64, UIntMaskType);
+extern "C" uniform bool __reduce_equal_half(varying float16, uniform int8 *uniform, UIntMaskType);
+extern "C" uniform bool __reduce_equal_int32(varying int32, uniform int8 *uniform, UIntMaskType);
+extern "C" uniform bool __reduce_equal_float(varying float, uniform int8 *uniform, UIntMaskType);
+extern "C" uniform bool __reduce_equal_int64(varying int64, uniform int8 *uniform, UIntMaskType);
+extern "C" uniform bool __reduce_equal_double(varying double, uniform int8 *uniform, UIntMaskType);
+extern "C" uniform bool __rdrand_i16(uniform int8 *uniform);
+extern "C" uniform bool __rdrand_i32(uniform int8 *uniform);
+extern "C" uniform bool __rdrand_i64(uniform int8 *uniform);
+extern "C" uniform float16 __min_uniform_half(uniform float16, uniform float16);
+extern "C" varying float16 __min_varying_half(varying float16, varying float16);
+extern "C" uniform float16 __max_uniform_half(uniform float16, uniform float16);
+extern "C" varying float16 __max_varying_half(varying float16, varying float16);
+extern "C" uniform float16 __round_uniform_half(uniform float16);
+extern "C" varying float16 __round_varying_half(varying float16);
+extern "C" uniform float16 __floor_uniform_half(uniform float16);
+extern "C" varying float16 __floor_varying_half(varying float16);
+extern "C" uniform float16 __ceil_uniform_half(uniform float16);
+extern "C" varying float16 __ceil_varying_half(varying float16);
+extern "C" uniform float16 __trunc_uniform_half(uniform float16);
+extern "C" varying float16 __trunc_varying_half(varying float16);
+extern "C" uniform float16 __log_uniform_half(uniform float16);
+extern "C" varying float16 __log_varying_half(varying float16);
+extern "C" uniform float16 __exp_uniform_half(uniform float16);
+extern "C" varying float16 __exp_varying_half(varying float16);
+extern "C" uniform float16 __pow_uniform_half(uniform float16, uniform float16);
+extern "C" varying float16 __pow_varying_half(varying float16, varying float16);
+extern "C" uniform float16 __sqrt_uniform_half(uniform float16);
+extern "C" varying float16 __sqrt_varying_half(varying float16);
+extern "C" varying float16 __add_varying_half(varying float16, varying float16);
+extern "C" uniform float16 __add_uniform_half(uniform float16, uniform float16);
+extern "C" uniform float16 __reduce_add_half(varying float16);
+extern "C" uniform float16 __reduce_min_half(varying float16);
+extern "C" uniform float16 __reduce_max_half(varying float16);
+extern "C" uniform float16 __rcp_uniform_half(uniform float16);
+extern "C" varying float16 __rcp_varying_half(varying float16);
+extern "C" uniform float16 __rsqrt_uniform_half(uniform float16);
+extern "C" varying float16 __rsqrt_varying_half(varying float16);
+extern "C" uniform int64 __cast_mask_to_i64(UIntMaskType);
+extern "C" varying int8 __broadcast_i8(varying int8, uniform int32);
+extern "C" varying int8 __rotate_i8(varying int8, uniform int32);
+extern "C" varying int8 __shift_i8(varying int8, uniform int32);
+extern "C" varying int8 __shuffle_i8(varying int8, varying int32);
+extern "C" varying int8 __shuffle2_i8(varying int8, varying int8, varying int32);
+extern "C" varying int16 __broadcast_i16(varying int16, uniform int32);
+extern "C" varying int16 __rotate_i16(varying int16, uniform int32);
+extern "C" varying int16 __shift_i16(varying int16, uniform int32);
+extern "C" varying int16 __shuffle_i16(varying int16, varying int32);
+extern "C" varying int16 __shuffle2_i16(varying int16, varying int16, varying int32);
+extern "C" varying float16 __broadcast_half(varying float16, uniform int32);
+extern "C" varying float16 __rotate_half(varying float16, uniform int32);
+extern "C" varying float16 __shift_half(varying float16, uniform int32);
+extern "C" varying float16 __shuffle_half(varying float16, varying int32);
+extern "C" varying float16 __shuffle2_half(varying float16, varying float16, varying int32);
+extern "C" varying float __broadcast_float(varying float, uniform int32);
+extern "C" varying float __rotate_float(varying float, uniform int32);
+extern "C" varying float __shift_float(varying float, uniform int32);
+extern "C" varying float __shuffle_float(varying float, varying int32);
+extern "C" varying float __shuffle2_float(varying float, varying float, varying int32);
+extern "C" varying int32 __broadcast_i32(varying int32, uniform int32);
+extern "C" varying int32 __rotate_i32(varying int32, uniform int32);
+extern "C" varying int32 __shift_i32(varying int32, uniform int32);
+extern "C" varying int32 __shuffle_i32(varying int32, varying int32);
+extern "C" varying int32 __shuffle2_i32(varying int32, varying int32, varying int32);
+extern "C" varying double __broadcast_double(varying double, uniform int32);
+extern "C" varying double __rotate_double(varying double, uniform int32);
+extern "C" varying double __shift_double(varying double, uniform int32);
+extern "C" varying double __shuffle_double(varying double, varying int32);
+extern "C" varying double __shuffle2_double(varying double, varying double, varying int32);
+extern "C" varying int64 __broadcast_i64(varying int64, uniform int32);
+extern "C" varying int64 __rotate_i64(varying int64, uniform int32);
+extern "C" varying int64 __shift_i64(varying int64, uniform int32);
+extern "C" varying int64 __shuffle_i64(varying int64, varying int32);
+extern "C" varying int64 __shuffle2_i64(varying int64, varying int64, varying int32);
+extern "C" void __aos_to_soa4_float64(varying float, varying float, varying float, varying float,
+                                      varying float *uniform, varying float *uniform, varying float *uniform,
+                                      varying float *uniform);
+extern "C" void __soa_to_aos4_float64(varying float, varying float, varying float, varying float,
+                                      varying float *uniform, varying float *uniform, varying float *uniform,
+                                      varying float *uniform);
+extern "C" void __aos_to_soa4_double64(varying double, varying double, varying double, varying double,
+                                       varying double *uniform, varying double *uniform, varying double *uniform,
+                                       varying double *uniform);
+extern "C" void __soa_to_aos4_double64(varying double, varying double, varying double, varying double,
+                                       varying double *uniform, varying double *uniform, varying double *uniform,
+                                       varying double *uniform);
+extern "C" void __aos_to_soa3_float64(varying float, varying float, varying float, varying float *uniform,
+                                      varying float *uniform, varying float *uniform);
+extern "C" void __soa_to_aos3_float64(varying float, varying float, varying float, varying float *uniform,
+                                      varying float *uniform, varying float *uniform);
+extern "C" void __aos_to_soa3_double64(varying double, varying double, varying double, varying double *uniform,
+                                       varying double *uniform, varying double *uniform);
+extern "C" void __soa_to_aos3_double64(varying double, varying double, varying double, varying double *uniform,
+                                       varying double *uniform, varying double *uniform);
+extern "C" void __aos_to_soa2_float64(varying float, varying float, varying float *uniform, varying float *uniform);
+extern "C" void __soa_to_aos2_float64(varying float, varying float, varying float *uniform, varying float *uniform);
+extern "C" void __aos_to_soa2_double64(varying double, varying double, varying double *uniform,
+                                       varying double *uniform);
+extern "C" void __soa_to_aos2_double64(varying double, varying double, varying double *uniform,
+                                       varying double *uniform);
+extern "C" void __aos_to_soa4_float(uniform int8 *uniform, uniform int8 *uniform, uniform int8 *uniform,
+                                    uniform int8 *uniform, uniform int8 *uniform);
+extern "C" void __soa_to_aos4_float(varying float, varying float, varying float, varying float, uniform int8 *uniform);
+extern "C" void __aos_to_soa4_double(uniform int8 *uniform, uniform int8 *uniform, uniform int8 *uniform,
+                                     uniform int8 *uniform, uniform int8 *uniform);
+extern "C" void __soa_to_aos4_double(varying double, varying double, varying double, varying double,
+                                     uniform int8 *uniform);
+extern "C" void __aos_to_soa3_float(uniform int8 *uniform, uniform int8 *uniform, uniform int8 *uniform,
+                                    uniform int8 *uniform);
+extern "C" void __soa_to_aos3_float(varying float, varying float, varying float, uniform int8 *uniform);
+extern "C" void __aos_to_soa3_double(uniform int8 *uniform, uniform int8 *uniform, uniform int8 *uniform,
+                                     uniform int8 *uniform);
+extern "C" void __soa_to_aos3_double(varying double, varying double, varying double, uniform int8 *uniform);
+extern "C" void __aos_to_soa2_float(uniform int8 *uniform, uniform int8 *uniform, uniform int8 *uniform);
+extern "C" void __soa_to_aos2_float(varying float, varying float, uniform int8 *uniform);
+extern "C" void __aos_to_soa2_double(uniform int8 *uniform, uniform int8 *uniform, uniform int8 *uniform);
+extern "C" void __soa_to_aos2_double(varying double, varying double, uniform int8 *uniform);
+extern "C" uniform float __half_to_float_uniform(uniform int16);
+extern "C" uniform int16 __float_to_half_uniform(uniform float);
+extern "C" varying float __half_to_float_varying(varying int16);
+extern "C" varying int16 __float_to_half_varying(varying float);
+extern "C" void __fastmath();
+extern "C" uniform float __round_uniform_float(uniform float);
+extern "C" uniform float __floor_uniform_float(uniform float);
+extern "C" uniform float __ceil_uniform_float(uniform float);
+extern "C" uniform double __round_uniform_double(uniform double);
+extern "C" uniform double __floor_uniform_double(uniform double);
+extern "C" uniform double __ceil_uniform_double(uniform double);
+extern "C" varying float __round_varying_float(varying float);
+extern "C" varying float __floor_varying_float(varying float);
+extern "C" varying float __ceil_varying_float(varying float);
+extern "C" varying double __round_varying_double(varying double);
+extern "C" varying double __floor_varying_double(varying double);
+extern "C" varying double __ceil_varying_double(varying double);
+extern "C" uniform float __trunc_uniform_float(uniform float);
+extern "C" varying float __trunc_varying_float(varying float);
+extern "C" uniform double __trunc_uniform_double(uniform double);
+extern "C" varying double __trunc_varying_double(varying double);
+extern "C" uniform float __max_uniform_float(uniform float, uniform float);
+extern "C" uniform float __min_uniform_float(uniform float, uniform float);
+extern "C" uniform int32 __min_uniform_int32(uniform int32, uniform int32);
+extern "C" uniform int32 __max_uniform_int32(uniform int32, uniform int32);
+extern "C" uniform int32 __min_uniform_uint32(uniform int32, uniform int32);
+extern "C" uniform int32 __max_uniform_uint32(uniform int32, uniform int32);
+extern "C" uniform int64 __min_uniform_int64(uniform int64, uniform int64);
+extern "C" uniform int64 __max_uniform_int64(uniform int64, uniform int64);
+extern "C" uniform int64 __min_uniform_uint64(uniform int64, uniform int64);
+extern "C" uniform int64 __max_uniform_uint64(uniform int64, uniform int64);
+extern "C" uniform double __min_uniform_double(uniform double, uniform double);
+extern "C" uniform double __max_uniform_double(uniform double, uniform double);
+extern "C" varying int64 __min_varying_int64(varying int64, varying int64);
+extern "C" varying int64 __max_varying_int64(varying int64, varying int64);
+extern "C" varying int64 __min_varying_uint64(varying int64, varying int64);
+extern "C" varying int64 __max_varying_uint64(varying int64, varying int64);
+extern "C" varying double __min_varying_double(varying double, varying double);
+extern "C" varying double __max_varying_double(varying double, varying double);
+extern "C" varying int32 __min_varying_int32(varying int32, varying int32);
+extern "C" varying int32 __max_varying_int32(varying int32, varying int32);
+extern "C" varying int32 __min_varying_uint32(varying int32, varying int32);
+extern "C" varying int32 __max_varying_uint32(varying int32, varying int32);
+extern "C" varying float __min_varying_float(varying float, varying float);
+extern "C" varying float __max_varying_float(varying float, varying float);
+extern "C" uniform float __sqrt_uniform_float(uniform float);
+extern "C" varying float __sqrt_varying_float(varying float);
+extern "C" uniform double __sqrt_uniform_double(uniform double);
+extern "C" varying double __sqrt_varying_double(varying double);
+extern "C" uniform float __rsqrt_uniform_float(uniform float);
+extern "C" varying float __rsqrt_varying_float(varying float);
+extern "C" uniform float __rsqrt_fast_uniform_float(uniform float);
+extern "C" varying float __rsqrt_fast_varying_float(varying float);
+extern "C" uniform float __rcp_uniform_float(uniform float);
+extern "C" varying float __rcp_varying_float(varying float);
+extern "C" uniform float __rcp_fast_uniform_float(uniform float);
+extern "C" varying float __rcp_fast_varying_float(varying float);
+extern "C" uniform int32 __popcnt_int32(uniform int32);
+extern "C" uniform int64 __popcnt_int64(uniform int64);
+extern "C" uniform int32 __count_leading_zeros_i32(uniform int32);
+extern "C" uniform int64 __count_leading_zeros_i64(uniform int64);
+extern "C" uniform int16 __reduce_add_int8(varying int8);
+extern "C" varying int16 __add_varying_i16(varying int16, varying int16);
+extern "C" uniform int16 __add_uniform_i16(uniform int16, uniform int16);
+extern "C" uniform int16 __reduce_add_int16(varying int16);
+extern "C" varying int32 __add_varying_int32(varying int32, varying int32);
+extern "C" uniform int32 __add_uniform_int32(uniform int32, uniform int32);
+extern "C" uniform int32 __reduce_add_int32(varying int32);
+extern "C" varying float __add_varying_float(varying float, varying float);
+extern "C" uniform float __add_uniform_float(uniform float, uniform float);
+extern "C" uniform float __reduce_add_float(varying float);
+extern "C" uniform float __reduce_min_float(varying float);
+extern "C" uniform float __reduce_max_float(varying float);
+extern "C" uniform int32 __reduce_min_int32(varying int32);
+extern "C" uniform int32 __reduce_max_int32(varying int32);
+extern "C" uniform int32 __reduce_min_uint32(varying int32);
+extern "C" uniform int32 __reduce_max_uint32(varying int32);
+extern "C" varying double __add_varying_double(varying double, varying double);
+extern "C" uniform double __add_uniform_double(uniform double, uniform double);
+extern "C" uniform double __reduce_add_double(varying double);
+extern "C" uniform double __reduce_min_double(varying double);
+extern "C" uniform double __reduce_max_double(varying double);
+extern "C" varying int64 __add_varying_int64(varying int64, varying int64);
+extern "C" uniform int64 __add_uniform_int64(uniform int64, uniform int64);
+extern "C" uniform int64 __reduce_add_int64(varying int64);
+extern "C" uniform int64 __reduce_min_int64(varying int64);
+extern "C" uniform int64 __reduce_max_int64(varying int64);
+extern "C" uniform int64 __reduce_min_uint64(varying int64);
+extern "C" uniform int64 __reduce_max_uint64(varying int64);
+extern "C" varying int8 __gather_elt32_i8(uniform int8 *uniform, varying int32, uniform int32, varying int32,
+                                          varying int8, uniform int32);
+extern "C" varying int8 __gather_elt64_i8(uniform int8 *uniform, varying int64, uniform int32, varying int64,
+                                          varying int8, uniform int32);
+extern "C" varying int16 __gather_elt32_i16(uniform int8 *uniform, varying int32, uniform int32, varying int32,
+                                            varying int16, uniform int32);
+extern "C" varying int16 __gather_elt64_i16(uniform int8 *uniform, varying int64, uniform int32, varying int64,
+                                            varying int16, uniform int32);
+extern "C" varying float16 __gather_elt32_half(uniform int8 *uniform, varying int32, uniform int32, varying int32,
+                                               varying float16, uniform int32);
+extern "C" varying float16 __gather_elt64_half(uniform int8 *uniform, varying int64, uniform int32, varying int64,
+                                               varying float16, uniform int32);
+extern "C" varying int32 __gather_elt32_i32(uniform int8 *uniform, varying int32, uniform int32, varying int32,
+                                            varying int32, uniform int32);
+extern "C" varying int32 __gather_elt64_i32(uniform int8 *uniform, varying int64, uniform int32, varying int64,
+                                            varying int32, uniform int32);
+extern "C" varying float __gather_elt32_float(uniform int8 *uniform, varying int32, uniform int32, varying int32,
+                                              varying float, uniform int32);
+extern "C" varying float __gather_elt64_float(uniform int8 *uniform, varying int64, uniform int32, varying int64,
+                                              varying float, uniform int32);
+extern "C" varying int64 __gather_elt32_i64(uniform int8 *uniform, varying int32, uniform int32, varying int32,
+                                            varying int64, uniform int32);
+extern "C" varying int64 __gather_elt64_i64(uniform int8 *uniform, varying int64, uniform int32, varying int64,
+                                            varying int64, uniform int32);
+extern "C" varying double __gather_elt32_double(uniform int8 *uniform, varying int32, uniform int32, varying int32,
+                                                varying double, uniform int32);
+extern "C" varying double __gather_elt64_double(uniform int8 *uniform, varying int64, uniform int32, varying int64,
+                                                varying double, uniform int32);
+extern "C" void __scatter_elt32_i8(uniform int8 *uniform, varying int32, uniform int32, varying int32, varying int8,
+                                   uniform int32);
+extern "C" void __scatter_elt64_i8(uniform int8 *uniform, varying int64, uniform int32, varying int64, varying int8,
+                                   uniform int32);
+extern "C" void __scatter_elt32_i16(uniform int8 *uniform, varying int32, uniform int32, varying int32, varying int16,
+                                    uniform int32);
+extern "C" void __scatter_elt64_i16(uniform int8 *uniform, varying int64, uniform int32, varying int64, varying int16,
+                                    uniform int32);
+extern "C" void __scatter_elt32_half(uniform int8 *uniform, varying int32, uniform int32, varying int32,
+                                     varying float16, uniform int32);
+extern "C" void __scatter_elt64_half(uniform int8 *uniform, varying int64, uniform int32, varying int64,
+                                     varying float16, uniform int32);
+extern "C" void __scatter_elt32_i32(uniform int8 *uniform, varying int32, uniform int32, varying int32, varying int32,
+                                    uniform int32);
+extern "C" void __scatter_elt64_i32(uniform int8 *uniform, varying int64, uniform int32, varying int64, varying int32,
+                                    uniform int32);
+extern "C" void __scatter_elt32_float(uniform int8 *uniform, varying int32, uniform int32, varying int32, varying float,
+                                      uniform int32);
+extern "C" void __scatter_elt64_float(uniform int8 *uniform, varying int64, uniform int32, varying int64, varying float,
+                                      uniform int32);
+extern "C" void __scatter_elt32_i64(uniform int8 *uniform, varying int32, uniform int32, varying int32, varying int64,
+                                    uniform int32);
+extern "C" void __scatter_elt64_i64(uniform int8 *uniform, varying int64, uniform int32, varying int64, varying int64,
+                                    uniform int32);
+extern "C" void __scatter_elt32_double(uniform int8 *uniform, varying int32, uniform int32, varying int32,
+                                       varying double, uniform int32);
+extern "C" void __scatter_elt64_double(uniform int8 *uniform, varying int64, uniform int32, varying int64,
+                                       varying double, uniform int32);
+extern "C" uniform int32 __packed_load_activei32(uniform int8 *uniform, uniform int8 *uniform, UIntMaskType);
+extern "C" uniform int32 __packed_store_activei32(uniform int8 *uniform, varying int32, UIntMaskType);
+extern "C" uniform int32 __packed_store_active2i32(uniform int8 *uniform, varying int32, UIntMaskType);
+extern "C" uniform int32 __packed_load_activei64(uniform int8 *uniform, uniform int8 *uniform, UIntMaskType);
+extern "C" uniform int32 __packed_store_activei64(uniform int8 *uniform, varying int64, UIntMaskType);
+extern "C" uniform int32 __packed_store_active2i64(uniform int8 *uniform, varying int64, UIntMaskType);
+extern "C" void __prefetch_read_uniform_1(uniform int8 *uniform);
+extern "C" void __prefetch_read_uniform_2(uniform int8 *uniform);
+extern "C" void __prefetch_read_uniform_3(uniform int8 *uniform);
+extern "C" void __prefetch_read_uniform_nt(uniform int8 *uniform);
+extern "C" void __prefetch_write_uniform_1(uniform int8 *uniform);
+extern "C" void __prefetch_write_uniform_2(uniform int8 *uniform);
+extern "C" void __prefetch_write_uniform_3(uniform int8 *uniform);
+extern "C" void __prefetch_read_sized_uniform_1(uniform int8 *uniform, uniform int8);
+extern "C" void __prefetch_read_sized_uniform_2(uniform int8 *uniform, uniform int8);
+extern "C" void __prefetch_read_sized_uniform_3(uniform int8 *uniform, uniform int8);
+extern "C" void __prefetch_read_sized_uniform_nt(uniform int8 *uniform, uniform int8);
+extern "C" void __prefetch_read_sized_varying_1(varying int64, uniform int8, UIntMaskType);
+extern "C" void __prefetch_read_sized_varying_2(varying int64, uniform int8, UIntMaskType);
+extern "C" void __prefetch_read_sized_varying_3(varying int64, uniform int8, UIntMaskType);
+extern "C" void __prefetch_read_sized_varying_nt(varying int64, uniform int8, UIntMaskType);
+extern "C" varying int8 __avg_up_uint8(varying int8, varying int8);
+extern "C" varying int8 __avg_up_int8(varying int8, varying int8);
+extern "C" varying int16 __avg_up_uint16(varying int16, varying int16);
+extern "C" varying int16 __avg_up_int16(varying int16, varying int16);
+extern "C" varying int8 __avg_down_uint8(varying int8, varying int8);
+extern "C" varying int8 __avg_down_int8(varying int8, varying int8);
+extern "C" varying int16 __avg_down_uint16(varying int16, varying int16);
+extern "C" varying int16 __avg_down_int16(varying int16, varying int16);
+extern "C" uniform double __rsqrt_fast_uniform_double(uniform double);
+extern "C" uniform double __rsqrt_uniform_double(uniform double);
+extern "C" varying double __rsqrt_fast_varying_double(varying double);
+extern "C" varying double __rsqrt_varying_double(varying double);
+extern "C" uniform double __rcp_fast_uniform_double(uniform double);
+extern "C" uniform double __rcp_uniform_double(uniform double);
+extern "C" varying double __rcp_fast_varying_double(varying double);
+extern "C" varying double __rcp_varying_double(varying double);
+extern "C" uniform float __log_uniform_float(uniform float);
+extern "C" varying float __log_varying_float(varying float);
+extern "C" uniform float __exp_uniform_float(uniform float);
+extern "C" varying float __exp_varying_float(varying float);
+extern "C" uniform float __pow_uniform_float(uniform float, uniform float);
+extern "C" varying float __pow_varying_float(varying float, varying float);
+extern "C" uniform double __log_uniform_double(uniform double);
+extern "C" varying double __log_varying_double(varying double);
+extern "C" uniform double __exp_uniform_double(uniform double);
+extern "C" varying double __exp_varying_double(varying double);
+extern "C" uniform double __pow_uniform_double(uniform double, uniform double);
+extern "C" varying double __pow_varying_double(varying double, varying double);
+extern "C" varying float16 __sin_varying_half(varying float16);
+extern "C" varying float16 __asin_varying_half(varying float16);
+extern "C" varying float16 __cos_varying_half(varying float16);
+extern "C" varying float16 __acos_varying_half(varying float16);
+extern "C" void __sincos_varying_half(varying float16, uniform int8 *uniform, uniform int8 *uniform);
+extern "C" varying float16 __tan_varying_half(varying float16);
+extern "C" varying float16 __atan_varying_half(varying float16);
+extern "C" varying float16 __atan2_varying_half(varying float16, varying float16);
+extern "C" uniform float16 __sin_uniform_half(uniform float16);
+extern "C" uniform float16 __asin_uniform_half(uniform float16);
+extern "C" uniform float16 __cos_uniform_half(uniform float16);
+extern "C" uniform float16 __acos_uniform_half(uniform float16);
+extern "C" void __sincos_uniform_half(uniform float16, uniform int8 *uniform, uniform int8 *uniform);
+extern "C" uniform float16 __tan_uniform_half(uniform float16);
+extern "C" uniform float16 __atan_uniform_half(uniform float16);
+extern "C" uniform float16 __atan2_uniform_half(uniform float16, uniform float16);
+extern "C" varying float __sin_varying_float(varying float);
+extern "C" varying float __asin_varying_float(varying float);
+extern "C" varying float __cos_varying_float(varying float);
+extern "C" varying float __acos_varying_float(varying float);
+extern "C" void __sincos_varying_float(varying float, uniform int8 *uniform, uniform int8 *uniform);
+extern "C" varying float __tan_varying_float(varying float);
+extern "C" varying float __atan_varying_float(varying float);
+extern "C" varying float __atan2_varying_float(varying float, varying float);
+extern "C" uniform float __sin_uniform_float(uniform float);
+extern "C" uniform float __asin_uniform_float(uniform float);
+extern "C" uniform float __cos_uniform_float(uniform float);
+extern "C" uniform float __acos_uniform_float(uniform float);
+extern "C" void __sincos_uniform_float(uniform float, uniform int8 *uniform, uniform int8 *uniform);
+extern "C" uniform float __tan_uniform_float(uniform float);
+extern "C" uniform float __atan_uniform_float(uniform float);
+extern "C" uniform float __atan2_uniform_float(uniform float, uniform float);
+extern "C" varying double __sin_varying_double(varying double);
+extern "C" varying double __asin_varying_double(varying double);
+extern "C" varying double __cos_varying_double(varying double);
+extern "C" varying double __acos_varying_double(varying double);
+extern "C" void __sincos_varying_double(varying double, uniform int8 *uniform, uniform int8 *uniform);
+extern "C" varying double __tan_varying_double(varying double);
+extern "C" varying double __atan_varying_double(varying double);
+extern "C" varying double __atan2_varying_double(varying double, varying double);
+extern "C" uniform double __sin_uniform_double(uniform double);
+extern "C" uniform double __asin_uniform_double(uniform double);
+extern "C" uniform double __cos_uniform_double(uniform double);
+extern "C" uniform double __acos_uniform_double(uniform double);
+extern "C" void __sincos_uniform_double(uniform double, uniform int8 *uniform, uniform int8 *uniform);
+extern "C" uniform double __tan_uniform_double(uniform double);
+extern "C" uniform double __atan_uniform_double(uniform double);
+extern "C" uniform double __atan2_uniform_double(uniform double, uniform double);
+extern "C" varying int8 __psubs_vi8(varying int8, varying int8);
+extern "C" varying int16 __psubs_vi16(varying int16, varying int16);
+extern "C" varying int8 __psubus_vi8(varying int8, varying int8);
+extern "C" varying int16 __psubus_vi16(varying int16, varying int16);
+extern "C" varying int8 __padds_vi8(varying int8, varying int8);
+extern "C" varying int16 __padds_vi16(varying int16, varying int16);
+extern "C" varying int8 __paddus_vi8(varying int8, varying int8);
+extern "C" varying int16 __paddus_vi16(varying int16, varying int16);
+extern "C" varying int32 __dot4add_u8i8packed(varying uint32, varying uint32, varying int32);
+extern "C" varying int32 __dot4add_u8i8packed_sat(varying uint32, varying uint32, varying int32);
+extern "C" varying int32 __dot2add_i16packed(varying uint32, varying uint32, varying int32);
+extern "C" varying int32 __dot2add_i16packed_sat(varying uint32, varying uint32, varying int32);
