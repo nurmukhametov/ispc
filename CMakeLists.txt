@@ -320,8 +320,6 @@ find_package(FLEX 2.6 REQUIRED)
         )
     endif()
 
-set (ISPC_MASKS 1 8 16 32 64)
-
 if (NOT X86_ENABLED AND NOT ARM_ENABLED AND NOT WASM_ENABLED AND NOT XE_ENABLED)
     message( FATAL_ERROR "Either X86, ARM, WASM or XE targets need to be enabled.")
 endif ()
@@ -442,7 +440,9 @@ file(MAKE_DIRECTORY ${BITCODE_FOLDER})
 
 # Defines builtin target
 generate_builtins()
-generate_stdlib(STDLIB_FILES ${ISPC_MASKS})
+
+# Defines stdlib target
+generate_stdlibs()
 
 # Common sources between ispc-opt and ispc
 list(APPEND COMMON_SOURCES
@@ -829,6 +829,9 @@ configure_ispc_obj(frontend)
 # builtin target is created in GenerateBuiltins.cmake
 configure_ispc_obj(builtin)
 
+# stdlib target is created in Stdlib.cmake
+configure_ispc_obj(stdlib)
+
 # Define executable targets
 add_executable(ispc-opt ispc-opt.cpp)
 configure_ispc_exe(ispc-opt)
@@ -851,7 +854,7 @@ else()
 
     add_executable(ispc src/main.cpp src/binary_composite.cpp)
     configure_ispc_exe(ispc)
-    target_link_libraries(ispc ${LINK_LIBRARIES} builtin optimization common frontend)
+    target_link_libraries(ispc ${LINK_LIBRARIES} builtin stdlib optimization common frontend)
     # TODO! it is not the real dependency at the moment
     add_dependencies(ispc ispc-slim)
     message(STATUS "ISPC will be built as a composite binary")
