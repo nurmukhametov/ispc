@@ -631,7 +631,7 @@ void Declarator::InitFromType(const Type *baseType, DeclSpecs *ds) {
 
         const FunctionType *functionType =
             new FunctionType(returnType, args, argNames, argDefaults, argPos, isTask, isExported, isExternC,
-                             isExternSYCL, isUnmasked, isVectorCall, isRegCall);
+                             isExternSYCL, isUnmasked, isVectorCall, isRegCall, pos);
 
         // handle any explicit __declspecs on the function
         if (ds != nullptr) {
@@ -661,7 +661,6 @@ void Declarator::InitFromType(const Type *baseType, DeclSpecs *ds) {
 
 ///////////////////////////////////////////////////////////////////////////
 // Declaration
-
 
 Declaration::Declaration(DeclSpecs *ds, std::vector<Declarator *> *dlist) {
     declSpecs = ds;
