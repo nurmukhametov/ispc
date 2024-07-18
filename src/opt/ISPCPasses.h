@@ -18,6 +18,7 @@
 #include "IsCompileTimeConstant.h"
 #include "MangleOpenCLBuiltins.h"
 #include "PeepholePass.h"
+#include "RemovePersistentFuncs.h"
 #include "ReplaceMaskedMemOps.h"
 #include "ReplacePseudoMemoryOps.h"
 #include "ReplaceStdlibShiftPass.h"
