@@ -53,19 +53,19 @@ function (write_stdlib_bitcode_lib name target os bit)
     set(canon_os ${os} PARENT_SCOPE)
 endfunction()
 
-function (stdlib_to_cpp target bit os)
+function (stdlib_to_cpp ispc_name target bit os)
     set(name stdlib-${target}-${bit}bit-${os})
     string(REPLACE "-" "_" name "${name}")
     set(cpp ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_CFG_INTDIR}/${name}.cpp)
     set(bc ${BITCODE_FOLDER}/${name}.bc)
 
     # define canon_os
-    write_stdlib_bitcode_lib(${name} ${target} ${arch} ${os})
+    write_stdlib_bitcode_lib(${name} ${target} ${os} ${bit})
 
     add_custom_command(
         OUTPUT ${bc}
-        COMMAND ${PROJECT_NAME} --nostdlib --gen-stdlib --target=${target} --arch=${arch} --target-os=${canon_os} stdlib.ispc --emit-llvm -o ${bc}
-        DEPENDS ${PROJECT_NAME} ${STDLIB_ISPC_FILES}
+        COMMAND ${ispc_name} --nostdlib --gen-stdlib --target=${target} --arch=${arch} --target-os=${canon_os} stdlib.ispc --emit-llvm -o ${bc}
+        DEPENDS ${ispc_name} ${STDLIB_ISPC_FILES}
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
     )
 
@@ -86,7 +86,7 @@ function (stdlib_to_cpp target bit os)
     set(STDLIB_CPP_FILES ${tmp_list_cpp} PARENT_SCOPE)
 endfunction()
 
-function (generate_stdlibs_1)
+function (generate_stdlibs_1 ispc_name)
     list(APPEND os_list)
     if (ISPC_WINDOWS_TARGET)
         list(APPEND os_list "windows")
@@ -104,7 +104,7 @@ function (generate_stdlibs_1)
         foreach (target ${X86_TARGETS})
             foreach (bit 32 64)
                 foreach (os ${os_list})
-                    stdlib_to_cpp(${target} ${bit} ${os})
+                    stdlib_to_cpp(${ispc_name} ${target} ${bit} ${os})
                 endforeach()
             endforeach()
         endforeach()
@@ -114,7 +114,7 @@ function (generate_stdlibs_1)
     if (XE_ENABLED)
         foreach (target ${XE_TARGETS})
             foreach (os ${os_list})
-                stdlib_to_cpp(${target} 64 ${os})
+                stdlib_to_cpp(${ispc_name} ${target} 64 ${os})
             endforeach()
         endforeach()
     endif()
@@ -123,11 +123,11 @@ function (generate_stdlibs_1)
     if (ARM_ENABLED)
         foreach (os ${os_list})
             foreach (target ${ARM_TARGETS})
-                stdlib_to_cpp(${target} 32 ${os})
+                stdlib_to_cpp(${ispc_name} ${target} 32 ${os})
             endforeach()
             # Not all targets have 64bit
-            stdlib_to_cpp(neon-i32x4 64 ${os})
-            stdlib_to_cpp(neon-i32x8 64 ${os})
+            stdlib_to_cpp(${ispc_name} neon-i32x4 64 ${os})
+            stdlib_to_cpp(${ispc_name} neon-i32x8 64 ${os})
         endforeach()
     endif()
 
@@ -135,26 +135,28 @@ function (generate_stdlibs_1)
     if (WASM_ENABLED)
         foreach (target ${WASM_TARGETS})
             foreach (bit 32 64)
-                stdlib_to_cpp(${target} ${bit} web)
+                stdlib_to_cpp(${ispc_name} ${target} ${bit} web)
             endforeach()
         endforeach()
     endif()
+
+    set(STDLIB_BC_FILES ${STDLIB_BC_FILES} PARENT_SCOPE)
+    set(STDLIB_CPP_FILES ${STDLIB_CPP_FILES} PARENT_SCOPE)
 endfunction()
 
-function (generate_stdlibs)
+function (generate_stdlibs ispc_name)
     file(WRITE ${CMAKE_BINARY_DIR}/bitcode_libs_generated.cpp)
 
-    add_custom_target(stdlibs-bc)
-    add_custom_target(stdlibs-cpp)
-
-    generate_stdlibs_1()
+    generate_stdlibs_1(${ispc_name})
 
     if (MSVC)
         source_group("Generated Stdlib Files" FILES ${STDLIB_CPP_FILES})
     endif()
     set_source_files_properties(${STDLIB_CPP_FILES} PROPERTIES GENERATED true)
 
-    set(STDLIB_CPP_FILES ${STDLIB_CPP_FILES} PARENT_SCOPE)
+    add_custom_target(stdlibs-bc DEPENDS ${STDLIB_BC_FILES})
+    add_custom_target(stdlibs-cpp DEPENDS stdlibs-bc)
+    set_target_properties(stdlibs-cpp PROPERTIES SOURCE "${STDLIB_CPP_FILES}")
 
     add_library(stdlib OBJECT EXCLUDE_FROM_ALL ${STDLIB_CPP_FILES})
     add_dependencies(stdlib stdlibs-cpp)

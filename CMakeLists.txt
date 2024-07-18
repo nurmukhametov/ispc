@@ -441,9 +441,6 @@ file(MAKE_DIRECTORY ${BITCODE_FOLDER})
 # Defines builtin target
 generate_builtins()
 
-# Defines stdlib target
-generate_stdlibs()
-
 # Common sources between ispc-opt and ispc
 list(APPEND COMMON_SOURCES
     common/version.rc
@@ -816,6 +813,24 @@ function(configure_ispc_exe TARGET)
     target_link_options(${TARGET} PUBLIC ${LINK_OPTIONS_PUBLIC})
 endfunction()
 
+# This function creates and configures ispc-slim executable target under the given NAME.
+function(add_ispc_slim NAME)
+    # Defines stdlib target
+    generate_stdlibs(${NAME})
+    
+    # stdlib, stdlibs-bc, stdlibs-cpp targets are created in Stdlib.cmake
+    configure_ispc_obj(stdlib)
+
+    add_executable(${NAME} src/main.cpp src/binary_slim.cpp)
+    configure_ispc_exe(${NAME})
+    target_link_libraries(${NAME} ${LINK_LIBRARIES} optimization common frontend)
+    add_dependencies(${NAME} builtins-bc)
+    # add_dependencies(${NAME} stdlibs-bc)
+    if (${NAME} STREQUAL "ispc")
+        set_target_properties(stdlibs-bc PROPERTIES EXCLUDE_FROM_ALL OFF)
+    endif()
+endfunction()
+
 # Define libraries that are built in the project. Some of them are shared across multiple executable targets.
 add_library(optimization OBJECT EXCLUDE_FROM_ALL ${OPT_SOURCES})
 configure_ispc_obj(optimization)
@@ -829,9 +844,6 @@ configure_ispc_obj(frontend)
 # builtin target is created in GenerateBuiltins.cmake
 configure_ispc_obj(builtin)
 
-# stdlib target is created in Stdlib.cmake
-configure_ispc_obj(stdlib)
-
 # Define executable targets
 add_executable(ispc-opt ispc-opt.cpp)
 configure_ispc_exe(ispc-opt)
@@ -841,21 +853,14 @@ target_link_libraries(ispc-opt ${LINK_LIBRARIES} builtin optimization common)
 # The final target has to be ispc due to two use-cases we do not want to
 # interfere with: make ispc and $<TARGET_FILE:ispc>.
 if (ISPC_SLIM_BINARY)
-    add_executable(ispc src/main.cpp src/binary_slim.cpp)
-    configure_ispc_exe(ispc)
-    target_link_libraries(ispc ${LINK_LIBRARIES} optimization common frontend)
-    add_dependencies(ispc builtins-bc)
+    add_ispc_slim(ispc)
     message(STATUS "ISPC will be built as a slim binary")
 else()
-    add_executable(ispc-slim src/main.cpp src/binary_slim.cpp)
-    configure_ispc_exe(ispc-slim)
-    target_link_libraries(ispc-slim ${LINK_LIBRARIES} optimization common frontend)
-    add_dependencies(ispc-slim builtins-bc)
+    add_ispc_slim(ispc-slim)
 
     add_executable(ispc src/main.cpp src/binary_composite.cpp)
     configure_ispc_exe(ispc)
     target_link_libraries(ispc ${LINK_LIBRARIES} builtin stdlib optimization common frontend)
-    # TODO! it is not the real dependency at the moment
     add_dependencies(ispc ispc-slim)
     message(STATUS "ISPC will be built as a composite binary")
 endif()
