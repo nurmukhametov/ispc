@@ -1,7 +1,7 @@
 #ifndef MODULE_PASS
 #define MODULE_PASS(NAME, CREATE_PASS)
 #endif
-MODULE_PASS("remove-persistent-funcs", RemovePersistentFuncs())
+MODULE_PASS("remove-persistent-funcs", RemovePersistentFuncsPass())
 #undef MODULE_PASS
 
 #ifndef FUNCTION_PASS

@@ -432,8 +432,10 @@ get_llvm_cppflags(LLVM_CPP_FLAGS)
 if(CMAKE_GENERATOR MATCHES "Visual Studio")
     # Visual Studio generator places binaries under bin/$(Configuration) subdirectory.
     set(BITCODE_FOLDER ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/share/ispc)
+    set(INCLUDE_FOLDER ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/include)
 else()
     set(BITCODE_FOLDER ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/../share/ispc)
+    set(INCLUDE_FOLDER ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/../include)
 endif()
 message(STATUS "BITCODE_FOLDER is ${BITCODE_FOLDER}")
 file(MAKE_DIRECTORY ${BITCODE_FOLDER})
@@ -527,6 +529,9 @@ list(APPEND OPT_SOURCES
     src/opt/XeReplaceLLVMIntrinsics.cpp
     src/opt/XeReplaceLLVMIntrinsics.h
 )
+
+set(STDLIB_HEADERS builtins.isph stdlib.isph svml.isph target.isph)
+set(STDLIB_ISPC_FILES stdlib.ispc ${STDLIB_HEADERS})
 
 # To show stdlib.ispc in VS solution:
 if (WIN32)
@@ -867,6 +872,7 @@ endif()
 
 install (TARGETS ispc DESTINATION bin)
 if (ISPC_SLIM_BINARY)
+    install(FILES ${STDLIB_HEADERS} DESTINATION include)
     install(DIRECTORY ${BITCODE_FOLDER} DESTINATION share)
 endif()
 

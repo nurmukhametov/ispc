@@ -18,7 +18,7 @@ namespace ispc {
 
 class BitcodeLib {
   public:
-    enum class BitcodeLibType { Dispatch, Builtins_c, ISPC_target };
+    enum class BitcodeLibType { Dispatch, Builtins_c, ISPC_target, Stdlib };
     enum class BitcodeLibStorage { FileSystem, Embedded };
 
   private:
@@ -47,6 +47,9 @@ class BitcodeLib {
     // ISPC-target constructor
     BitcodeLib(const unsigned char lib[], int size, ISPCTarget target, TargetOS os, Arch arch);
     BitcodeLib(const char *filename, ISPCTarget target, TargetOS os, Arch arch);
+    // General constructor
+    BitcodeLib(BitcodeLibType type, const unsigned char lib[], int size, ISPCTarget target, TargetOS os, Arch arch);
+    BitcodeLib(BitcodeLibType type, const char *filename, ISPCTarget target, TargetOS os, Arch arch);
     void print() const;
 
     BitcodeLibType getType() const;

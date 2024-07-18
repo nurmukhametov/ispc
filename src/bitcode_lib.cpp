@@ -62,6 +62,20 @@ BitcodeLib::BitcodeLib(const char *filename, ISPCTarget target, TargetOS os, Arc
     TargetLibRegistry::RegisterTarget(this);
 }
 
+// General constructors
+BitcodeLib::BitcodeLib(BitcodeLibType type, const unsigned char lib[], int size, ISPCTarget target, TargetOS os,
+                       Arch arch)
+    : m_type(type), m_storage(BitcodeLibStorage::Embedded), m_lib(lib), m_size(size), m_os(os), m_arch(arch),
+      m_target(target) {
+    TargetLibRegistry::RegisterTarget(this);
+}
+
+BitcodeLib::BitcodeLib(BitcodeLibType type, const char *filename, ISPCTarget target, TargetOS os, Arch arch)
+    : m_type(type), m_storage(BitcodeLibStorage::FileSystem), m_lib(nullptr), m_size(0), m_os(os), m_arch(arch),
+      m_target(target), m_filename(filename) {
+    TargetLibRegistry::RegisterTarget(this);
+}
+
 // TODO: this is debug version: either remove or make it use friendly.
 void BitcodeLib::print() const {
     std::string os = OSToString(m_os);
@@ -79,6 +93,13 @@ void BitcodeLib::print() const {
         std::string target = ISPCTargetToString(m_target);
         std::string arch = ArchToString(m_arch);
         printf("Type: ispc-target. size: %zu, OS: %s, target: %s, arch(runtime) %s\n", m_size, os.c_str(),
+               target.c_str(), arch.c_str());
+        break;
+    }
+    case BitcodeLibType::Stdlib: {
+        std::string target = ISPCTargetToString(m_target);
+        std::string arch = ArchToString(m_arch);
+        printf("Type: stdlib.      size: %zu, OS: %s, target: %s, arch(runtime) %s\n", m_size, os.c_str(),
                target.c_str(), arch.c_str());
         break;
     }

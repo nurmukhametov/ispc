@@ -7,8 +7,6 @@
 # ispc Stdlib.cmake
 #
 
-set(STDLIB_ISPC_FILES stdlib.ispc builtins.isph stdlib.isph svml.isph target.isph )
-
 function (write_stdlib_bitcode_lib name target os bit)
     set(arch "error")
     if ("${target}" MATCHES "sse|avx")
@@ -48,7 +46,7 @@ function (write_stdlib_bitcode_lib name target os bit)
 
     string(REPLACE "-" "_" target ${target})
     file(APPEND ${CMAKE_BINARY_DIR}/bitcode_libs_generated.cpp
-      "static BitcodeLib ${name}(\"${name}.bc\", ISPCTarget::${target}, TargetOS::${os}, Arch::${arch});\n")
+      "static BitcodeLib ${name}(BitcodeLib::BitcodeLibType::Stdlib, \"${name}.bc\", ISPCTarget::${target}, TargetOS::${os}, Arch::${arch});\n")
 
     set(canon_os ${os} PARENT_SCOPE)
 endfunction()
@@ -145,9 +143,19 @@ function (generate_stdlibs_1 ispc_name)
 endfunction()
 
 function (generate_stdlibs ispc_name)
-    file(WRITE ${CMAKE_BINARY_DIR}/bitcode_libs_generated.cpp)
-
     generate_stdlibs_1(${ispc_name})
+
+    foreach (header ${STDLIB_HEADERS})
+        set(target_name stdlib-${header})
+        set(src ${CMAKE_SOURCE_DIR}/${header})
+        set(dest ${INCLUDE_FOLDER}/${header})
+        list(APPEND stdlib_headers_list ${dest})
+        add_custom_command(
+            OUTPUT ${dest}
+            DEPENDS ${src}
+            COMMAND ${CMAKE_COMMAND} -E copy ${src} ${dest})
+    endforeach()
+    add_custom_target(stdlib-headers ALL DEPENDS ${stdlib_headers_list})
 
     if (MSVC)
         source_group("Generated Stdlib Files" FILES ${STDLIB_CPP_FILES})
