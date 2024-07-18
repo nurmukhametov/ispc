@@ -577,3 +577,7 @@ extern "C"  varying int16 __padds_vi16(varying int16 , varying int16 );
 extern "C"  varying int8 __paddus_vi8(varying int8 , varying int8 );
 extern "C"  varying int16 __paddus_vi16(varying int16 , varying int16 );
 extern "C"  uniform int32 __num_cores();
+extern "C"  varying int32 __dot4add_u8i8packed(varying uint32, varying uint32, varying int32);
+extern "C"  varying int32 __dot4add_u8i8packed_sat(varying uint32, varying uint32, varying int32);
+extern "C"  varying int32 __dot2add_i16packed(varying uint32, varying uint32, varying int32);
+extern "C"  varying int32 __dot2add_i16packed_sat(varying uint32, varying uint32, varying int32);

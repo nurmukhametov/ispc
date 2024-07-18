@@ -3142,6 +3142,9 @@ static void lSetTargetSpecificMacroDefinitions(const std::shared_ptr<clang::Prep
     if (g->target->hasSatArith()) {
         opts->addMacroDef("ISPC_TARGET_HAS_SATURATING_ARITHMETIC");
     }
+    if (g->target->hasDotProductVNNI()) {
+        opts->addMacroDef("ISPC_TARGET_HAS_DOT_PRODUCT_VNNI");
+    }
     // TODO! what is the problem to have g->target->hasXePrefetch function returning bool for non XE_ENABLED builds??
 #ifdef ISPC_XE_ENABLED
     if (g->target->hasXePrefetch()) {
