@@ -510,8 +510,6 @@ list(APPEND OPT_SOURCES
     src/opt/IntrinsicsOptPass.h
     src/opt/MangleOpenCLBuiltins.cpp
     src/opt/MangleOpenCLBuiltins.h
-    src/opt/MakeInternalFuncsStatic.cpp
-    src/opt/MakeInternalFuncsStatic.h
     src/opt/PeepholePass.cpp
     src/opt/PeepholePass.h
     src/opt/ReplaceMaskedMemOps.cpp

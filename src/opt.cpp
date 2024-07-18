@@ -335,7 +335,6 @@ void ispc::Optimize(llvm::Module *module, int optLevel) {
         optPM.commitFunctionToModulePassManager();
 
         optPM.addModulePass(llvm::ModuleInlinerWrapperPass());
-        optPM.addModulePass(MakeInternalFuncsStaticPass());
 
         optPM.initFunctionPassManager();
         optPM.addFunctionPass(llvm::SimplifyCFGPass(simplifyCFGopt));
@@ -634,7 +633,6 @@ void ispc::Optimize(llvm::Module *module, int optLevel) {
         optPM.commitFunctionToModulePassManager();
         optPM.addModulePass(llvm::ModuleInlinerWrapperPass());
         optPM.addModulePass(llvm::StripDeadPrototypesPass());
-        optPM.addModulePass(MakeInternalFuncsStaticPass());
         optPM.addModulePass(llvm::GlobalDCEPass());
         optPM.addModulePass(llvm::ConstantMergePass());
 #ifdef ISPC_XE_ENABLED

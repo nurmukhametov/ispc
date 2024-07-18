@@ -16,7 +16,6 @@
 #include "InstructionSimplify.h"
 #include "IntrinsicsOptPass.h"
 #include "IsCompileTimeConstant.h"
-#include "MakeInternalFuncsStatic.h"
 #include "MangleOpenCLBuiltins.h"
 #include "PeepholePass.h"
 #include "ReplaceMaskedMemOps.h"
