@@ -59,6 +59,7 @@ class BitcodeLib {
     Arch getArch() const;
     ISPCTarget getISPCTarget() const;
     const std::string &getFilename() const;
+    bool fileExists() const;
     llvm::Module *getLLVMModule() const;
 };
 

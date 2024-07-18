@@ -211,7 +211,7 @@ const BitcodeLib *TargetLibRegistry::getISPCStdLib(ISPCTarget target, TargetOS o
 }
 
 // Print user-friendly message about supported targets
-void TargetLibRegistry::printSupportMatrix() const {
+void TargetLibRegistry::printSupportMatrix(std::vector<std::string> &missedFiles) const {
     // Vector of rows, which are vectors of cells.
     std::vector<std::vector<std::string>> table;
 
@@ -236,6 +236,18 @@ void TargetLibRegistry::printSupportMatrix() const {
             for (int k = (int)Arch::none; k < (int)Arch::error; k++) {
                 Arch arch = (Arch)k;
                 if (isSupported(target, os, arch)) {
+                    const BitcodeLib *clib = getBuiltinsCLib(os, arch);
+                    const BitcodeLib *tlib = getISPCTargetLib(target, os, arch);
+                    const BitcodeLib *slib = getISPCStdLib(target, os, arch);
+                    if (!clib->fileExists()) {
+                        missedFiles.push_back(clib->getFilename());
+                    }
+                    if (!tlib->fileExists()) {
+                        missedFiles.push_back(tlib->getFilename());
+                    }
+                    if (!slib->fileExists()) {
+                        missedFiles.push_back(slib->getFilename());
+                    }
                     if (!arch_list_os.empty()) {
                         arch_list_os += ", ";
                     }

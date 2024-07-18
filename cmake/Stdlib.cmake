@@ -49,6 +49,7 @@ function (write_stdlib_bitcode_lib name target os bit)
       "static BitcodeLib ${name}(BitcodeLib::BitcodeLibType::Stdlib, \"${name}.bc\", ISPCTarget::${target}, TargetOS::${os}, Arch::${arch});\n")
 
     set(canon_os ${os} PARENT_SCOPE)
+    set(arch ${arch} PARENT_SCOPE)
 endfunction()
 
 function (stdlib_to_cpp ispc_name target bit os)
@@ -57,7 +58,7 @@ function (stdlib_to_cpp ispc_name target bit os)
     set(cpp ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_CFG_INTDIR}/${name}.cpp)
     set(bc ${BITCODE_FOLDER}/${name}.bc)
 
-    # define canon_os
+    # define canon_os and arch
     write_stdlib_bitcode_lib(${name} ${target} ${os} ${bit})
 
     add_custom_command(

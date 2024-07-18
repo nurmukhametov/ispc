@@ -80,8 +80,9 @@ class TargetLibRegistry {
     // Return stdlib module if available, otherwise nullptr.
     const BitcodeLib *getISPCStdLib(ISPCTarget target, TargetOS os, Arch arch) const;
 
-    // Print user-friendly message about supported targets
-    void printSupportMatrix() const;
+    // Print user-friendly message about supported targets and return missed
+    // bitcode files (if any).
+    void printSupportMatrix(std::vector<std::string> &missedFiles) const;
 
     std::string getSupportedArchs();
     std::string getSupportedTargets();

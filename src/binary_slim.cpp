@@ -22,7 +22,7 @@ void initializeBinaryType(const char *ISPCExecutableAbsPath) {
     llvm::sys::path::remove_filename(includeDir);
     llvm::SmallString<128> shareDir(includeDir);
     llvm::sys::path::append(includeDir, "include");
-    lParseInclude(includeDir.c_str());
+    g->includePath.push_back(std::string(includeDir.c_str()));
     llvm::sys::path::append(shareDir, "share", "ispc");
     g->shareDirPath = std::string(shareDir.str());
 }

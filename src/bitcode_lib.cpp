@@ -114,6 +114,12 @@ Arch BitcodeLib::getArch() const { return m_arch; }
 ISPCTarget BitcodeLib::getISPCTarget() const { return m_target; }
 const std::string &BitcodeLib::getFilename() const { return m_filename; }
 
+bool BitcodeLib::fileExists() const {
+    llvm::SmallString<128> filePath(g->shareDirPath);
+    llvm::sys::path::append(filePath, m_filename);
+    return llvm::sys::fs::exists(filePath);
+}
+
 llvm::Module *BitcodeLib::getLLVMModule() const {
     switch (m_storage) {
     case BitcodeLibStorage::FileSystem: {
