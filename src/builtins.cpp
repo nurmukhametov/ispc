@@ -157,7 +157,7 @@ static void lCreateSymbol(const std::string &name, const Type *returnType, llvm:
     Debug(noPos, "Created builtin symbol \"%s\" [%s]\n", name.c_str(), funcType->GetString().c_str());
 
     Symbol *sym = new Symbol(name, noPos, funcType);
-    sym->Print();
+    // sym->Print();
     sym->function = func;
     symbolTable->AddFunction(sym);
 }
@@ -191,7 +191,7 @@ static bool lCreateISPCSymbol(llvm::Function *func, SymbolTable *symbolTable) {
         FunctionType *funcType = new FunctionType(returnType, argTypes, noPos);
 
         Symbol *sym = new Symbol(name, noPos, funcType);
-        sym->Print();
+        // sym->Print();
         sym->function = func;
         symbolTable->AddFunction(sym);
         return true;
@@ -451,36 +451,6 @@ void ispc::debugDumpModule(llvm::Module *module, std::string name, int stage) {
         // dump to stdout
         module->print(llvm::outs(), nullptr);
     }
-
-    // A hack to move over declaration, which have no definition.
-    // New linker is kind of smart and think it knows better what to do, so
-    // it removes unused declarations without definitions.
-    // This trick should be legal, as both modules use the same LLVMContext.
-    for (llvm::Function &f : *bcModule) {
-        if (f.isDeclaration()) {
-            // Declarations with uses will be moved by Linker.
-            if (f.getNumUses() > 0)
-                continue;
-            module->getOrInsertFunction(f.getName(), f.getFunctionType(), f.getAttributes());
-        }
-    }
-
-    // Remove clang ID metadata from the bitcode module, as we don't need it.
-    llvm::NamedMDNode *identMD = bcModule->getNamedMetadata("llvm.ident");
-    if (identMD) {
-        identMD->eraseFromParent();
-    }
-
-    std::unique_ptr<llvm::Module> M(bcModule);
-    if (llvm::Linker::linkModules(*module, std::move(M))) {
-        Error(SourcePos(), "Error linking stdlib bitcode.");
-    }
-
-    lSetInternalFunctions(module);
-
-    if (symbolTable != nullptr)
-        lAddModuleSymbols(module, symbolTable);
-    lCheckModuleIntrinsics(module);
 }
 
 void ispc::LinkDispatcher(llvm::Module *module) {
