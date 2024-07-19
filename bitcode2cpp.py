@@ -16,7 +16,7 @@ from tempfile import NamedTemporaryFile
 parser = argparse.ArgumentParser()
 parser.add_argument("src", help="Source file to process")
 parser.add_argument("output", help="Output file")
-parser.add_argument("--type", help="Type of processed file", choices=['dispatch', 'builtins-c', 'ispc-target'], required=True)
+parser.add_argument("--type", help="Type of processed file", choices=['dispatch', 'builtins-c', 'ispc-target', 'stdlib'], required=True)
 parser.add_argument("--runtime", help="Runtime", choices=['32', '64'], nargs='?', default='')
 parser.add_argument("--os", help="Target OS", choices=['windows', 'linux', 'macos', 'freebsd', 'android', 'ios', 'ps4', 'web', 'WINDOWS', 'UNIX', 'WEB'], default='')
 parser.add_argument("--arch", help="Target architecture", choices=['i686', 'x86_64', 'armv7', 'arm64', 'aarch64', 'wasm32', 'wasm64', 'xe64'], default='')
@@ -29,6 +29,7 @@ length=0
 target = basename(src)
 target = re.sub(r"^builtins_", "", target)
 target = re.sub(r"^target_", "", target)
+target = re.sub(r"^stdlib_", "", target)
 target = re.sub(r"\.bc$", "", target)
 target = re.sub(r"\.ll$", "", target)
 target = re.sub(r"\.c$", "", target)
@@ -121,7 +122,7 @@ with NamedTemporaryFile(mode='w', dir=dirname(output), delete=False) as outfile:
             "TargetOS::" + target_os + ", " +
             "Arch::" + ispc_arch +
             ");\n")
-    elif args[0].type == 'ispc-target':
+    elif args[0].type == 'ispc-target' or args[0].type == 'stdlib':
         # For ISPC target files we care about ISPCTarget id, TargetOS type (Windows/Unix), and runtime type (32/64).
         arch = "error"
         if ("sse" in target) or ("avx" in target):
@@ -135,13 +136,22 @@ with NamedTemporaryFile(mode='w', dir=dirname(output), delete=False) as outfile:
         else:
             sys.stderr.write("Unknown target detected: " + target + "\n")
             sys.exit(1)
-        outfile.write("static BitcodeLib " + name + "_lib(" +
-            name + ", " +
-            name + "_length, " +
-            "ISPCTarget::" + target + ", " +
-            "TargetOS::" + target_os + ", " +
-            "Arch::" + arch +
-            ");\n")
+        if args[0].type == 'stdlib':
+            outfile.write("static BitcodeLib " + name + "_lib(BitcodeLib::BitcodeLibType::Stdlib, " +
+                name + ", " +
+                name + "_length, " +
+                "ISPCTarget::" + target + ", " +
+                "TargetOS::" + target_os + ", " +
+                "Arch::" + arch +
+                ");\n")
+        else:
+            outfile.write("static BitcodeLib " + name + "_lib(" +
+                name + ", " +
+                name + "_length, " +
+                "ISPCTarget::" + target + ", " +
+                "TargetOS::" + target_os + ", " +
+                "Arch::" + arch +
+                ");\n")
     else:
         sys.stderr.write("Unknown argument for --type: " + args[0].type + "\n")
         sys.exit(1)

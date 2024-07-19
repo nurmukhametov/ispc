@@ -1342,8 +1342,8 @@ void FunctionEmitContext::SetFunctionFTZ_DAZFlags() {
     llvm::Function *fmm = mm[0]->function;
     std::vector<llvm::Value *> args;
     llvm::Value *oldFTZ = CallInst(fmm, nullptr, args, "");
-    oldFTZ->dump();
-    functionFTZ_DAZValue->getType()->dump();
+    // oldFTZ->dump();
+    // functionFTZ_DAZValue->getType()->dump();
     StoreInst(oldFTZ, functionFTZ_DAZValue);
 }
 
