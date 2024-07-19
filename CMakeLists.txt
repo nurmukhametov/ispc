@@ -899,7 +899,7 @@ if (ISPC_INCLUDE_EXAMPLES AND NOT ISPC_PREPARE_PACKAGE)
     include(ExternalProject)
     ExternalProject_Add(ispc_cpu_examples
         PREFIX cpu_examples
-        DEPENDS ispc
+        DEPENDS ispc stdlibs-bc
         SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/examples/cpu"
         CMAKE_CACHE_ARGS
             -DISPC_BUILD:BOOL=TRUE
@@ -925,7 +925,7 @@ if (ISPC_INCLUDE_XE_EXAMPLES AND ISPC_INCLUDE_RT AND NOT ISPC_PREPARE_PACKAGE)
         # using cmake generator conditional expressions were unsuccessful.
         ExternalProject_Add(ispc_xpu_examples
             PREFIX xpu_examples
-            DEPENDS ispc ispcrt benchmark
+            DEPENDS ispc stdlibs-bc ispcrt benchmark
             SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/examples/xpu"
             CMAKE_CACHE_ARGS
                 -DISPC_BUILD:BOOL=TRUE
@@ -945,7 +945,7 @@ if (ISPC_INCLUDE_XE_EXAMPLES AND ISPC_INCLUDE_RT AND NOT ISPC_PREPARE_PACKAGE)
     else()
         ExternalProject_Add(ispc_xpu_examples
             PREFIX xpu_examples
-            DEPENDS ispc ispcrt
+            DEPENDS ispc stdlibs-bc ispcrt
             SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/examples/xpu"
             CMAKE_CACHE_ARGS
                 -DISPC_BUILD:BOOL=TRUE
