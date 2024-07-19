@@ -743,6 +743,9 @@ struct Globals {
     /** Wherther we are in special mode of generating IR for stdlib. */
     bool genStdlib;
 
+    /** Whether ISPC binary is slim. */
+    bool isSlimBinary;
+
     /** Store the path to directory for IR file dumps. */
     std::string dumpFilePath;
 

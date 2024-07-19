@@ -143,30 +143,64 @@ function (generate_stdlibs_1 ispc_name)
     set(STDLIB_CPP_FILES ${STDLIB_CPP_FILES} PARENT_SCOPE)
 endfunction()
 
-function (generate_stdlibs ispc_name)
-    generate_stdlibs_1(${ispc_name})
+function (stdlib_header_cpp name)
+    set(src ${INCLUDE_FOLDER}/${header})
+    string(REPLACE "." "_" header ${header})
+    set(cpp ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_CFG_INTDIR}/${header}.cpp)
+    
+    add_custom_command(
+        OUTPUT ${cpp}
+        COMMAND ${Python3_EXECUTABLE} bitcode2cpp.py ${src} --type=header ${cpp}
+        DEPENDS bitcode2cpp.py ${src}
+        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+    )
 
+    set(tmp_list ${STDLIB_HEADERS_CPP})
+    list(APPEND tmp_list ${cpp})
+    set(STDLIB_HEADERS_CPP ${tmp_list} PARENT_SCOPE)
+endfunction()
+
+function (stdlib_headers)
     foreach (header ${STDLIB_HEADERS})
         set(target_name stdlib-${header})
         set(src ${CMAKE_SOURCE_DIR}/${header})
         set(dest ${INCLUDE_FOLDER}/${header})
         list(APPEND stdlib_headers_list ${dest})
+
         add_custom_command(
             OUTPUT ${dest}
             DEPENDS ${src}
             COMMAND ${CMAKE_COMMAND} -E copy ${src} ${dest})
+
+        stdlib_header_cpp(${header})
     endforeach()
+
     add_custom_target(stdlib-headers ALL DEPENDS ${stdlib_headers_list})
 
-    if (MSVC)
-        source_group("Generated Stdlib Files" FILES ${STDLIB_CPP_FILES})
-    endif()
-    set_source_files_properties(${STDLIB_CPP_FILES} PROPERTIES GENERATED true)
+    set(STDLIB_HEADERS_CPP ${STDLIB_HEADERS_CPP} PARENT_SCOPE)
+endfunction()
+
+function (generate_stdlibs ispc_name)
+    stdlib_headers()
+
+    add_custom_target(stdlib-headers-cpp DEPENDS ${STDLIB_HEADERS_CPP})
+    set_target_properties(stdlib-headers-cpp PROPERTIES SOURCE "${STDLIB_HEADERS_CPP}")
+
+    generate_stdlibs_1(${ispc_name})
 
     add_custom_target(stdlibs-bc DEPENDS ${STDLIB_BC_FILES})
+    # TODO! stdlibs-cpp is kind of empty
     add_custom_target(stdlibs-cpp DEPENDS stdlibs-bc)
     set_target_properties(stdlibs-cpp PROPERTIES SOURCE "${STDLIB_CPP_FILES}")
 
-    add_library(stdlib OBJECT EXCLUDE_FROM_ALL ${STDLIB_CPP_FILES})
+    add_library(stdlib OBJECT EXCLUDE_FROM_ALL ${STDLIB_CPP_FILES} ${STDLIB_HEADERS_CPP})
     add_dependencies(stdlib stdlibs-cpp)
+    add_dependencies(stdlib stdlib-headers-cpp)
+
+    if (MSVC)
+        source_group("Generated Include Files" FILES ${STDLIB_HEADERS_CPP})
+        source_group("Generated Stdlib Files" FILES ${STDLIB_CPP_FILES})
+    endif()
+    set_source_files_properties(${STDLIB_HEADERS_CPP} PROPERTIES GENERATED true)
+    set_source_files_properties(${STDLIB_CPP_FILES} PROPERTIES GENERATED true)
 endfunction()

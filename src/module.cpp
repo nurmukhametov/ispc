@@ -10,6 +10,7 @@
 */
 
 #include "module.h"
+#include "binary_type.h"
 #include "builtins.h"
 #include "ctx.h"
 #include "expr.h"
@@ -450,6 +451,14 @@ int Module::CompileFile() {
     }
 
     debugDumpModule(module, "DefineBuiltinsDeclarations", pre_stage++);
+
+    if (!g->isSlimBinary && !g->genStdlib && g->includeStdlib) {
+        const char *stdlib_header_ptr = getStdlibHeader();
+        YY_BUFFER_STATE strbuf;
+        strbuf = yy_scan_string(stdlib_header_ptr);
+        yyparse();
+        yy_delete_buffer(strbuf);
+    }
 
     bool runPreprocessor = g->runCPP;
     if (runPreprocessor) {
@@ -3098,7 +3107,7 @@ static void lInitializePreprocessor(clang::Preprocessor &PP, const clang::Prepro
             lDefineBuiltinMacro(Builder, InitOpts.Macros[i].first, PP.getDiagnostics());
     }
 
-    if (!g->genStdlib) {
+    if (g->isSlimBinary && !g->genStdlib) {
         Builder.append(llvm::Twine("#include \"stdlib.isph\""));
     }
 
