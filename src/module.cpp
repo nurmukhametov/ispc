@@ -547,7 +547,7 @@ int Module::CompileFile() {
                     // Bitcast as ConstExpr when opaque pointer is not used, otherwise C is just an opaque pointer.
                     llvm::Value *val = CE ? CE->getOperand(0) : C;
                     Assert(val);
-                    val->dump();
+                    // val->dump();
                     if (val->getNumUses() > 1) {
                         Assert(llvm::isa<llvm::Function>(val));
                         usedFunctions[llvm::cast<llvm::Function>(val)] = 1;
