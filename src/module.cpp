@@ -417,41 +417,34 @@ extern void yy_delete_buffer(YY_BUFFER_STATE);
 extern void ParserInit();
 
 int Module::preprocessAndParse() {
-    if (!g->isSlimBinary && !g->genStdlib) {
-        initCPPBuffer();
-
-        std::unique_ptr<llvm::MemoryBuffer> memBuffer =
-            llvm::MemoryBuffer::getMemBufferCopy(getCoreISPHRef(), "core.isph");
-        llvm::MemoryBufferRef bufRef = memBuffer->getMemBufferRef();
-        clang::FrontendInputFile inputFile(bufRef, clang::InputKind(), true);
-
-        const int numErrors = execPreprocessor(inputFile, bufferCPP->os.get());
-        errorCount += (g->ignoreCPPErrors) ? 0 : numErrors;
-
-        parseCPPBuffer();
-        clearCPPBuffer();
-
-        if (g->includeStdlib) {
-            initCPPBuffer();
-
-            std::unique_ptr<llvm::MemoryBuffer> memBuffer =
-                llvm::MemoryBuffer::getMemBufferCopy(getStdlibISPHRef(), "stdlib.isph");
-            llvm::MemoryBufferRef bufRef = memBuffer->getMemBufferRef();
-            clang::FrontendInputFile inputFile(bufRef, clang::InputKind(), true);
-
-            const int numErrors = execPreprocessor(inputFile, bufferCPP->os.get());
-            errorCount += (g->ignoreCPPErrors) ? 0 : numErrors;
-
-            parseCPPBuffer();
-            clearCPPBuffer();
-        }
-    }
+    llvm::SmallVector<llvm::StringRef, 3> refs;
 
     initCPPBuffer();
 
+    if (!g->isSlimBinary && !g->genStdlib) {
+        // TODO! include properly to preserve source/debug locations
+        refs.push_back(getCoreISPHRef());
+
+        if (g->includeStdlib) {
+            // TODO! include properly to preserve source/debug locations
+            refs.push_back(getStdlibISPHRef());
+        }
+    }
+
     const char *infilename = !IsStdin(filename) ? filename : "-";
     clang::FrontendInputFile inputFile(infilename, clang::InputKind());
-    const int numErrors = execPreprocessor(inputFile, bufferCPP->os.get());
+
+    llvm::ErrorOr<std::unique_ptr<llvm::MemoryBuffer>> fileBuffer = llvm::MemoryBuffer::getFile(inputFile.getFile());
+    if (!fileBuffer) {
+        // TODO!
+        return 1;
+    }
+    refs.push_back(fileBuffer.get()->getBuffer());
+    std::string combined = llvm::join(refs, "\n");
+    std::unique_ptr<llvm::MemoryBuffer> memBuffer = llvm::MemoryBuffer::getMemBufferCopy(combined, "input.cpp");
+    clang::FrontendInputFile finalInputFile(memBuffer->getMemBufferRef(), clang::InputKind());
+
+    const int numErrors = execPreprocessor(finalInputFile, bufferCPP->os.get());
     errorCount += (g->ignoreCPPErrors) ? 0 : numErrors;
 
     if (g->onlyCPP) {
