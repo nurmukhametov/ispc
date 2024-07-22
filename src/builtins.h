@@ -39,6 +39,8 @@ void LinkStdlib(SymbolTable *symbolTable, llvm::Module *module);
 
 void addPersistentToLLVMUsed(llvm::Module &M);
 
+void removeUnusedPersistentFuntions(llvm::Module *M);
+
 void removeUnused(llvm::Module *M);
 
 void debugDumpModule(llvm::Module *module, std::string name, int stage);

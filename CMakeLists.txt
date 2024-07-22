@@ -530,7 +530,7 @@ list(APPEND OPT_SOURCES
     src/opt/XeReplaceLLVMIntrinsics.h
 )
 
-set(STDLIB_HEADERS builtins.isph stdlib.isph svml.isph target.isph)
+set(STDLIB_HEADERS builtins.isph core.isph stdlib.isph svml.isph target.isph)
 set(STDLIB_ISPC_FILES stdlib.ispc ${STDLIB_HEADERS})
 
 # To show stdlib.ispc in VS solution:

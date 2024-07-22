@@ -8,12 +8,14 @@
     @brief Defines function with distribution specific implementations.
 */
 
+#include <llvm/ADT/StringRef.h>
+
 /** Print the binary type: slim or composite. */
 void printBinaryType();
 
 /** Initializes distribution specific paths based on main executable abspath. */
 void initializeBinaryType(const char *MainExecutableAbsPath);
 
-const char *getStdlibHeader();
+llvm::StringRef getStdlibISPHRef();
 
-int getStdlibHeaderLength();
+llvm::StringRef getCoreISPHRef();

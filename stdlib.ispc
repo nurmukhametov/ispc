@@ -13,6 +13,7 @@
 
 // Ideally we need to have here header with builtins API
 #define ISPC_INTERNAL_STDLIB_COMPILATION
+#include "core.isph"
 #include "stdlib.isph"
 #include "target.isph"
 #include "builtins.isph"

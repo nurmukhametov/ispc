@@ -410,6 +410,15 @@ void ispc::AddDeclarationsToModule(llvm::Module *bcModule, llvm::Module *module)
     }
 }
 
+llvm::Constant *lFuncAsConstInt8Ptr(llvm::Module &M, const char *name) {
+    llvm::LLVMContext &Context = M.getContext();
+    llvm::Function *F = M.getFunction(name);
+    if (F) {
+        return llvm::ConstantExpr::getBitCast(F, llvm::Type::getInt8PtrTy(Context));
+    }
+    return nullptr;
+}
+
 void ispc::removeUnused(llvm::Module *M) {
     llvm::FunctionAnalysisManager FAM;
     llvm::ModuleAnalysisManager MAM;
@@ -418,6 +427,75 @@ void ispc::removeUnused(llvm::Module *M) {
     PB.registerModuleAnalyses(MAM);
     PM.addPass(llvm::GlobalDCEPass());
     PM.run(*M, MAM);
+}
+
+void ispc::removeUnusedPersistentFuntions(llvm::Module *M) {
+    // TODO! make it clean. The idea here is to preserve all persistent
+    // functions in the first call of addPersistentToLLVMUsed then
+    // remove dead code. After that, manually remove llvm.compiler.used
+    // as well as uses of that functions that referenced by bitcats
+    // constant exprs. Then we rerun addPersistentToLLVMUsed, on the
+    // second run it preserves only subset of functions that are really
+    // used (or can be used) in module.
+    // M->print(llvm::errs(), nullptr);
+    llvm::GlobalVariable *llvmUsed = M->getNamedGlobal("llvm.compiler.used");
+    if (llvmUsed) {
+        std::unordered_map<llvm::Function *, int> usedFunctions;
+        llvm::ConstantArray *initList = llvm::cast<llvm::ConstantArray>(llvmUsed->getInitializer());
+        for (unsigned i = 0; i < initList->getNumOperands(); i++) {
+            auto *C = initList->getOperand(i);
+            // C->dump();
+            llvm::ConstantExpr *CE = llvm::dyn_cast<llvm::ConstantExpr>(C);
+            // CE->dump();
+            // Bitcast as ConstExpr when opaque pointer is not used, otherwise C is just an opaque pointer.
+            llvm::Value *val = CE ? CE->getOperand(0) : C;
+            Assert(val);
+            // val->dump();
+            if (val->getNumUses() > 1) {
+                Assert(llvm::isa<llvm::Function>(val));
+                usedFunctions[llvm::cast<llvm::Function>(val)] = 1;
+            }
+        }
+
+        // Extend the list of preserved functions with the functions from corresponding persistent groups.
+        std::unordered_map<const builtin::PersistentGroup *, int> usedPersistentGroups;
+        for (auto const &[group, functions] : builtin::persistentGroups) {
+            for (auto const &name : functions) {
+                llvm::Function *F = M->getFunction(name);
+                if (usedFunctions.find(F) != usedFunctions.end()) {
+                    usedPersistentGroups[&group] = 1;
+                    break;
+                }
+            }
+        }
+
+        std::vector<llvm::Constant *> newElements;
+        for (auto const &[group, functions] : builtin::persistentGroups) {
+            if (usedPersistentGroups.find(&group) != usedPersistentGroups.end()) {
+                for (auto const &name : functions) {
+                    if (llvm::Constant *C = lFuncAsConstInt8Ptr(*M, name)) {
+                        newElements.push_back(C);
+                    }
+                }
+            }
+        }
+        for (auto const &[name, val] : builtin::persistentFuncs) {
+            if (llvm::Constant *C = lFuncAsConstInt8Ptr(*M, name.c_str())) {
+                newElements.push_back(C);
+            }
+        }
+
+        llvmUsed->eraseFromParent();
+
+        llvm::ArrayType *arrayType = llvm::ArrayType::get(initList->getType()->getElementType(), newElements.size());
+        llvm::Constant *newInitList = llvm::ConstantArray::get(arrayType, newElements);
+
+        llvmUsed = new llvm::GlobalVariable(*M, newInitList->getType(), false, llvm::GlobalValue::AppendingLinkage,
+                                            newInitList, "llvm.compiler.used");
+        llvmUsed->setSection("llvm.metadata");
+
+        removeUnused(M);
+    }
 }
 
 void ispc::debugDumpModule(llvm::Module *module, std::string name, int stage) {
@@ -476,15 +554,6 @@ void ispc::LinkCommonBuiltins(SymbolTable *symbolTable, llvm::Module *module) {
     // Hence, different version for all potentially supported OSes.
     AddBitcodeToModule(builtinsBCModule, module);
     lSetAsInternal(module, commonBuiltins);
-}
-
-llvm::Constant *lFuncAsConstInt8Ptr(llvm::Module &M, const char *name) {
-    llvm::LLVMContext &Context = M.getContext();
-    llvm::Function *F = M.getFunction(name);
-    if (F) {
-        return llvm::ConstantExpr::getBitCast(F, llvm::Type::getInt8PtrTy(Context));
-    }
-    return nullptr;
 }
 
 void ispc::addPersistentToLLVMUsed(llvm::Module &M) {

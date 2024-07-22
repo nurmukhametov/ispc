@@ -416,22 +416,12 @@ extern YY_BUFFER_STATE yy_create_buffer(FILE *, int);
 extern void yy_delete_buffer(YY_BUFFER_STATE);
 extern void ParserInit();
 
-llvm::Constant *_lFuncAsConstInt8Ptr(llvm::Module &M, const char *name) {
-    llvm::LLVMContext &Context = M.getContext();
-    llvm::Function *F = M.getFunction(name);
-    if (F) {
-        return llvm::ConstantExpr::getBitCast(F, llvm::Type::getInt8PtrTy(Context));
-    }
-    return nullptr;
-}
-
 int Module::preprocessAndParse() {
-    if (!g->isSlimBinary && !g->genStdlib && g->includeStdlib) {
+    if (!g->isSlimBinary && !g->genStdlib) {
         initCPPBuffer();
 
-        llvm::StringRef bufCont(getStdlibHeader(), getStdlibHeaderLength());
         std::unique_ptr<llvm::MemoryBuffer> memBuffer =
-            llvm::MemoryBuffer::getMemBufferCopy(bufCont, "stdlib.isph");
+            llvm::MemoryBuffer::getMemBufferCopy(getCoreISPHRef(), "core.isph");
         llvm::MemoryBufferRef bufRef = memBuffer->getMemBufferRef();
         clang::FrontendInputFile inputFile(bufRef, clang::InputKind(), true);
 
@@ -440,6 +430,21 @@ int Module::preprocessAndParse() {
 
         parseCPPBuffer();
         clearCPPBuffer();
+
+        if (g->includeStdlib) {
+            initCPPBuffer();
+
+            std::unique_ptr<llvm::MemoryBuffer> memBuffer =
+                llvm::MemoryBuffer::getMemBufferCopy(getStdlibISPHRef(), "stdlib.isph");
+            llvm::MemoryBufferRef bufRef = memBuffer->getMemBufferRef();
+            clang::FrontendInputFile inputFile(bufRef, clang::InputKind(), true);
+
+            const int numErrors = execPreprocessor(inputFile, bufferCPP->os.get());
+            errorCount += (g->ignoreCPPErrors) ? 0 : numErrors;
+
+            parseCPPBuffer();
+            clearCPPBuffer();
+        }
     }
 
     initCPPBuffer();
@@ -541,76 +546,9 @@ int Module::CompileFile() {
             addPersistentToLLVMUsed(*module);
             removeUnused(module);
             // printf("2\n");
-            // TODO! make it clean. The idea here is to preserve all persistent
-            // functions in the first call of addPersistentToLLVMUsed then
-            // remove dead code. After that, manually remove llvm.compiler.used
-            // as well as uses of that functions that referenced by bitcats
-            // constant exprs. Then we rerun addPersistentToLLVMUsed, on the
-            // second run it preserves only subset of functions that are really
-            // used (or can be used) in module.
-            // module->print(llvm::errs(), nullptr);
-            llvm::GlobalVariable *llvmUsed = module->getNamedGlobal("llvm.compiler.used");
-            if (llvmUsed) {
-                std::unordered_map<llvm::Function *, int> usedFunctions;
-                llvm::ConstantArray *initList = llvm::cast<llvm::ConstantArray>(llvmUsed->getInitializer());
-                for (unsigned i = 0; i < initList->getNumOperands(); i++) {
-                    auto *C = initList->getOperand(i);
-                    // C->dump();
-                    llvm::ConstantExpr *CE = llvm::dyn_cast<llvm::ConstantExpr>(C);
-                    // CE->dump();
-                    // Bitcast as ConstExpr when opaque pointer is not used, otherwise C is just an opaque pointer.
-                    llvm::Value *val = CE ? CE->getOperand(0) : C;
-                    Assert(val);
-                    // val->dump();
-                    if (val->getNumUses() > 1) {
-                        Assert(llvm::isa<llvm::Function>(val));
-                        usedFunctions[llvm::cast<llvm::Function>(val)] = 1;
-                    }
-                }
-
-                // Extend the list of preserved functions with the functions from corresponding persistent groups.
-                std::unordered_map<const builtin::PersistentGroup *, int> usedPersistentGroups;
-                for (auto const &[group, functions] : builtin::persistentGroups) {
-                    for (auto const &name : functions) {
-                        llvm::Function *F = module->getFunction(name);
-                        if (usedFunctions.find(F) != usedFunctions.end()) {
-                            usedPersistentGroups[&group] = 1;
-                            break;
-                        }
-                    }
-                }
-
-                std::vector<llvm::Constant*> newElements;
-                for (auto const &[group, functions] : builtin::persistentGroups) {
-                    if (usedPersistentGroups.find(&group) != usedPersistentGroups.end()) {
-                        for (auto const &name : functions) {
-                            if (llvm::Constant *C = _lFuncAsConstInt8Ptr(*module, name)) {
-                                newElements.push_back(C);
-                            }
-                        }
-                    }
-                }
-                for (auto const &[name, val] : builtin::persistentFuncs) {
-                    if (llvm::Constant *C = _lFuncAsConstInt8Ptr(*module, name.c_str())) {
-                        newElements.push_back(C);
-                    }
-                }
-
-                llvmUsed->eraseFromParent();
-
-                llvm::ArrayType *arrayType =
-                    llvm::ArrayType::get(initList->getType()->getElementType(), newElements.size());
-                llvm::Constant *newInitList = llvm::ConstantArray::get(arrayType, newElements);
-
-                llvmUsed =
-                    new llvm::GlobalVariable(*module, newInitList->getType(), false,
-                                             llvm::GlobalValue::AppendingLinkage, newInitList, "llvm.compiler.used");
-                llvmUsed->setSection("llvm.metadata");
-
-                removeUnused(module);
-            }
             // addPersistentToLLVMUsed(*module);
             // removeUnused(module);
+            removeUnusedPersistentFuntions(module);
             debugDumpModule(module, "LinkStdlib", pre_stage++);
         } else {
             addPersistentToLLVMUsed(*module);
@@ -3113,7 +3051,10 @@ static void lInitializePreprocessor(clang::Preprocessor &PP, const clang::Prepro
     }
 
     if (g->isSlimBinary && !g->genStdlib) {
-        Builder.append(llvm::Twine("#include \"stdlib.isph\""));
+        Builder.append(llvm::Twine("#include \"core.isph\""));
+        if (g->includeStdlib) {
+            Builder.append(llvm::Twine("#include \"stdlib.isph\""));
+        }
     }
 
     // Copy PredefinedBuffer into the Preprocessor.
