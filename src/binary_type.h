@@ -15,3 +15,5 @@ void printBinaryType();
 void initializeBinaryType(const char *MainExecutableAbsPath);
 
 const char *getStdlibHeader();
+
+int getStdlibHeaderLength();

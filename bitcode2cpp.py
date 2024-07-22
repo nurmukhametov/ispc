@@ -35,7 +35,7 @@ def bundle_header(src, output):
         with open(output, 'w') as outfile:
             outfile.write("#include \"bitcode_lib.h\"\n\n")
             outfile.write("using namespace ispc;\n\n")
-            outfile.write(f"extern const unsigned char {name}_header[] = ")
+            outfile.write(f"extern const char {name}_header[] = ")
             outfile.write("{\n")
             # Read input data and put it in the form of byte array in the source file.
             length = write_data(src, outfile)

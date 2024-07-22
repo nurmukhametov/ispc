@@ -425,6 +425,60 @@ llvm::Constant *_lFuncAsConstInt8Ptr(llvm::Module &M, const char *name) {
     return nullptr;
 }
 
+int Module::preprocessAndParse() {
+    if (!g->isSlimBinary && !g->genStdlib && g->includeStdlib) {
+        initCPPBuffer();
+
+        llvm::StringRef bufCont(getStdlibHeader(), getStdlibHeaderLength());
+        std::unique_ptr<llvm::MemoryBuffer> memBuffer =
+            llvm::MemoryBuffer::getMemBufferCopy(bufCont, "stdlib.isph");
+        llvm::MemoryBufferRef bufRef = memBuffer->getMemBufferRef();
+        clang::FrontendInputFile inputFile(bufRef, clang::InputKind(), true);
+
+        const int numErrors = execPreprocessor(inputFile, bufferCPP->os.get());
+        errorCount += (g->ignoreCPPErrors) ? 0 : numErrors;
+
+        parseCPPBuffer();
+        clearCPPBuffer();
+    }
+
+    initCPPBuffer();
+
+    const char *infilename = !IsStdin(filename) ? filename : "-";
+    clang::FrontendInputFile inputFile(infilename, clang::InputKind());
+    const int numErrors = execPreprocessor(inputFile, bufferCPP->os.get());
+    errorCount += (g->ignoreCPPErrors) ? 0 : numErrors;
+
+    if (g->onlyCPP) {
+        return errorCount; // Return early
+    }
+
+    parseCPPBuffer();
+    clearCPPBuffer();
+
+    return 0;
+}
+
+int Module::parse() {
+    // No preprocessor, just open up the file if it's not stdin..
+    FILE *f = nullptr;
+    if (IsStdin(filename)) {
+        f = stdin;
+    } else {
+        f = fopen(filename, "r");
+        if (f == nullptr) {
+            perror(filename);
+            return 1;
+        }
+    }
+    yyin = f;
+    yy_switch_to_buffer(yy_create_buffer(yyin, 4096));
+    yyparse();
+    fclose(f);
+
+    return 0;
+}
+
 int Module::CompileFile() {
     llvm::TimeTraceScope CompileFileTimeScope(
         "CompileFile", llvm::StringRef(filename + ("_" + std::string(g->target->GetISAString()))));
@@ -452,65 +506,16 @@ int Module::CompileFile() {
 
     debugDumpModule(module, "DefineBuiltinsDeclarations", pre_stage++);
 
-    if (!g->isSlimBinary && !g->genStdlib && g->includeStdlib) {
-        const char *stdlib_header_ptr = getStdlibHeader();
-        YY_BUFFER_STATE strbuf;
-        strbuf = yy_scan_string(stdlib_header_ptr);
-        yyparse();
-        yy_delete_buffer(strbuf);
-    }
-
-    bool runPreprocessor = g->runCPP;
-    if (runPreprocessor) {
+    if (g->runCPP) {
         llvm::TimeTraceScope TimeScope("Frontend parser");
-        if (!IsStdin(filename)) {
-            // Try to open the file first, since otherwise we crash in the
-            // preprocessor if the file doesn't exist.
-            FILE *f = fopen(filename, "r");
-            if (!f) {
-                perror(filename);
-                return 1;
-            }
-            fclose(f);
+        if (int err = preprocessAndParse()) {
+            return err;
         }
-
-        // If the CPP stream has been initialized, we have unexpected behavior.
-        if (bufferCPP) {
-            perror(filename);
-            return 1;
-        }
-
-        // Replace the CPP stream with a newly allocated one.
-        bufferCPP.reset(new CPPBuffer{});
-
-        const int numErrors = execPreprocessor(!IsStdin(filename) ? filename : "-", bufferCPP->os.get());
-        errorCount += (g->ignoreCPPErrors) ? 0 : numErrors;
-
-        if (g->onlyCPP) {
-            return errorCount; // Return early
-        }
-
-        YY_BUFFER_STATE strbuf = yy_scan_string(bufferCPP->str.c_str());
-        yyparse();
-        yy_delete_buffer(strbuf);
-        clearCPPBuffer();
     } else {
         llvm::TimeTraceScope TimeScope("Frontend parser");
-        // No preprocessor, just open up the file if it's not stdin..
-        FILE *f = nullptr;
-        if (IsStdin(filename)) {
-            f = stdin;
-        } else {
-            f = fopen(filename, "r");
-            if (f == nullptr) {
-                perror(filename);
-                return 1;
-            }
+        if (int err = parse()) {
+            return err;
         }
-        yyin = f;
-        yy_switch_to_buffer(yy_create_buffer(yyin, 4096));
-        yyparse();
-        fclose(f);
     }
 
     ast->Print(g->astDump);
@@ -3289,8 +3294,7 @@ static void lSetPreprocessorOptions(const std::shared_ptr<clang::PreprocessorOpt
 
 static void lSetLangOptions(clang::LangOptions *opts) { opts->LineComment = 1; }
 
-int Module::execPreprocessor(const char *infilename, llvm::raw_string_ostream *ostream) const {
-    clang::FrontendInputFile inputFile(infilename, clang::InputKind());
+int Module::execPreprocessor(clang::FrontendInputFile inputFile, llvm::raw_string_ostream *ostream) const {
     llvm::raw_fd_ostream stderrRaw(2, false);
 
     // Create Diagnostic engine
@@ -4071,6 +4075,22 @@ int Module::LinkAndOutput(std::vector<std::string> linkFiles, OutputType outputT
         return 0;
     }
     return 1;
+}
+
+void Module::initCPPBuffer() {
+    // If the CPP stream has been initialized, we have unexpected behavior.
+    if (bufferCPP) {
+        Assert("CPP stream has already been initialized.");
+    }
+
+    // Replace the CPP stream with a newly allocated one.
+    bufferCPP.reset(new CPPBuffer{});
+}
+
+void Module::parseCPPBuffer() {
+    YY_BUFFER_STATE strbuf = yy_scan_string(bufferCPP->str.c_str());
+    yyparse();
+    yy_delete_buffer(strbuf);
 }
 
 void Module::clearCPPBuffer() {
