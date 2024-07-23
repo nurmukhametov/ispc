@@ -441,7 +441,7 @@ int Module::preprocessAndParse() {
     }
     refs.push_back(fileBuffer.get()->getBuffer());
     std::string combined = llvm::join(refs, "\n");
-    std::unique_ptr<llvm::MemoryBuffer> memBuffer = llvm::MemoryBuffer::getMemBufferCopy(combined, "input.cpp");
+    std::unique_ptr<llvm::MemoryBuffer> memBuffer = llvm::MemoryBuffer::getMemBufferCopy(combined, filename);
     clang::FrontendInputFile finalInputFile(memBuffer->getMemBufferRef(), clang::InputKind());
 
     const int numErrors = execPreprocessor(finalInputFile, bufferCPP->os.get());
