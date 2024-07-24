@@ -202,7 +202,7 @@ struct ForeachDimension {
 %token TOKEN_SIZEOF TOKEN_NEW TOKEN_DELETE TOKEN_IN TOKEN_ALLOCA
 %token <stringVal> TOKEN_INTRINSIC_CALL
 
-%token TOKEN_EXTERN TOKEN_EXPORT TOKEN_STATIC TOKEN_INLINE TOKEN_NOINLINE TOKEN_VECTORCALL TOKEN_REGCALL TOKEN_TASK TOKEN_DECLSPEC
+%token TOKEN_EXTERN TOKEN_EXPORT TOKEN_STATIC TOKEN_INLINE TOKEN_NOINLINE TOKEN_VECTORCALL TOKEN_REGCALL TOKEN_NOESCAPE TOKEN_TASK TOKEN_DECLSPEC
 %token TOKEN_UNIFORM TOKEN_VARYING TOKEN_TYPEDEF TOKEN_SOA TOKEN_UNMASKED
 %token TOKEN_INT TOKEN_SIGNED TOKEN_UNSIGNED TOKEN_FLOAT16 TOKEN_FLOAT TOKEN_DOUBLE
 %token TOKEN_INT8 TOKEN_INT16 TOKEN_INT64 TOKEN_CONST TOKEN_VOID TOKEN_BOOL
@@ -1343,6 +1343,11 @@ specifier_qualifier_list
                       "function declarations.");
                 $$ = $2;
             }
+            else if ($1 == TYPEQUAL_NOESCAPE) {
+                Error(@1, "\"noescape\" qualifier is illegal outside of "
+                      "function declarations.");
+                $$ = $2;
+            }
             else if ($1 == TYPEQUAL_TASK) {
                 Error(@1, "\"task\" qualifier is illegal outside of "
                       "function declarations.");
@@ -1522,6 +1527,7 @@ type_qualifier
     | TOKEN_NOINLINE      { $$ = TYPEQUAL_NOINLINE; }
     | TOKEN_VECTORCALL    { $$ = TYPEQUAL_VECTORCALL; }
     | TOKEN_REGCALL       { $$ = TYPEQUAL_REGCALL; }
+    | TOKEN_NOESCAPE      { $$ = TYPEQUAL_NOESCAPE; }
     | TOKEN_SIGNED        { $$ = TYPEQUAL_SIGNED; }
     | TOKEN_UNSIGNED      { $$ = TYPEQUAL_UNSIGNED; }
     ;
@@ -2934,7 +2940,11 @@ lAddDeclaration(DeclSpecs *ds, Declarator *decl) {
             bool isNoInline = (ds->typeQualifiers & TYPEQUAL_NOINLINE);
             bool isVectorCall = (ds->typeQualifiers & TYPEQUAL_VECTORCALL);
             bool isRegCall = (ds->typeQualifiers & TYPEQUAL_REGCALL);
-            m->AddFunctionDeclaration(decl->name, ft, ds->storageClass,
+            Declarator *funcDecl = decl;
+            if (decl->kind == DK_POINTER || decl->kind == DK_REFERENCE) {
+                funcDecl = decl->child;
+            }
+            m->AddFunctionDeclaration(decl->name, ft, ds->storageClass, funcDecl,
                                       isInline, isNoInline, isVectorCall, isRegCall, decl->pos);
         }
         else {

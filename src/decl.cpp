@@ -84,6 +84,8 @@ static void lPrintTypeQualifiers(int typeQualifiers) {
         printf("export ");
     if (typeQualifiers & TYPEQUAL_UNMASKED)
         printf("unmasked ");
+    if (typeQualifiers & TYPEQUAL_NOESCAPE)
+        printf("noescape ");
 }
 
 /** Given a Type and a set of type qualifiers, apply the type qualifiers to
@@ -527,6 +529,17 @@ void Declarator::InitFromType(const Type *baseType, DeclSpecs *ds) {
                 }
             }
 
+            if (d->declSpecs->typeQualifiers & TYPEQUAL_NOESCAPE) {
+                if (decl->type->IsVaryingType()) {
+                    Error(decl->pos, "\"noescape\" qualifier illegal with \"varying\" parameter type.");
+                    return;
+                }
+                if (!decl->type->IsPointerType()) {
+                    Error(decl->pos, "\"noescape\" qualifier illegal with non-pointer parameter type.");
+                    return;
+                }
+            }
+
             args.push_back(decl->type);
             argNames.push_back(decl->name);
             argPos.push_back(decl->pos);
@@ -576,6 +589,7 @@ void Declarator::InitFromType(const Type *baseType, DeclSpecs *ds) {
         bool isUnmasked = ds && ((ds->typeQualifiers & TYPEQUAL_UNMASKED) != 0);
         bool isVectorCall = ds && ((ds->typeQualifiers & TYPEQUAL_VECTORCALL) != 0);
         bool isRegCall = ds && ((ds->typeQualifiers & TYPEQUAL_REGCALL) != 0);
+        bool isNoEscape = ds && ((ds->typeQualifiers & TYPEQUAL_NOESCAPE) != 0);
 
         if (isExported && isTask) {
             Error(pos, "Function can't have both \"task\" and \"export\" "
@@ -600,6 +614,10 @@ void Declarator::InitFromType(const Type *baseType, DeclSpecs *ds) {
         if (isExternSYCL && isExported) {
             Error(pos, "Function can't have both \"extern \"SYCL\"\" and \"export\" "
                        "qualifiers");
+            return;
+        }
+        if (isNoEscape) {
+            Error(pos, "\"noescape\" qualifier is illegal in function declaration.");
             return;
         }
         if (isUnmasked && isExported)
@@ -643,6 +661,7 @@ void Declarator::InitFromType(const Type *baseType, DeclSpecs *ds) {
 
 ///////////////////////////////////////////////////////////////////////////
 // Declaration
+
 
 Declaration::Declaration(DeclSpecs *ds, std::vector<Declarator *> *dlist) {
     declSpecs = ds;
@@ -709,8 +728,8 @@ void Declaration::DeclareFunctions() {
         bool isNoInline = (declSpecs->typeQualifiers & TYPEQUAL_NOINLINE);
         bool isVectorCall = (declSpecs->typeQualifiers & TYPEQUAL_VECTORCALL);
         bool isRegCall = (declSpecs->typeQualifiers & TYPEQUAL_REGCALL);
-        m->AddFunctionDeclaration(decl->name, ftype, decl->storageClass, isInline, isNoInline, isVectorCall, isRegCall,
-                                  decl->pos);
+        m->AddFunctionDeclaration(decl->name, ftype, decl->storageClass, decl, isInline, isNoInline, isVectorCall,
+                                  isRegCall, decl->pos);
     }
 }
 

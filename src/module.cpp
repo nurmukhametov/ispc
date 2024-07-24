@@ -1099,8 +1099,8 @@ static void lCheckForStructParameters(const FunctionType *ftype, SourcePos pos) 
     various sanity checks.
  */
 void Module::AddFunctionDeclaration(const std::string &name, const FunctionType *functionType,
-                                    StorageClass storageClass, bool isInline, bool isNoInline, bool isVectorCall,
-                                    bool isRegCall, SourcePos pos) {
+                                    StorageClass storageClass, Declarator *decl, bool isInline, bool isNoInline,
+                                    bool isVectorCall, bool isRegCall, SourcePos pos) {
     Assert(functionType != nullptr);
 
     // If a global variable with the same name has already been declared
@@ -1322,6 +1322,14 @@ void Module::AddFunctionDeclaration(const std::string &name, const FunctionType 
              CastType<ReferenceType>(argType) != nullptr)) {
 
             function->addParamAttr(i, llvm::Attribute::NoAlias);
+        }
+
+        if (argType->IsPointerType() && argType->IsUniformType()) {
+            Assert(decl && decl->functionParams.size() == nArgs);
+            DeclSpecs *declSpecs = decl->functionParams[i]->declSpecs;
+            if (declSpecs && (declSpecs->typeQualifiers & TYPEQUAL_NOESCAPE)) {
+                function->addParamAttr(i, llvm::Attribute::NoCapture);
+            }
         }
 
         if (symbolTable->LookupFunction(argName.c_str())) {
