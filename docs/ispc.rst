@@ -632,6 +632,20 @@ Updating ISPC Programs For Changes In ISPC 1.25.0
 
 ``avx512knl-x16`` target is deprecated and will be removed in future releases.
 
+ISPC language was extended to support ``__attribute__(())`` syntax for variable
+and function declarations. Two attributes are supported now: ``noescape`` and
+``address_space(N)``. The macro ``ISPC_ATTRIBUTE_SUPPORTED`` is defined if the
+ISPC compiler supports these attributes.
+
+``__attribute__((noescape))`` can be placed on a function parameter of a
+uniform pointer type. It informs the compiler that the pointer cannot escape,
+i.e., no reference to the object the pointer points to, derived from the
+parameter value, will survive after the function returns.
+
+``__attribute__((address_space(N)))`` can be applied to a variable or parameter
+to specify its address space. The address space is an non-negative integer
+value, and the default address space is 0.
+
 Getting Started with ISPC
 =========================
 
@@ -1053,6 +1067,9 @@ preprocessor runs:
   * - ISPC_UINT_IS_DEFINED
     - 1
     - The macro is defined if uint8/uint16/uint32/uint64 types are defined in the ``ispc`` (it's defined in 1.13.0 and later)
+  * - ISPC_ATTRIBUTE_SUPPORTED
+    - 1
+    - The macro is defined if the ``ispc`` compiler supports ``__attribute__(())`` syntax.
   * - ISPC_FP16_SUPPORTED
     - 1
     - The macro is defined if float16 type is supported by the ``ispc`` target.
@@ -1764,7 +1781,7 @@ The following reserved words from C89 are also reserved in ``ispc``:
 ``foreach_unique``, ``in``, ``inline``, ``noinline``, ``__regcall``,
 ``__vectorcall``, ``int8``, ``int16``, ``int32``, ``int64``, ``launch``,
 ``new``, ``print``, ``uint8``, ``uint16``, ``uint32``, ``uint64``, ``soa``,
-``sync``, ``task``, ``true``, ``uniform``, and ``varying``.
+``__attribute__``, ``sync``, ``task``, ``true``, ``uniform``, and ``varying``.
 
 
 Lexical Structure
@@ -1929,7 +1946,7 @@ The following identifiers are reserved as language keywords: ``bool``,
 ``switch``, ``sync``, ``task``, ``template``, ``true``, ``typedef``,
 ``typename``, ``uint``, ``uint8``, ``uint16``, ``uint32``, ``uint64``,
 ``uniform``, ``union``, ``unsigned``, ``varying``, ``__regcall``,
-``__vectorcall``, ``void``, ``volatile``, ``while``.
+``__vectorcall``, ``__attribute__``, ``void``, ``volatile``, ``while``.
 
 ``ispc`` defines the following operators and punctuation:
 
