@@ -117,6 +117,12 @@ const std::string &BitcodeLib::getFilename() const { return m_filename; }
 bool BitcodeLib::fileExists() const {
     llvm::SmallString<128> filePath(g->shareDirPath);
     llvm::sys::path::append(filePath, m_filename);
+    if (m_filename.empty()) {
+        // If filename is empty, it means that the library is embedded.
+        // So both true and false are meaningless, so return true to not fill
+        // the missedFiles in printSupportMatrix.
+        return true;
+    }
     return llvm::sys::fs::exists(filePath);
 }
 

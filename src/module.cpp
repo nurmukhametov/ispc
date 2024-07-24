@@ -431,18 +431,21 @@ int Module::preprocessAndParse() {
         }
     }
 
-    const char *infilename = !IsStdin(filename) ? filename : "-";
+    bool isFileInput = !IsStdin(filename);
+    const char *infilename = isFileInput ? filename : "-";
     clang::FrontendInputFile inputFile(infilename, clang::InputKind());
 
-    llvm::ErrorOr<std::unique_ptr<llvm::MemoryBuffer>> fileBuffer = llvm::MemoryBuffer::getFile(inputFile.getFile());
-    if (!fileBuffer) {
+    llvm::ErrorOr<std::unique_ptr<llvm::MemoryBuffer>> buf =
+        isFileInput ? llvm::MemoryBuffer::getFile(inputFile.getFile()) : llvm::MemoryBuffer::getSTDIN();
+    if (!buf) {
         // TODO!
+        Assert(false && "Error reading input file or stdin.");
         return 1;
     }
     std::string line = "#line 1 \"";
     line += std::string(infilename) + "\"";
     refs.push_back(line);
-    refs.push_back(fileBuffer.get()->getBuffer());
+    refs.push_back(buf.get()->getBuffer());
     std::string combined = llvm::join(refs, "\n");
     std::unique_ptr<llvm::MemoryBuffer> memBuf = llvm::MemoryBuffer::getMemBuffer(combined);
 
@@ -2974,7 +2977,7 @@ static void lInitializeSourceManager(clang::FrontendInputFile &input, const llvm
                                      clang::SourceManager &srcMgr) {
     clang::SrcMgr::CharacteristicKind kind = clang::SrcMgr::C_User;
     if (input.isBuffer()) {
-        Assert("Unexpected type of input for SourceManager");
+        Assert(false && "Unexpected type of input for SourceManager");
         return;
     }
 
