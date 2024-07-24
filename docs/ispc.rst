@@ -632,6 +632,11 @@ Updating ISPC Programs For Changes In ISPC 1.25.0
 
 ``avx512knl-x16`` target is deprecated and will be removed in future releases.
 
+New keyword ``noescape`` is introduced. It can be placed on a function
+parameter of a uniform pointer type. It informs the compiler that the pointer
+cannot escape, i.e., no reference to the object the pointer points to that is
+derived from the parameter value will survive after the function returns.
+
 Getting Started with ISPC
 =========================
 
@@ -1761,7 +1766,7 @@ The following reserved words from C89 are also reserved in ``ispc``:
 
 ``bool``, ``delete``, ``export``, ``cdo``, ``cfor``, ``cif``, ``cwhile``,
 ``false``, ``float16``, ``foreach``, ``foreach_active``, ``foreach_tiled``,
-``foreach_unique``, ``in``, ``inline``, ``noinline``, ``__regcall``,
+``foreach_unique``, ``in``, ``inline``, ``noinline``, ``noescape``, ``__regcall``,
 ``__vectorcall``, ``int8``, ``int16``, ``int32``, ``int64``, ``launch``,
 ``new``, ``print``, ``uint8``, ``uint16``, ``uint32``, ``uint64``, ``soa``,
 ``sync``, ``task``, ``true``, ``uniform``, and ``varying``.
@@ -1929,7 +1934,7 @@ The following identifiers are reserved as language keywords: ``bool``,
 ``switch``, ``sync``, ``task``, ``template``, ``true``, ``typedef``,
 ``typename``, ``uint``, ``uint8``, ``uint16``, ``uint32``, ``uint64``,
 ``uniform``, ``union``, ``unsigned``, ``varying``, ``__regcall``,
-``__vectorcall``, ``void``, ``volatile``, ``while``.
+``__vectorcall``, ``noescape``, ``void``, ``volatile``, ``while``.
 
 ``ispc`` defines the following operators and punctuation:
 

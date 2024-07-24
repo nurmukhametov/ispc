@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2010-2023, Intel Corporation
+  Copyright (c) 2010-2024, Intel Corporation
 
   SPDX-License-Identifier: BSD-3-Clause
 */
@@ -54,6 +54,7 @@ class Declarator;
 #define TYPEQUAL_NOINLINE (1 << 9)
 #define TYPEQUAL_VECTORCALL (1 << 10)
 #define TYPEQUAL_REGCALL (1 << 11)
+#define TYPEQUAL_NOESCAPE (1 << 12)
 
 /** @brief Representation of the declaration specifiers in a declaration.
 

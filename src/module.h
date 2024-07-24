@@ -12,6 +12,7 @@
 #pragma once
 
 #include "ast.h"
+#include "decl.h"
 #include "ispc.h"
 
 #include <llvm/IR/DebugInfo.h>
@@ -68,8 +69,8 @@ class Module {
 
     /** Add a declaration of the function defined by the given function
         symbol to the module. */
-    void AddFunctionDeclaration(const std::string &name, const FunctionType *ftype, StorageClass sc, bool isInline,
-                                bool isNoInline, bool isVectorCall, bool isRegCall, SourcePos pos);
+    void AddFunctionDeclaration(const std::string &name, const FunctionType *ftype, StorageClass sc, Declarator *decl,
+                                bool isInline, bool isNoInline, bool isVectorCall, bool isRegCall, SourcePos pos);
 
     /** Adds the function described by the declaration information and the
         provided statements to the module. */

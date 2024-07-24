@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2010-2023, Intel Corporation
+  Copyright (c) 2010-2024, Intel Corporation
 
   SPDX-License-Identifier: BSD-3-Clause
 */
@@ -68,7 +68,7 @@ static int allTokens[] = {
   TOKEN_MUL_ASSIGN, TOKEN_DIV_ASSIGN, TOKEN_MOD_ASSIGN, TOKEN_ADD_ASSIGN,
   TOKEN_SUB_ASSIGN, TOKEN_LEFT_ASSIGN, TOKEN_RIGHT_ASSIGN, TOKEN_AND_ASSIGN,
   TOKEN_XOR_ASSIGN, TOKEN_OR_ASSIGN, TOKEN_PTR_OP, TOKEN_NOINLINE, TOKEN_VECTORCALL,
-  TOKEN_REGCALL, TOKEN_INVOKE_SYCL,
+  TOKEN_REGCALL, TOKEN_NOESCAPE, TOKEN_INVOKE_SYCL,
   ';', '{', '}', ',', ':', '=', '(', ')', '[', ']', '.', '&', '!', '~', '-',
   '+', '*', '/', '%', '<', '>', '^', '|', '?',
 };
@@ -110,6 +110,7 @@ void ParserInit() {
     tokenToName[TOKEN_NOINLINE] = "noinline";
     tokenToName[TOKEN_VECTORCALL] = "__vectorcall";
     tokenToName[TOKEN_REGCALL] = "__regcall";
+    tokenToName[TOKEN_NOESCAPE] = "noescape";
     tokenToName[TOKEN_INT] = "int";
     tokenToName[TOKEN_UINT] = "uint";
     tokenToName[TOKEN_INT8] = "int8";
@@ -239,6 +240,7 @@ void ParserInit() {
     tokenNameRemap["TOKEN_NOINLINE"] = "\'noinline\'";
     tokenNameRemap["TOKEN_VECTORCALL"] = "\'__vectorcall\'";
     tokenNameRemap["TOKEN_REGCALL"] = "\'__regcall\'";
+    tokenNameRemap["TOKEN_NOESCAPE"] = "\'noescape\'";
     tokenNameRemap["TOKEN_INT"] = "\'int\'";
     tokenNameRemap["TOKEN_UINT"] = "\'uint\'";
     tokenNameRemap["TOKEN_INT8"] = "\'int8\'";
@@ -416,6 +418,7 @@ inline { RT; return TOKEN_INLINE; }
 noinline { RT; return TOKEN_NOINLINE; }
 __vectorcall { RT; return TOKEN_VECTORCALL; }
 __regcall { RT; return TOKEN_REGCALL; }
+noescape { RT; return TOKEN_NOESCAPE; }
 int { RT; return TOKEN_INT; }
 uint { RT; return TOKEN_UINT; }
 int8 { RT; return TOKEN_INT8; }
