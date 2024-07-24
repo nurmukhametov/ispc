@@ -522,6 +522,8 @@ int Module::CompileFile() {
         }
     }
 
+    debugDumpModule(module, "Parsed", pre_stage++);
+
     ast->Print(g->astDump);
 
     if (g->NoOmitFramePointer)
