@@ -278,7 +278,8 @@ class Module {
 
     /** Run the preprocessor on the given file, writing to the output stream.
         Returns the number of diagnostic errors encountered. */
-    int execPreprocessor(clang::FrontendInputFile inputFile, llvm::raw_string_ostream *ostream) const;
+    int execPreprocessor(clang::FrontendInputFile inputFile, const llvm::MemoryBuffer &memBuf,
+                         llvm::raw_string_ostream *ostream) const;
 
     /** Helper function to initialize the internal CPP buffer. **/
     void initCPPBuffer();

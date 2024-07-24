@@ -417,16 +417,16 @@ extern void yy_delete_buffer(YY_BUFFER_STATE);
 extern void ParserInit();
 
 int Module::preprocessAndParse() {
-    llvm::SmallVector<llvm::StringRef, 3> refs;
+    llvm::SmallVector<llvm::StringRef, 6> refs;
 
     initCPPBuffer();
 
     if (!g->isSlimBinary && !g->genStdlib) {
-        // TODO! include properly to preserve source/debug locations
+        refs.push_back("#line 1 \"core.isph\"");
         refs.push_back(getCoreISPHRef());
 
         if (g->includeStdlib) {
-            // TODO! include properly to preserve source/debug locations
+            refs.push_back("#line 1 \"stdlib.isph\"");
             refs.push_back(getStdlibISPHRef());
         }
     }
@@ -439,12 +439,15 @@ int Module::preprocessAndParse() {
         // TODO!
         return 1;
     }
+    std::string line = "#line 1 \"";
+    line += std::string(infilename) + "\"";
+    refs.push_back(line);
     refs.push_back(fileBuffer.get()->getBuffer());
     std::string combined = llvm::join(refs, "\n");
-    std::unique_ptr<llvm::MemoryBuffer> memBuffer = llvm::MemoryBuffer::getMemBufferCopy(combined, filename);
-    clang::FrontendInputFile finalInputFile(memBuffer->getMemBufferRef(), clang::InputKind());
+    std::unique_ptr<llvm::MemoryBuffer> memBuf = llvm::MemoryBuffer::getMemBuffer(combined);
 
-    const int numErrors = execPreprocessor(finalInputFile, bufferCPP->os.get());
+    // memBuf replaces the content in inputFile inside the following call.
+    const int numErrors = execPreprocessor(inputFile, *memBuf, bufferCPP->os.get());
     errorCount += (g->ignoreCPPErrors) ? 0 : numErrors;
 
     if (g->onlyCPP) {
@@ -2966,12 +2969,12 @@ bool Module::writeDispatchHeader(DispatchHeaderInfo *DHI) {
 }
 
 // Copied and reduced from CompilerInstance::InitializeSourceManager to avoid dependencies from CompilerInstance
-static void lInitializeSourceManager(clang::FrontendInputFile &input, clang::DiagnosticsEngine &diag,
-                                     clang::FileManager &fileMgr, clang::SourceManager &srcMgr) {
+static void lInitializeSourceManager(clang::FrontendInputFile &input, const llvm::MemoryBuffer &memBuf,
+                                     clang::DiagnosticsEngine &diag, clang::FileManager &fileMgr,
+                                     clang::SourceManager &srcMgr) {
     clang::SrcMgr::CharacteristicKind kind = clang::SrcMgr::C_User;
     if (input.isBuffer()) {
-        srcMgr.setMainFileID(srcMgr.createFileID(input.getBuffer(), kind));
-        Assert(srcMgr.getMainFileID().isValid() && "Couldn't establish MainFileID");
+        Assert("Unexpected type of input for SourceManager");
         return;
     }
 
@@ -2989,6 +2992,7 @@ static void lInitializeSourceManager(clang::FrontendInputFile &input, clang::Dia
         return;
     }
 
+    srcMgr.overrideFileContents(*fileOrError, memBuf);
     srcMgr.setMainFileID(srcMgr.createFileID(*fileOrError, clang::SourceLocation(), kind));
     Assert(srcMgr.getMainFileID().isValid() && "Couldn't establish MainFileID");
     return;
@@ -3228,7 +3232,8 @@ static void lSetPreprocessorOptions(const std::shared_ptr<clang::PreprocessorOpt
 
 static void lSetLangOptions(clang::LangOptions *opts) { opts->LineComment = 1; }
 
-int Module::execPreprocessor(clang::FrontendInputFile inputFile, llvm::raw_string_ostream *ostream) const {
+int Module::execPreprocessor(clang::FrontendInputFile inputFile, const llvm::MemoryBuffer &memBuffer,
+                             llvm::raw_string_ostream *ostream) const {
     llvm::raw_fd_ostream stderrRaw(2, false);
 
     // Create Diagnostic engine
@@ -3268,7 +3273,7 @@ int Module::execPreprocessor(clang::FrontendInputFile inputFile, llvm::raw_strin
     clang::FileSystemOptions fsOpts;
     clang::FileManager fileMgr(fsOpts);
     clang::SourceManager srcMgr(diagEng, fileMgr);
-    lInitializeSourceManager(inputFile, diagEng, fileMgr, srcMgr);
+    lInitializeSourceManager(inputFile, memBuffer, diagEng, fileMgr, srcMgr);
 
     // Create HeaderSearch and apply HeaderSearchOptions
     clang::HeaderSearch hdrSearch(hdrSearchOpts, srcMgr, diagEng, langOpts, tgtInfo);
