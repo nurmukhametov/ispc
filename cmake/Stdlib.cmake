@@ -62,9 +62,15 @@ function (stdlib_to_cpp ispc_name target bit os)
     set(cpp ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_CFG_INTDIR}/${name}.cpp)
     set(bc ${BITCODE_FOLDER}/${name}.bc)
 
-    # macOS target supports only x86_64 and aarch64
-    if ("${os}" STREQUAL "unix" AND APPLE AND NOT ISPC_LINUX_TARGET AND "${bit}" STREQUAL "32")
-        return()
+    if ("${os}" STREQUAL "unix" AND APPLE AND NOT ISPC_LINUX_TARGET)
+        # macOS target supports only x86_64 and aarch64
+        if ("${bit}" STREQUAL "32")
+            return()
+        endif()
+        # ISPC doesn't support avx512spr targets on macOS
+        if ("${target}" MATCHES "avx512spr")
+            return()
+        endif()
     endif()
 
     # define canon_os and arch
