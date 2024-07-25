@@ -62,6 +62,11 @@ function (stdlib_to_cpp ispc_name target bit os)
     set(cpp ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_CFG_INTDIR}/${name}.cpp)
     set(bc ${BITCODE_FOLDER}/${name}.bc)
 
+    # macOS target supports only x86_64 and aarch64
+    if ("${os}" STREQUAL "unix" AND APPLE AND NOT ISPC_LINUX_TARGET AND "${bit}" STREQUAL "32")
+        return()
+    endif()
+
     # define canon_os and arch
     write_stdlib_bitcode_lib(${name} ${target} ${os} ${bit})
 
@@ -105,12 +110,7 @@ function (generate_stdlibs_1 ispc_name)
     # "Regular" targets, targeting specific real ISA: sse/avx
     if (X86_ENABLED)
         foreach (target ${X86_TARGETS})
-            set(bits 32 64)
-            if ("${os}" STREQUAL "unix" AND APPLE AND NOT ISPC_LINUX_TARGET)
-                # macOS target supports only x86_64 and aarch64
-                set(bits 64)
-            endif()
-            foreach (bit ${bits})
+            foreach (bit 32 64)
                 foreach (os ${os_list})
                     stdlib_to_cpp(${ispc_name} ${target} ${bit} ${os})
                 endforeach()
@@ -132,9 +132,6 @@ function (generate_stdlibs_1 ispc_name)
         foreach (os ${os_list})
             foreach (target ${ARM_TARGETS})
                 if (${os} STREQUAL "windows")
-                    continue()
-                endif()
-                if ("${os}" STREQUAL "unix" AND APPLE AND NOT ISPC_LINUX_TARGET)
                     continue()
                 endif()
                 stdlib_to_cpp(${ispc_name} ${target} 32 ${os})
