@@ -110,7 +110,7 @@ function (generate_stdlibs_1 ispc_name)
                 # macOS target supports only x86_64 and aarch64
                 set(bits 64)
             endif()
-            foreach (bit 32 64)
+            foreach (bit ${bits})
                 foreach (os ${os_list})
                     stdlib_to_cpp(${ispc_name} ${target} ${bit} ${os})
                 endforeach()
