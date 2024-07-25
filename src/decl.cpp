@@ -662,7 +662,6 @@ void Declarator::InitFromType(const Type *baseType, DeclSpecs *ds) {
 ///////////////////////////////////////////////////////////////////////////
 // Declaration
 
-
 Declaration::Declaration(DeclSpecs *ds, std::vector<Declarator *> *dlist) {
     declSpecs = ds;
     if (dlist != nullptr)

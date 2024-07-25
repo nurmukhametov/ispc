@@ -287,7 +287,7 @@ class Module {
 
     /** Helper function to parse internal CPP buffer. **/
     void parseCPPBuffer();
-    
+
     /** Helper function to clean internal CPP buffer. **/
     void clearCPPBuffer();
 };

@@ -4,8 +4,8 @@
   SPDX-License-Identifier: BSD-3-Clause
 */
 
-#include <stdio.h>
 #include <memory>
+#include <stdio.h>
 
 #include <clang/Frontend/FrontendOptions.h>
 #include <llvm/Support/MemoryBufferRef.h>
@@ -19,14 +19,14 @@ void initializeBinaryType(const char *) {
 extern const char core_isph_cpp_header[];
 extern int core_isph_cpp_length;
 llvm::StringRef getCoreISPHRef() {
-   llvm::StringRef ref(core_isph_cpp_header, core_isph_cpp_length);
-   return ref;
+    llvm::StringRef ref(core_isph_cpp_header, core_isph_cpp_length);
+    return ref;
 }
 
 extern const char stdlib_isph_cpp_header[];
 extern int stdlib_isph_cpp_length;
 llvm::StringRef getStdlibISPHRef() {
-   llvm::StringRef ref(stdlib_isph_cpp_header, stdlib_isph_cpp_length);
+    llvm::StringRef ref(stdlib_isph_cpp_header, stdlib_isph_cpp_length);
 
-   return ref;
+    return ref;
 }

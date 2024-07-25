@@ -203,7 +203,7 @@ static const BitcodeLib *lGetTargetLib(const std::map<uint32_t, const BitcodeLib
 }
 
 const BitcodeLib *TargetLibRegistry::getISPCTargetLib(ISPCTarget target, TargetOS os, Arch arch) const {
-      return lGetTargetLib(m_targets, target, os, arch);
+    return lGetTargetLib(m_targets, target, os, arch);
 }
 
 const BitcodeLib *TargetLibRegistry::getISPCStdLib(ISPCTarget target, TargetOS os, Arch arch) const {

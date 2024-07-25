@@ -214,7 +214,8 @@ static void lPrintVersion() {
     printf("    [--gen-stdlib]\t\tEnable special compilation mode to generate LLVM IR for stdlib.ispc.");
     printf("    [--fuzz-seed=<value>]\t\tSeed value for RNG for fuzz testing\n");
     printf("    [--fuzz-test]\t\t\tRandomly perturb program input to test error conditions\n");
-    printf("    [--off-phase=<value>]\t\tSwitch off optimization phases. --off-phase=pre:first,210:220,300,305,310:last\n");
+    printf("    [--off-phase=<value>]\t\tSwitch off optimization phases. "
+           "--off-phase=pre:first,210:220,300,305,310:last\n");
     printf("    [--opt=<option>]\t\t\tSet optimization option\n");
     printf("        disable-all-on-optimizations\t\tDisable optimizations that take advantage of \"all on\" mask\n");
     printf("        disable-blended-masked-stores\t\tScalarize masked stores on SSE (vs. using vblendps)\n");

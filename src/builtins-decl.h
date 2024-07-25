@@ -22,8 +22,8 @@
 // ISPC code base. The list is alphabetically sorted for convenience.
 
 #include <string>
-#include <vector>
 #include <unordered_map>
+#include <vector>
 
 namespace ispc {
 

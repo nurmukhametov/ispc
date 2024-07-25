@@ -75,7 +75,7 @@
 #include <llvm/Support/DynamicLibrary.h>
 #include <llvm/Support/FileUtilities.h>
 #include <llvm/Support/FormattedStream.h>
-#include "llvm/Support/Path.h"
+#include <llvm/Support/Path.h>
 #include <llvm/Support/SourceMgr.h>
 #include <llvm/Support/ToolOutputFile.h>
 #include <llvm/Support/raw_ostream.h>
@@ -3196,7 +3196,8 @@ static void lSetPreprocessorOptions(const std::shared_ptr<clang::PreprocessorOpt
 
     std::string math_lib_ispc = "ISPC_MATH_LIB_ISPC_VAL=" + std::to_string((int)Globals::MathLib::Math_ISPC);
     opts->addMacroDef(math_lib_ispc);
-    std::string math_lib_ispc_fast = "ISPC_MATH_LIB_ISPC_FAST_VAL=" + std::to_string((int)Globals::MathLib::Math_ISPCFast);
+    std::string math_lib_ispc_fast =
+        "ISPC_MATH_LIB_ISPC_FAST_VAL=" + std::to_string((int)Globals::MathLib::Math_ISPCFast);
     opts->addMacroDef(math_lib_ispc_fast);
     std::string math_lib_svml = "ISPC_MATH_LIB_SVML_VAL=" + std::to_string((int)Globals::MathLib::Math_SVML);
     opts->addMacroDef(math_lib_svml);

@@ -13,11 +13,11 @@
 
 // Ideally we need to have here header with builtins API
 #define ISPC_INTERNAL_STDLIB_COMPILATION
+#include "builtins.isph"
 #include "core.isph"
 #include "stdlib.isph"
-#include "target.isph"
-#include "builtins.isph"
 #include "svml.isph"
+#include "target.isph"
 #undef ISPC_INTERNAL_STDLIB_COMPILATION
 
 ///////////////////////////////////////////////////////////////////////////
