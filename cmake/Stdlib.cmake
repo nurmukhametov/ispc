@@ -48,6 +48,10 @@ function (write_stdlib_bitcode_lib name target os bit)
     file(APPEND ${CMAKE_BINARY_DIR}/bitcode_libs_generated.cpp
       "static BitcodeLib ${name}(BitcodeLib::BitcodeLibType::Stdlib, \"${name}.bc\", ISPCTarget::${target}, TargetOS::${os}, Arch::${arch});\n")
 
+    if ("${os}" STREQUAL "linux" AND APPLE AND NOT ISPC_LINUX_TARGET)
+        set(os "macos")
+    endif()
+
     set(canon_os ${os} PARENT_SCOPE)
     set(arch ${arch} PARENT_SCOPE)
 endfunction()
@@ -122,6 +126,12 @@ function (generate_stdlibs_1 ispc_name)
     if (ARM_ENABLED)
         foreach (os ${os_list})
             foreach (target ${ARM_TARGETS})
+                if (${os} STREQUAL "windows")
+                    continue()
+                endif()
+                if ("${os}" STREQUAL "unix" AND APPLE AND NOT ISPC_LINUX_TARGET)
+                    continue()
+                endif()
                 stdlib_to_cpp(${ispc_name} ${target} 32 ${os})
             endforeach()
             # Not all targets have 64bit
