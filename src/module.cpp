@@ -75,6 +75,7 @@
 #include <llvm/Support/DynamicLibrary.h>
 #include <llvm/Support/FileUtilities.h>
 #include <llvm/Support/FormattedStream.h>
+#include "llvm/Support/Path.h"
 #include <llvm/Support/SourceMgr.h>
 #include <llvm/Support/ToolOutputFile.h>
 #include <llvm/Support/raw_ostream.h>
@@ -443,7 +444,8 @@ int Module::preprocessAndParse() {
         return 1;
     }
     std::string line = "#line 1 \"";
-    line += std::string(infilename) + "\"";
+    llvm::StringRef infilename_ref(infilename);
+    line += llvm::sys::path::convert_to_slash(infilename_ref) + "\"";
     refs.push_back(line);
     refs.push_back(buf.get()->getBuffer());
     std::string combined = llvm::join(refs, "\n");
