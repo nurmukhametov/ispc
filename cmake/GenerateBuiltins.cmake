@@ -541,11 +541,11 @@ function (generate_common_builtins)
         builtin_to_cpp(64 ps4 x86)
     endif()
 
-    if (WIN32)
+    if (ISPC_WINDOWS_TARGET)
         builtin_xe_to_cpp(windows)
-    elseif (APPLE)
-        # no xe support
-    else()
+    endif()
+    # no xe support for ISPC_MACOS_TARGET
+    if (ISPC_LINUX_TARGET)
         builtin_xe_to_cpp(linux)
     endif()
 
