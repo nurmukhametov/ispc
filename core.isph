@@ -670,4 +670,13 @@ extern "C" void __do_print(uniform int8 *uniform, uniform int8 *uniform, uniform
                            uniform int8 *uniform *uniform);
 extern "C" uniform int32 __num_cores();
 
+extern "C" uniform int32 __task_index0();
+extern "C" uniform int32 __task_index1();
+extern "C" uniform int32 __task_index2();
+extern "C" uniform int32 __task_index();
+extern "C" uniform int32 __task_count0();
+extern "C" uniform int32 __task_count1();
+extern "C" uniform int32 __task_count2();
+extern "C" uniform int32 __task_count();
+
 #endif // ISPC_CORE_ISPH

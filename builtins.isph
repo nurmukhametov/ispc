@@ -126,14 +126,6 @@ extern "C" varying int64 __atomic_min_varying_int64_global(varying int64, varyin
 extern "C" varying int64 __atomic_max_varying_int64_global(varying int64, varying int64, UIntMaskType);
 extern "C" varying int64 __atomic_umin_varying_uint64_global(varying int64, varying int64, UIntMaskType);
 extern "C" varying int64 __atomic_umax_varying_uint64_global(varying int64, varying int64, UIntMaskType);
-extern "C" uniform int32 __task_index0();
-extern "C" uniform int32 __task_index1();
-extern "C" uniform int32 __task_index2();
-extern "C" uniform int32 __task_index();
-extern "C" uniform int32 __task_count0();
-extern "C" uniform int32 __task_count1();
-extern "C" uniform int32 __task_count2();
-extern "C" uniform int32 __task_count();
 extern "C" varying int8 __idiv_int8(varying int8, varying int8);
 extern "C" varying int16 __idiv_int16(varying int16, varying int16);
 extern "C" varying int32 __idiv_int32(varying int32, varying int32);

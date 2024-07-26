@@ -2882,6 +2882,21 @@ AddressInfo *FunctionEmitContext::AllocaInst(const Type *ptrType, const llvm::Tw
     return AllocaInst(llvmStorageType, name, align, atEntryBlock);
 }
 
+// const FunctionType *lGetFunctionType(const char *name, SourcePos pos) {
+//     std::vector<Symbol*> matches;
+//     if (m->symbolTable->LookupFunction(name, &matches)) {
+//         Assert(matches.size() == 1);
+//         for (Symbol* sym : matches) {
+//             const FunctionType* funcType = CastType<FunctionType>(sym->type);
+//             if (funcType) {
+//                 return funcType;
+//             }
+//         }
+//     }
+//     Error(pos, "No function \"%s\" found in symbo table.", name);
+//     return nullptr;
+// }
+
 /** Code to store the given varying value to the given location, only
     storing the elements that correspond to active program instances as
     given by the provided storeMask value.  Note that the lvalue is only a

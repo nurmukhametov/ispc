@@ -2960,6 +2960,17 @@ FunctionType::FunctionMangledName FunctionType::GetFunctionMangledName(bool appF
     return mangle;
 }
 
+bool lIsInsideStdlib(const SourcePos &pos) {
+    std::string filename = pos.name;
+    std::string files[] = {"core.isph", "builtins.isph", "svml.isph", "stdlib,isph", "stdlib.ispc"};
+    for (const std::string &file : files) {
+        if (filename.find(file) != std::string::npos) {
+            return true;
+        }
+    }
+    return false;
+}
+
 std::vector<llvm::Type *> FunctionType::LLVMFunctionArgTypes(llvm::LLVMContext *ctx, bool removeMask) const {
     // Get the LLVM Type *s for the function arguments
     std::vector<llvm::Type *> llvmArgTypes;
@@ -2976,7 +2987,10 @@ std::vector<llvm::Type *> FunctionType::LLVMFunctionArgTypes(llvm::LLVMContext *
         // for ISPCExtenal functions (not-masked version) on Xe target
         llvm::Type *castedArgType = argType->LLVMType(ctx);
 
-        if (IsISPCExternal() && removeMask) {
+        // Do not assign addrspace attribute to stdlib functions parameters.
+        bool skipStdlib = !lIsInsideStdlib(paramPositions[i]);
+
+        if (IsISPCExternal() && removeMask && skipStdlib) {
             if (argType->IsPointerType()) {
                 const PointerType *argPtr =
                     (CastType<PointerType>(argType))->GetWithAddrSpace(AddressSpace::ispc_generic);
