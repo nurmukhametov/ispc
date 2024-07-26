@@ -640,9 +640,9 @@ extern "C" uniform int32 __set_ftz_daz_flags();
 extern "C" void __restore_ftz_daz_flags(uniform int32);
 #endif // ISPC_TARGET_NEON
 
-extern "C" uniform int8 *uniform __new_uniform_32rt(uniform int32);
+extern "C" uniform int8 *uniform __new_uniform_32rt(uniform int64);
 extern "C" uniform int8 *uniform __new_uniform_64rt(uniform int64);
-extern "C" varying int32 __new_varying32_32rt(varying int32, UIntMaskType);
+extern "C" varying int64 __new_varying32_32rt(varying int32, UIntMaskType);
 extern "C" varying int64 __new_varying32_64rt(varying int32, UIntMaskType);
 extern "C" varying int64 __new_varying64_64rt(varying int64, UIntMaskType);
 extern "C" void __delete_uniform_64rt(uniform int8 *uniform);
