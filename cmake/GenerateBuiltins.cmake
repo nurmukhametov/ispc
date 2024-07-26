@@ -363,6 +363,8 @@ function(builtin_xe_to_cpp os)
     set(cpp ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_CFG_INTDIR}/${name}.cpp)
     set(bc ${BITCODE_FOLDER}/${name}.bc)
 
+    write_common_bitcode_lib(${name} ${os} ${arch})
+
     add_custom_command(
         OUTPUT ${bc}
         COMMAND cat ${input} | \"${LLVM_AS_EXECUTABLE}\" ${LLVM_TOOLS_OPAQUE_FLAGS} -o ${bc}
