@@ -2617,6 +2617,17 @@ llvm::DIType *ReferenceType::GetDIType(llvm::DIScope *scope) const {
                : m->diBuilder->createReferenceType(llvm::dwarf::DW_TAG_reference_type, diTargetType);
 }
 
+bool lIsInsideStdlib(const SourcePos &pos) {
+    std::string filename = pos.name;
+    std::string files[] = {"core.isph", "builtins.isph", "svml.isph", "stdlib,isph", "stdlib.ispc"};
+    for (const std::string &file : files) {
+        if (filename.find(file) != std::string::npos) {
+            return true;
+        }
+    }
+    return false;
+}
+
 ///////////////////////////////////////////////////////////////////////////
 // FunctionType
 
@@ -2625,7 +2636,7 @@ FunctionType::FunctionType(const Type *r, const llvm::SmallVector<const Type *, 
       isVectorCall(false), isRegCall(false), returnType(r), paramTypes(a),
       paramNames(llvm::SmallVector<std::string, 8>(a.size(), "")),
       paramDefaults(llvm::SmallVector<Expr *, 8>(a.size(), nullptr)),
-      paramPositions(llvm::SmallVector<SourcePos, 8>(a.size(), p)) {
+      paramPositions(llvm::SmallVector<SourcePos, 8>(a.size(), p)), pos(p) {
     Assert(returnType != nullptr);
     isSafe = false;
     costOverride = -1;
@@ -2635,16 +2646,20 @@ FunctionType::FunctionType(const Type *r, const llvm::SmallVector<const Type *, 
 FunctionType::FunctionType(const Type *r, const llvm::SmallVector<const Type *, 8> &a,
                            const llvm::SmallVector<std::string, 8> &an, const llvm::SmallVector<Expr *, 8> &ad,
                            const llvm::SmallVector<SourcePos, 8> &ap, bool it, bool is, bool ec, bool esycl, bool ium,
-                           bool ivc, bool irc)
+                           bool ivc, bool irc, SourcePos p)
     : Type(FUNCTION_TYPE), isTask(it), isExported(is), isExternC(ec), isExternSYCL(esycl), isUnmasked(ium),
       isVectorCall(ivc), isRegCall(irc), returnType(r), paramTypes(a), paramNames(an), paramDefaults(ad),
-      paramPositions(ap) {
+      paramPositions(ap), pos(p) {
     Assert(paramTypes.size() == paramNames.size() && paramNames.size() == paramDefaults.size() &&
            paramDefaults.size() == paramPositions.size());
     Assert(returnType != nullptr);
     isSafe = false;
     costOverride = -1;
     asUnmaskedType = asMaskedType = nullptr;
+}
+
+bool FunctionType::IsInStdlib() const {
+    return lIsInsideStdlib(pos);
 }
 
 Variability FunctionType::GetVariability() const { return Variability(Variability::Uniform); }
@@ -2710,7 +2725,7 @@ const FunctionType *FunctionType::ResolveDependence(TemplateInstantiation &templ
     }
 
     FunctionType *ret = new FunctionType(rt, pt, paramNames, paramDefaults, paramPositions, isTask, isExported,
-                                         isExternC, isExternSYCL, isUnmasked, isVectorCall, isRegCall);
+                                         isExternC, isExternSYCL, isUnmasked, isVectorCall, isRegCall, pos);
     ret->isSafe = isSafe;
     ret->costOverride = costOverride;
     return ret;
@@ -2733,7 +2748,7 @@ const FunctionType *FunctionType::ResolveUnboundVariability(Variability v) const
     }
 
     FunctionType *ret = new FunctionType(rt, pt, paramNames, paramDefaults, paramPositions, isTask, isExported,
-                                         isExternC, isExternSYCL, isUnmasked, isVectorCall, isRegCall);
+                                         isExternC, isExternSYCL, isUnmasked, isVectorCall, isRegCall, pos);
     ret->isSafe = isSafe;
     ret->costOverride = costOverride;
 
@@ -2749,7 +2764,7 @@ const Type *FunctionType::GetAsUnmaskedType() const {
         return this;
     if (asUnmaskedType == nullptr) {
         FunctionType *ft = new FunctionType(returnType, paramTypes, paramNames, paramDefaults, paramPositions, isTask,
-                                            isExported, isExternC, isExternSYCL, true, isVectorCall, isRegCall);
+                                            isExported, isExternC, isExternSYCL, true, isVectorCall, isRegCall, pos);
         ft->isSafe = isSafe;
         ft->costOverride = costOverride;
         asUnmaskedType = ft;
@@ -2764,7 +2779,7 @@ const Type *FunctionType::GetAsNonUnmaskedType() const {
         return this;
     if (asMaskedType == nullptr) {
         FunctionType *ft = new FunctionType(returnType, paramTypes, paramNames, paramDefaults, paramPositions, isTask,
-                                            isExported, isExternC, isExternSYCL, false, isVectorCall, isRegCall);
+                                            isExported, isExternC, isExternSYCL, false, isVectorCall, isRegCall, pos);
         ft->isSafe = isSafe;
         ft->costOverride = costOverride;
         asMaskedType = ft;
@@ -2960,17 +2975,6 @@ FunctionType::FunctionMangledName FunctionType::GetFunctionMangledName(bool appF
     return mangle;
 }
 
-bool lIsInsideStdlib(const SourcePos &pos) {
-    std::string filename = pos.name;
-    std::string files[] = {"core.isph", "builtins.isph", "svml.isph", "stdlib,isph", "stdlib.ispc"};
-    for (const std::string &file : files) {
-        if (filename.find(file) != std::string::npos) {
-            return true;
-        }
-    }
-    return false;
-}
-
 std::vector<llvm::Type *> FunctionType::LLVMFunctionArgTypes(llvm::LLVMContext *ctx, bool removeMask) const {
     // Get the LLVM Type *s for the function arguments
     std::vector<llvm::Type *> llvmArgTypes;
@@ -3079,7 +3083,7 @@ unsigned int FunctionType::GetCallingConv() const {
     // If __vectorcall or __regcall is specified explicitly, corresponding
     // llvm::CallingConv will be used.
     // For Xe targets it is either CallingConv::SPIR_KERNEL for kernels or
-    // CallingConv::SPIR_FUNC for all other functions.
+    // CallingConv::SPIR_FUNC for all other functions except stdlib functions.
     if (isRegCall && (isExternC || isExternSYCL))
         return (unsigned int)llvm::CallingConv::X86_RegCall;
 
@@ -3087,7 +3091,11 @@ unsigned int FunctionType::GetCallingConv() const {
         if (IsISPCKernel()) {
             return (unsigned int)llvm::CallingConv::SPIR_KERNEL;
         } else {
-            return (unsigned int)llvm::CallingConv::SPIR_FUNC;
+            if (IsInStdlib()) {
+                return (unsigned int)llvm::CallingConv::C;
+            } else {
+                return (unsigned int)llvm::CallingConv::SPIR_FUNC;
+            }
         }
     }
 

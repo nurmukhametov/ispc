@@ -3508,6 +3508,13 @@ llvm::Value *FunctionEmitContext::CallInst(llvm::Value *func, const FunctionType
             Assert(funcType != nullptr);
             func_type = funcType->LLVMFunctionType(g->ctx, disableMask);
         }
+        // printf("Function name: %s\n", func->getName().str().c_str());
+        // func_type->dump();
+        // for (unsigned int i = 0; i < func_type->getNumParams(); i++) {
+        //     func_type->getParamType(i)->dump();
+        //     argVals[i]->dump();
+        //     // Assert(func_type->getParamType(i) != argVals[i]->getType());
+        // }
         llvm::CallInst *callinst = llvm::CallInst::Create(func_type, func, argVals, name, bblock);
 
         // We could be dealing with a function pointer in which case this will not be a 'llvm::Function'.

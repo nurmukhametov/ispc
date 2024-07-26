@@ -1284,10 +1284,12 @@ void Module::AddFunctionDeclaration(const std::string &name, const FunctionType 
 
     // Mark with corresponding attribute
     if (g->target->isXeTarget()) {
-        if (functionType->IsISPCKernel()) {
-            function->addFnAttr("CMGenxMain");
-        } else {
-            function->addFnAttr("CMStackCall");
+        if (!functionType->IsInStdlib()) {
+            if (functionType->IsISPCKernel()) {
+                function->addFnAttr("CMGenxMain");
+            } else {
+                function->addFnAttr("CMStackCall");
+            }
         }
     }
 

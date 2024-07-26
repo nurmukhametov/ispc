@@ -703,12 +703,14 @@ void Function::GenerateIR() {
             // Xe kernel should have "dllexport" and "CMGenxMain" attribute,
             // otherss have "CMStackCall" attribute
             if (g->target->isXeTarget()) {
-                if (type->IsISPCExternal()) {
-                    appFunction->addFnAttr("CMStackCall");
+                if (!type->IsInStdlib()) {
+                    if (type->IsISPCExternal()) {
+                        appFunction->addFnAttr("CMStackCall");
 
-                } else if (type->IsISPCKernel()) {
-                    appFunction->setDLLStorageClass(llvm::GlobalValue::DLLExportStorageClass);
-                    appFunction->addFnAttr("CMGenxMain");
+                    } else if (type->IsISPCKernel()) {
+                        appFunction->setDLLStorageClass(llvm::GlobalValue::DLLExportStorageClass);
+                        appFunction->addFnAttr("CMGenxMain");
+                    }
                 }
             } else {
                 // Make application function callable from DLLs.
