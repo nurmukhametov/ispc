@@ -127,9 +127,14 @@ function (generate_stdlibs_1 ispc_name)
     # XE targets
     if (XE_ENABLED)
         foreach (target ${XE_TARGETS})
-            foreach (os ${os_list})
-                stdlib_to_cpp(${ispc_name} ${target} 64 ${os})
-            endforeach()
+            # No cross-compilation for XE targets
+            if (WIN32)
+                stdlib_to_cpp(${ispc_name} ${target} 64 windows)
+            elseif (APPLE)
+                # no xe support
+            else()
+                stdlib_to_cpp(${ispc_name} ${target} 64 unix)
+            endif()
         endforeach()
     endif()
 
