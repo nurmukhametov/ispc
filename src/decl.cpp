@@ -84,8 +84,6 @@ static void lPrintTypeQualifiers(int typeQualifiers) {
         printf("export ");
     if (typeQualifiers & TYPEQUAL_UNMASKED)
         printf("unmasked ");
-    if (typeQualifiers & TYPEQUAL_NOESCAPE)
-        printf("noescape ");
 }
 
 /** Given a Type and a set of type qualifiers, apply the type qualifiers to
@@ -144,6 +142,95 @@ static const Type *lApplyTypeQualifiers(int typeQualifiers, const Type *type, So
 }
 
 ///////////////////////////////////////////////////////////////////////////
+// Attributes
+
+AttrArgument::AttrArgument(int64_t i) : kind(ATTR_ARG_UINT32), intVal(i), stringVal() {}
+AttrArgument::AttrArgument(const std::string &s) : kind(ATTR_ARG_STRING), intVal(0), stringVal(s) {}
+
+void AttrArgument::Print() const {
+    if (kind == ATTR_ARG_UINT32)
+        printf("(%" PRId64 ")", intVal);
+    else
+        printf("(\"%s\")", stringVal.c_str());
+}
+
+Attribute::Attribute(const std::string &n) : name(n), arg(nullptr) {}
+Attribute::Attribute(const std::string &n, AttrArgument *a) : name(n), arg(a) {}
+Attribute::~Attribute() { delete arg; }
+
+bool Attribute::IsKnownAttribute() const {
+    static std::unordered_map<std::string, int> lKnownParamAttrs = {
+        {"noescape", 1},
+        {"address_space", 1},
+    };
+
+    if (lKnownParamAttrs.find(name) != lKnownParamAttrs.end()) {
+        return true;
+    }
+
+    return false;
+}
+
+void Attribute::Print() const {
+    printf("%s", name.c_str());
+    if (arg != nullptr) {
+        arg->Print();
+    }
+}
+
+AttributeList::AttributeList() {}
+AttributeList::~AttributeList() {
+    for (unsigned int i = 0; i < attributes.size(); ++i) {
+        delete attributes[i];
+    }
+}
+
+void AttributeList::AddAttribute(Attribute *a) {
+    attributes.push_back(a);
+}
+
+bool AttributeList::HasAttribute(const std::string &name) const {
+    for (unsigned int i = 0; i < attributes.size(); ++i) {
+        if (attributes[i]->name == name)
+            return true;
+    }
+    return false;
+}
+
+Attribute *AttributeList::GetAttribute(const std::string &name) const {
+    for (size_t i = 0; i < attributes.size(); ++i) {
+        if (attributes[i]->name == name)
+            return attributes[i];
+    }
+    return nullptr;
+}
+
+void AttributeList::MergeAttrList(AttributeList *attrList) {
+    for (unsigned int i = 0; i < attrList->attributes.size(); ++i) {
+        Attribute *attr = attrList->attributes[i];
+        if (!HasAttribute(attr->name)) {
+            AddAttribute(attr);
+        }
+    }
+}
+
+void AttributeList::CheckForUnknownAttributes(SourcePos pos) const {
+    for (size_t i = 0; i < attributes.size(); ++i) {
+        Attribute *attr = attributes[i];
+        if (!attr->IsKnownAttribute()) {
+            Warning(pos, "Ignoring unknown attribute \"%s\".", attr->name.c_str());
+        }
+    }
+}
+
+void AttributeList::Print() const {
+    for (unsigned int i = 0; i < attributes.size(); ++i) {
+        attributes[i]->Print();
+        printf(", ");
+    }
+}
+
+///////////////////////////////////////////////////////////////////////////
 // DeclSpecs
 
 DeclSpecs::DeclSpecs(const Type *t, StorageClass sc, int tq) {
@@ -152,6 +239,7 @@ DeclSpecs::DeclSpecs(const Type *t, StorageClass sc, int tq) {
     typeQualifiers = tq;
     soaWidth = 0;
     vectorSize = 0;
+    attributeList = nullptr;
     if (t != nullptr) {
         if (m->symbolTable->ContainsType(t)) {
             // Typedefs might have uniform/varying qualifiers inside.
@@ -162,6 +250,16 @@ DeclSpecs::DeclSpecs(const Type *t, StorageClass sc, int tq) {
             }
         }
     }
+}
+
+DeclSpecs::~DeclSpecs() { delete attributeList; }
+
+void DeclSpecs::AddAttrList(AttributeList *attrList) {
+    if (attributeList != nullptr) {
+        attributeList->MergeAttrList(attrList);
+        return;
+    }
+    attributeList = attrList;
 }
 
 const Type *DeclSpecs::GetBaseType(SourcePos pos) const {
@@ -255,6 +353,10 @@ void DeclSpecs::Print() const {
     lPrintTypeQualifiers(typeQualifiers);
     printf("base type: %s", baseType->GetString().c_str());
 
+    if (attributeList) {
+        attributeList->Print();
+    }
+
     if (vectorSize > 0)
         printf("<%d>", vectorSize);
     printf("]");
@@ -270,9 +372,16 @@ Declarator::Declarator(DeclaratorKind dk, SourcePos p) : pos(p), kind(dk) {
     arraySize = -1;
     type = nullptr;
     initExpr = nullptr;
+    attributeList = nullptr;
 }
 
 void Declarator::InitFromDeclSpecs(DeclSpecs *ds) {
+    if (attributeList) {
+        attributeList->MergeAttrList(ds->attributeList);
+    } else {
+        attributeList = ds->attributeList;
+    }
+
     const Type *baseType = ds->GetBaseType(pos);
     if (!baseType) {
         AssertPos(pos, m->errorCount > 0);
@@ -288,6 +397,47 @@ void Declarator::InitFromDeclSpecs(DeclSpecs *ds) {
     if (type == nullptr) {
         AssertPos(pos, m->errorCount > 0);
         return;
+    }
+
+    if (lIsFunctionKind(this)) {
+        if (attributeList) {
+            // Check for unknown attributes in function type.
+            attributeList->CheckForUnknownAttributes(pos);
+
+            // Warn about attributes that are not used for function types.
+            if (attributeList->HasAttribute("noescape")) {
+                Warning(pos, "Ignoring \"noescape\" attribute for function \"%s\".", name.c_str());
+            }
+
+            if (attributeList->HasAttribute("address_space")) {
+                Warning(pos, "Ignoring \"address_space\" attribute for function \"%s\".", name.c_str());
+            }
+        }
+    } else {
+        if (attributeList && attributeList->HasAttribute("address_space")) {
+            int64_t addrSpace = attributeList->GetAttribute("address_space")->arg->intVal;
+            if (addrSpace < 0) {
+                Error(pos, "\"address_space\" attribute must be non-negative, \"%s\".", name.c_str());
+                addrSpace = 0;
+            }
+            if (addrSpace > (int64_t)AddressSpace::ispc_generic) {
+                Error(pos, "\"address_space\" attribute " PRId64 " is out of scope of supported [%d, %d], \"%s\".",
+                      addrSpace, (int)AddressSpace::ispc_default, (int)AddressSpace::ispc_generic, name.c_str());
+                addrSpace = 0;
+            }
+            if (auto *pt = CastType<PointerType>(type)) {
+                type = pt->GetWithAddrSpace((AddressSpace)addrSpace);
+            } else if (auto *rt = CastType<ReferenceType>(type)) {
+                type = rt->GetWithAddrSpace((AddressSpace)addrSpace);
+            } else {
+                // ISPC type system seems to support only pointer and reference
+                // types with address space, that doesn't look correct in general.
+                // Although, it's not a big deal to support it in the future.
+                // For now, just issue a warning.
+                Warning(pos, "\"address_space\" attribute is only allowed for pointer or reference types, \"%s\".",
+                        name.c_str());
+            }
+        }
     }
 
     storageClass = ds->storageClass;
@@ -342,6 +492,10 @@ void Declarator::Print(Indent &indent) const {
     }
 
     printf("]\n");
+
+    if (attributeList) {
+        attributeList->Print();
+    }
 
     int kids = (initExpr ? 1 : 0) + functionParams.size() + (child ? 1 : 0);
     indent.pushList(kids);
@@ -529,17 +683,6 @@ void Declarator::InitFromType(const Type *baseType, DeclSpecs *ds) {
                 }
             }
 
-            if (d->declSpecs->typeQualifiers & TYPEQUAL_NOESCAPE) {
-                if (decl->type->IsVaryingType()) {
-                    Error(decl->pos, "\"noescape\" qualifier illegal with \"varying\" parameter type.");
-                    return;
-                }
-                if (!decl->type->IsPointerType()) {
-                    Error(decl->pos, "\"noescape\" qualifier illegal with non-pointer parameter type.");
-                    return;
-                }
-            }
-
             args.push_back(decl->type);
             argNames.push_back(decl->name);
             argPos.push_back(decl->pos);
@@ -589,7 +732,6 @@ void Declarator::InitFromType(const Type *baseType, DeclSpecs *ds) {
         bool isUnmasked = ds && ((ds->typeQualifiers & TYPEQUAL_UNMASKED) != 0);
         bool isVectorCall = ds && ((ds->typeQualifiers & TYPEQUAL_VECTORCALL) != 0);
         bool isRegCall = ds && ((ds->typeQualifiers & TYPEQUAL_REGCALL) != 0);
-        bool isNoEscape = ds && ((ds->typeQualifiers & TYPEQUAL_NOESCAPE) != 0);
 
         if (isExported && isTask) {
             Error(pos, "Function can't have both \"task\" and \"export\" "
@@ -614,10 +756,6 @@ void Declarator::InitFromType(const Type *baseType, DeclSpecs *ds) {
         if (isExternSYCL && isExported) {
             Error(pos, "Function can't have both \"extern \"SYCL\"\" and \"export\" "
                        "qualifiers");
-            return;
-        }
-        if (isNoEscape) {
-            Error(pos, "\"noescape\" qualifier is illegal in function declaration.");
             return;
         }
         if (isUnmasked && isExported)
@@ -698,6 +836,17 @@ std::vector<VariableDeclaration> Declaration::GetVariableDeclarations() const {
                 decl->type = decl->type->ResolveUnboundVariability(Variability::Varying);
             }
             Symbol *sym = new Symbol(decl->name, decl->pos, decl->type, decl->storageClass);
+
+            AttributeList *AL = decl->attributeList;
+            if (AL) {
+                // Check for unknown attributes for variable declarations.
+                AL->CheckForUnknownAttributes(decl->pos);
+
+                if (AL->HasAttribute("noescape")) {
+                    Warning(decl->pos, "Ignoring \"noescape\" attribute for variable \"%s\".", decl->name.c_str());
+                }
+            }
+
             m->symbolTable->AddVariable(sym);
             vars.push_back(VariableDeclaration(sym, decl->initExpr));
         } else {
