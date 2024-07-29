@@ -68,7 +68,8 @@ static int allTokens[] = {
   TOKEN_MUL_ASSIGN, TOKEN_DIV_ASSIGN, TOKEN_MOD_ASSIGN, TOKEN_ADD_ASSIGN,
   TOKEN_SUB_ASSIGN, TOKEN_LEFT_ASSIGN, TOKEN_RIGHT_ASSIGN, TOKEN_AND_ASSIGN,
   TOKEN_XOR_ASSIGN, TOKEN_OR_ASSIGN, TOKEN_PTR_OP, TOKEN_NOINLINE, TOKEN_VECTORCALL,
-  TOKEN_REGCALL, TOKEN_NOESCAPE, TOKEN_INVOKE_SYCL,
+  TOKEN_REGCALL, TOKEN_INVOKE_SYCL,
+  TOKEN_ATTRIBUTE,
   ';', '{', '}', ',', ':', '=', '(', ')', '[', ']', '.', '&', '!', '~', '-',
   '+', '*', '/', '%', '<', '>', '^', '|', '?',
 };
@@ -110,7 +111,6 @@ void ParserInit() {
     tokenToName[TOKEN_NOINLINE] = "noinline";
     tokenToName[TOKEN_VECTORCALL] = "__vectorcall";
     tokenToName[TOKEN_REGCALL] = "__regcall";
-    tokenToName[TOKEN_NOESCAPE] = "noescape";
     tokenToName[TOKEN_INT] = "int";
     tokenToName[TOKEN_UINT] = "uint";
     tokenToName[TOKEN_INT8] = "int8";
@@ -122,6 +122,7 @@ void ParserInit() {
     tokenToName[TOKEN_UINT64] = "uint64";
     tokenToName[TOKEN_LAUNCH] = "launch";
     tokenToName[TOKEN_INVOKE_SYCL] = "invoke_sycl";
+    tokenToName[TOKEN_ATTRIBUTE] = "__attribute__";
     tokenToName[TOKEN_NEW] = "new";
     tokenToName[TOKEN_NULL] = "NULL";
     tokenToName[TOKEN_PRINT] = "print";
@@ -240,7 +241,6 @@ void ParserInit() {
     tokenNameRemap["TOKEN_NOINLINE"] = "\'noinline\'";
     tokenNameRemap["TOKEN_VECTORCALL"] = "\'__vectorcall\'";
     tokenNameRemap["TOKEN_REGCALL"] = "\'__regcall\'";
-    tokenNameRemap["TOKEN_NOESCAPE"] = "\'noescape\'";
     tokenNameRemap["TOKEN_INT"] = "\'int\'";
     tokenNameRemap["TOKEN_UINT"] = "\'uint\'";
     tokenNameRemap["TOKEN_INT8"] = "\'int8\'";
@@ -252,6 +252,7 @@ void ParserInit() {
     tokenNameRemap["TOKEN_UINT64"] = "\'uint64\'";
     tokenNameRemap["TOKEN_LAUNCH"] = "\'launch\'";
     tokenNameRemap["TOKEN_INVOKE_SYCL"] = "\'invoke_sycl\'";
+    tokenNameRemap["TOKEN_ATTRIBUTE"] = "\'__attribute__\'";
     tokenNameRemap["TOKEN_NEW"] = "\'new\'";
     tokenNameRemap["TOKEN_NULL"] = "\'NULL\'";
     tokenNameRemap["TOKEN_PRINT"] = "\'print\'";
@@ -418,7 +419,6 @@ inline { RT; return TOKEN_INLINE; }
 noinline { RT; return TOKEN_NOINLINE; }
 __vectorcall { RT; return TOKEN_VECTORCALL; }
 __regcall { RT; return TOKEN_REGCALL; }
-noescape { RT; return TOKEN_NOESCAPE; }
 int { RT; return TOKEN_INT; }
 uint { RT; return TOKEN_UINT; }
 int8 { RT; return TOKEN_INT8; }
@@ -431,6 +431,7 @@ int64 { RT; return TOKEN_INT64; }
 uint64 { RT; return TOKEN_UINT64; }
 launch { RT; return TOKEN_LAUNCH; }
 invoke_sycl { RT; return TOKEN_INVOKE_SYCL; }
+__attribute__ { RT; return TOKEN_ATTRIBUTE; }
 new { RT; return TOKEN_NEW; }
 NULL { RT; return TOKEN_NULL; }
 print { RT; return TOKEN_PRINT; }

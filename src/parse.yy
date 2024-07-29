@@ -70,6 +70,7 @@ typedef std::pair<Declarator *, TemplateArgs *> SimpleTemplateIDType;
 #include "type.h"
 #include "util.h"
 
+#include <unordered_map>
 #include <stdio.h>
 #include <llvm/IR/Constants.h>
 
@@ -120,13 +121,13 @@ static const char *lBuiltinTokens[] = {
     "int", "int8", "int16", "int32", "int64", "invoke_sycl", "launch", "new", "NULL",
     "print", "return", "signed", "sizeof", "static", "struct", "switch",
     "sync", "task", "true", "typedef", "uniform", "unmasked", "unsigned",
-    "varying", "void", "while", NULL
+    "varying", "void", "while", "__attribute__", NULL
 };
 
 static const char *lParamListTokens[] = {
     "bool", "const", "double", "enum", "false", "float16", "float", "int",
     "int8", "int16", "int32", "int64", "signed", "struct", "true",
-    "uniform", "unsigned", "varying", "void", NULL
+    "uniform", "unsigned", "varying", "void", "__attribute__", NULL
 };
 
 struct ForeachDimension {
@@ -157,6 +158,9 @@ struct ForeachDimension {
     StorageClass storageClass;
     Stmt *stmt;
     DeclSpecs *declSpecs;
+    AttributeList *attributeList;
+    Attribute *attr;
+    AttrArgument *attrArg;
     Declaration *declaration;
     std::vector<Declarator *> *declarators;
     std::vector<Declaration *> *declarationList;
@@ -202,7 +206,7 @@ struct ForeachDimension {
 %token TOKEN_SIZEOF TOKEN_NEW TOKEN_DELETE TOKEN_IN TOKEN_ALLOCA
 %token <stringVal> TOKEN_INTRINSIC_CALL
 
-%token TOKEN_EXTERN TOKEN_EXPORT TOKEN_STATIC TOKEN_INLINE TOKEN_NOINLINE TOKEN_VECTORCALL TOKEN_REGCALL TOKEN_NOESCAPE TOKEN_TASK TOKEN_DECLSPEC
+%token TOKEN_EXTERN TOKEN_EXPORT TOKEN_STATIC TOKEN_INLINE TOKEN_NOINLINE TOKEN_VECTORCALL TOKEN_REGCALL TOKEN_TASK TOKEN_DECLSPEC
 %token TOKEN_UNIFORM TOKEN_VARYING TOKEN_TYPEDEF TOKEN_SOA TOKEN_UNMASKED
 %token TOKEN_INT TOKEN_SIGNED TOKEN_UNSIGNED TOKEN_FLOAT16 TOKEN_FLOAT TOKEN_DOUBLE
 %token TOKEN_INT8 TOKEN_INT16 TOKEN_INT64 TOKEN_CONST TOKEN_VOID TOKEN_BOOL
@@ -215,6 +219,7 @@ struct ForeachDimension {
 %token TOKEN_FOR TOKEN_GOTO TOKEN_CONTINUE TOKEN_BREAK TOKEN_RETURN
 %token TOKEN_CIF TOKEN_CDO TOKEN_CFOR TOKEN_CWHILE
 %token TOKEN_SYNC TOKEN_PRINT TOKEN_ASSERT TOKEN_INVOKE_SYCL
+%token TOKEN_ATTRIBUTE
 
 %type <expr> primary_expression postfix_expression integer_dotdotdot
 %type <expr> unary_expression cast_expression funcall_expression launch_expression intrincall_expression
@@ -257,6 +262,10 @@ struct ForeachDimension {
 %type <typeQualifier> type_qualifier type_qualifier_list
 %type <storageClass> storage_class_specifier
 %type <declSpecs> declaration_specifiers
+
+%type <attributeList> attribute_list attribute_specifier
+%type <attr> attribute
+%type <attrArg> attribute_argument
 
 %type <stringVal> string_constant intrinsic_name
 %type <constCharPtr> struct_or_union_name enum_identifier goto_identifier
@@ -1052,6 +1061,71 @@ declaration_specifiers
               ds->typeQualifiers |= $1;
           $$ = ds;
       }
+    | attribute_specifier
+      {
+          DeclSpecs *ds = new DeclSpecs();
+          ds->AddAttrList($1);
+          // TODO! free $1
+          $$ = ds;
+      }
+    | attribute_specifier declaration_specifiers
+      {
+          DeclSpecs *ds = (DeclSpecs *)$2;
+          AttributeList *al = $1;
+          if (ds != nullptr)
+              ds->AddAttrList(al);
+          $$ = ds;
+      }
+    ;
+
+attribute_specifier
+    : TOKEN_ATTRIBUTE '(' '(' attribute_list ')' ')'
+      {
+          $$ = $4;
+      }
+    ;
+
+attribute_list
+    : attribute
+      {
+          AttributeList *al = new AttributeList;
+          al->AddAttribute($1);
+          $$ = al;
+      }
+    | attribute_list ',' attribute
+      {
+          AttributeList *al = (AttributeList *)$1;
+          al->AddAttribute($3);
+          $$ = al;
+      }
+    ;
+
+attribute
+    : TOKEN_IDENTIFIER
+      {
+          $$ = new Attribute(*$1);
+          // cleanup TOKEN_IDENTIFIER string
+          lCleanUpString($1);
+      }
+    | TOKEN_IDENTIFIER '(' attribute_argument ')'
+      {
+          $$ = new Attribute(*$1, $3);
+          // cleanup TOKEN_IDENTIFIER string
+          lCleanUpString($1);
+      }
+    ;
+
+attribute_argument
+    : int_constant
+      {
+        $$ = new AttrArgument($1);
+      }
+    | string_constant
+      {
+        $$ = new AttrArgument(*$1);
+        // deallocate std::string of string_constant
+        lCleanUpString($1);
+      }
     ;
 
 init_declarator_list
@@ -1343,11 +1417,6 @@ specifier_qualifier_list
                       "function declarations.");
                 $$ = $2;
             }
-            else if ($1 == TYPEQUAL_NOESCAPE) {
-                Error(@1, "\"noescape\" qualifier is illegal outside of "
-                      "function declarations.");
-                $$ = $2;
-            }
             else if ($1 == TYPEQUAL_TASK) {
                 Error(@1, "\"task\" qualifier is illegal outside of "
                       "function declarations.");
@@ -1527,7 +1596,6 @@ type_qualifier
     | TOKEN_NOINLINE      { $$ = TYPEQUAL_NOINLINE; }
     | TOKEN_VECTORCALL    { $$ = TYPEQUAL_VECTORCALL; }
     | TOKEN_REGCALL       { $$ = TYPEQUAL_REGCALL; }
-    | TOKEN_NOESCAPE      { $$ = TYPEQUAL_NOESCAPE; }
     | TOKEN_SIGNED        { $$ = TYPEQUAL_SIGNED; }
     | TOKEN_UNSIGNED      { $$ = TYPEQUAL_UNSIGNED; }
     ;
@@ -2949,8 +3017,7 @@ lAddDeclaration(DeclSpecs *ds, Declarator *decl) {
         }
         else {
             bool isConst = (ds->typeQualifiers & TYPEQUAL_CONST) != 0;
-            m->AddGlobalVariable(decl->name, decl->type, decl->initExpr,
-                                 isConst, decl->storageClass, decl->pos);
+            m->AddGlobalVariable(decl, isConst);
         }
     }
 }
@@ -3087,8 +3154,23 @@ lAddFunctionParams(Declarator *decl) {
         if (declarator == nullptr)
             AssertPos(decl->pos, m->errorCount > 0);
         else {
+            const Type *type = declarator->type;
             Symbol *sym = new Symbol(declarator->name, declarator->pos,
-                                     declarator->type, declarator->storageClass);
+                                     type, declarator->storageClass);
+
+            AttributeList *AL = declarator->attributeList;
+            if (AL) {
+                // Check for unknown attributes for parameters in function definitions.
+                AL->CheckForUnknownAttributes(declarator->pos);
+
+                // Initialize known attributes inside the symbol.
+                if (AL->HasAttribute("noescape")) {
+                    // if (type->IsVaryingType()) {
+                    //     Error(declarator->pos, "\"noescape\" attribute cannot be used with varying types.");
+                    // }
+                    // sym->attr.noescape = true;
+                }
+            }
 #ifndef NDEBUG
             bool ok = m->symbolTable->AddVariable(sym);
             if (ok == false)

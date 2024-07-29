@@ -54,7 +54,48 @@ class Declarator;
 #define TYPEQUAL_NOINLINE (1 << 9)
 #define TYPEQUAL_VECTORCALL (1 << 10)
 #define TYPEQUAL_REGCALL (1 << 11)
-#define TYPEQUAL_NOESCAPE (1 << 12)
+
+enum AttrArgKind { ATTR_ARG_UINT32, ATTR_ARG_STRING };
+
+class AttrArgument {
+  public:
+    AttrArgument(int64_t i);
+    AttrArgument(const std::string &s);
+
+    void Print() const;
+
+    AttrArgKind kind;
+    int64_t intVal;
+    std::string stringVal;
+};
+
+class Attribute {
+  public:
+    Attribute(const std::string &n);
+    Attribute(const std::string &n, AttrArgument *a);
+    ~Attribute();
+
+    bool IsKnownAttribute() const;
+    void Print() const;
+
+    std::string name;
+    AttrArgument *arg;
+};
+
+class AttributeList {
+  public:
+    AttributeList();
+    ~AttributeList();
+
+    void AddAttribute(Attribute *a);
+    bool HasAttribute(const std::string &name) const;
+    Attribute *GetAttribute(const std::string &name) const;
+    void MergeAttrList(AttributeList *attrList);
+    void CheckForUnknownAttributes(SourcePos pos) const;
+    void Print() const;
+
+    std::vector<Attribute *> attributes;
+};
 
 /** @brief Representation of the declaration specifiers in a declaration.
 
@@ -64,8 +105,11 @@ class Declarator;
 class DeclSpecs : public Traceable {
   public:
     DeclSpecs(const Type *t = nullptr, StorageClass sc = SC_NONE, int tq = TYPEQUAL_NONE);
+    ~DeclSpecs();
 
     void Print() const;
+
+    void AddAttrList(AttributeList *attrList);
 
     StorageClass storageClass;
 
@@ -92,6 +136,8 @@ class DeclSpecs : public Traceable {
     int soaWidth;
 
     std::vector<std::pair<std::string, SourcePos>> declSpecList;
+
+    AttributeList *attributeList;
 };
 
 enum DeclaratorKind { DK_BASE, DK_POINTER, DK_REFERENCE, DK_ARRAY, DK_FUNCTION };
@@ -147,6 +193,8 @@ class Declarator : public Traceable {
     /** Type of the declarator.  This is nullptr until InitFromDeclSpecs() or
         InitFromType() is called. */
     const Type *type;
+
+    AttributeList *attributeList;
 
     /** For function declarations, this holds the Declaration *s for the
         function's parameters. */

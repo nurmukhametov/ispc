@@ -779,13 +779,29 @@ Expr *lConvertExprListToConstExpr(Expr *initExpr, const Type *type, const std::s
     return nullptr;
 }
 
-void Module::AddGlobalVariable(const std::string &name, const Type *type, Expr *initExpr, bool isConst,
-                               StorageClass storageClass, SourcePos pos) {
+void Module::AddGlobalVariable(Declarator *decl, bool isConst) {
+    const std::string &name = decl->name;
+    const Type *type = decl->type;
+    Expr *initExpr = decl->initExpr;
+    StorageClass storageClass = decl->storageClass;
+    SourcePos pos = decl->pos;
+
     // These may be nullptr due to errors in parsing; just gracefully return
     // here if so.
     if (name == "" || type == nullptr) {
         Assert(errorCount > 0);
         return;
+    }
+
+    // Check attrbutes for global variables.
+    AttributeList *attrList = decl->attributeList;
+    if (attrList) {
+        // Check for unknown attributes for global variable declarations.
+        attrList->CheckForUnknownAttributes(pos);
+
+        if (attrList->HasAttribute("noescape")) {
+            Warning(pos, "Ignoring \"noescape\" attribute for global variable \"%s\".", name.c_str());
+        }
     }
 
     if (symbolTable->LookupFunction(name.c_str())) {
@@ -1328,11 +1344,25 @@ void Module::AddFunctionDeclaration(const std::string &name, const FunctionType 
             function->addParamAttr(i, llvm::Attribute::NoAlias);
         }
 
-        if (argType->IsPointerType() && argType->IsUniformType()) {
-            Assert(decl && decl->functionParams.size() == nArgs);
-            DeclSpecs *declSpecs = decl->functionParams[i]->declSpecs;
-            if (declSpecs && (declSpecs->typeQualifiers & TYPEQUAL_NOESCAPE)) {
-                function->addParamAttr(i, llvm::Attribute::NoCapture);
+        Assert(decl && decl->functionParams.size() == nArgs);
+        DeclSpecs *declSpecs = decl->functionParams[i]->declSpecs;
+        AttributeList *attrList = declSpecs ? declSpecs->attributeList : nullptr;
+        if (attrList) {
+            // Check for unknown attributes for parameters in function declarations.
+            attrList->CheckForUnknownAttributes(decl->pos);
+
+            if (attrList->HasAttribute("noescape")) {
+                if (argType->IsPointerType() && argType->IsUniformType()) {
+                    function->addParamAttr(i, llvm::Attribute::NoCapture);
+                }
+
+                if (argType->IsVaryingType()) {
+                    Error(argPos, "\"noescape\" attribute illegal with \"varying\" parameter \"%s\".", argName.c_str());
+                }
+
+                if (!argType->IsPointerType()) {
+                    Error(argPos, "\"noescape\" attribute illegal with non-pointer parameter \"%s\".", argName.c_str());
+                }
             }
         }
 

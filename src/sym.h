@@ -23,6 +23,17 @@ namespace ispc {
 class StructType;
 class ConstExpr;
 
+class AttrInfo {
+  public:
+    AttrInfo() {}
+
+    bool IsNoEscape() const { return noescape; }
+    int64_t AddressSpace() const { return addressSpace; }
+
+    bool noescape = false;
+    int64_t addressSpace = 0;
+};
+
 /**
    @brief Representation of a program symbol.
 
@@ -80,6 +91,8 @@ class Symbol : public Traceable {
     /*!< For symbols that are parameters to functions or are
          variables declared inside functions, this gives the
          function they're in. */
+
+    AttrInfo attr;
 };
 
 /**

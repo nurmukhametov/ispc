@@ -62,11 +62,8 @@ class Module {
     /** Add a named type definition to the module. */
     void AddTypeDef(const std::string &name, const Type *type, SourcePos pos);
 
-    /** Add a new global variable corresponding to the given Symbol to the
-        module.  If non-nullptr, initExpr gives the initiailizer expression
-        for the global's inital value. */
-    void AddGlobalVariable(const std::string &name, const Type *type, Expr *initExpr, bool isConst,
-                           StorageClass storageClass, SourcePos pos);
+    /** Add a new global variable corresponding to the decl. */
+    void AddGlobalVariable(Declarator *decl, bool isConst);
 
     /** Add a declaration of the function defined by the given function
         symbol to the module. */
