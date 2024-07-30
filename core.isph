@@ -21,6 +21,11 @@
 // This lets the user know uint* is part of language.
 #define ISPC_UINT_IS_DEFINED
 
+#if defined(ISPC_TARGET_GEN9) || defined(ISPC_TARGET_XELP) || defined(ISPC_TARGET_XEHPG) ||                            \
+    defined(ISPC_TARGET_XEHPC) || defined(ISPC_TARGET_XELPG)
+#define ISPC_TARGET_XE
+#endif
+
 #ifdef ISPC_ASSERTS_DISABLED
 #define assert(x)
 #else
@@ -168,6 +173,10 @@ typedef uniform int8 *uniform opaque_ptr_t;
 #define PREFETCH_DATASIZE_DEFAULT 4
 #endif
 
+// Macros for attributes
+#define NOESCAPE __attribute__((noescape))
+#define ADDRSPACE(N) __attribute__((address_space(N)))
+
 struct RNGState {
     unsigned int z1, z2, z3, z4;
 };
@@ -187,13 +196,13 @@ struct RNGState {
 //  stores (if the mask is all on) by the MaskedStoreOptPass optimization
 //  pass.
 
-extern "C" void __pseudo_masked_store_i8(noescape varying int8 *uniform, varying int8, UIntMaskType);
-extern "C" void __pseudo_masked_store_i16(noescape varying int16 *uniform, varying int16, UIntMaskType);
-extern "C" void __pseudo_masked_store_half(noescape varying float16 *uniform, varying float16, UIntMaskType);
-extern "C" void __pseudo_masked_store_i32(noescape varying int32 *uniform, varying int32, UIntMaskType);
-extern "C" void __pseudo_masked_store_float(noescape varying float *uniform, varying float, UIntMaskType);
-extern "C" void __pseudo_masked_store_i64(noescape varying int64 *uniform, varying int64, UIntMaskType);
-extern "C" void __pseudo_masked_store_double(noescape varying double *uniform, varying double, UIntMaskType);
+extern "C" void __pseudo_masked_store_i8(NOESCAPE varying int8 *uniform, varying int8, UIntMaskType);
+extern "C" void __pseudo_masked_store_i16(NOESCAPE varying int16 *uniform, varying int16, UIntMaskType);
+extern "C" void __pseudo_masked_store_half(NOESCAPE varying float16 *uniform, varying float16, UIntMaskType);
+extern "C" void __pseudo_masked_store_i32(NOESCAPE varying int32 *uniform, varying int32, UIntMaskType);
+extern "C" void __pseudo_masked_store_float(NOESCAPE varying float *uniform, varying float, UIntMaskType);
+extern "C" void __pseudo_masked_store_i64(NOESCAPE varying int64 *uniform, varying int64, UIntMaskType);
+extern "C" void __pseudo_masked_store_double(NOESCAPE varying double *uniform, varying double, UIntMaskType);
 
 // Declare the pseudo-gather functions.  When the ispc front-end needs
 // to perform a gather, it generates a call to one of these functions,
@@ -348,67 +357,67 @@ extern "C" void __pseudo_scatter64_double(varying int64, varying double, UIntMas
 //             varying int8 values, mask)
 // (and similarly for 16/32/64 bit values)
 
-extern "C" void __pseudo_scatter_factored_base_offsets32_i8(noescape uniform int8 *uniform, varying int32,
+extern "C" void __pseudo_scatter_factored_base_offsets32_i8(NOESCAPE uniform int8 *uniform, varying int32,
                                                             uniform int32, varying int32, varying int8, UIntMaskType);
-extern "C" void __pseudo_scatter_factored_base_offsets32_i16(noescape uniform int8 *uniform, varying int32,
+extern "C" void __pseudo_scatter_factored_base_offsets32_i16(NOESCAPE uniform int8 *uniform, varying int32,
                                                              uniform int32, varying int32, varying int16, UIntMaskType);
-extern "C" void __pseudo_scatter_factored_base_offsets32_half(noescape uniform int8 *uniform, varying int32,
+extern "C" void __pseudo_scatter_factored_base_offsets32_half(NOESCAPE uniform int8 *uniform, varying int32,
                                                               uniform int32, varying int32, varying float16,
                                                               UIntMaskType);
-extern "C" void __pseudo_scatter_factored_base_offsets32_i32(noescape uniform int8 *uniform, varying int32,
+extern "C" void __pseudo_scatter_factored_base_offsets32_i32(NOESCAPE uniform int8 *uniform, varying int32,
                                                              uniform int32, varying int32, varying int32, UIntMaskType);
-extern "C" void __pseudo_scatter_factored_base_offsets32_float(noescape uniform int8 *uniform, varying int32,
+extern "C" void __pseudo_scatter_factored_base_offsets32_float(NOESCAPE uniform int8 *uniform, varying int32,
                                                                uniform int32, varying int32, varying float,
                                                                UIntMaskType);
-extern "C" void __pseudo_scatter_factored_base_offsets32_i64(noescape uniform int8 *uniform, varying int32,
+extern "C" void __pseudo_scatter_factored_base_offsets32_i64(NOESCAPE uniform int8 *uniform, varying int32,
                                                              uniform int32, varying int32, varying int64, UIntMaskType);
-extern "C" void __pseudo_scatter_factored_base_offsets32_double(noescape uniform int8 *uniform, varying int32,
+extern "C" void __pseudo_scatter_factored_base_offsets32_double(NOESCAPE uniform int8 *uniform, varying int32,
                                                                 uniform int32, varying int32, varying double,
                                                                 UIntMaskType);
-extern "C" void __pseudo_scatter_factored_base_offsets64_i8(noescape uniform int8 *uniform, varying int64,
+extern "C" void __pseudo_scatter_factored_base_offsets64_i8(NOESCAPE uniform int8 *uniform, varying int64,
                                                             uniform int32, varying int64, varying int8, UIntMaskType);
-extern "C" void __pseudo_scatter_factored_base_offsets64_i16(noescape uniform int8 *uniform, varying int64,
+extern "C" void __pseudo_scatter_factored_base_offsets64_i16(NOESCAPE uniform int8 *uniform, varying int64,
                                                              uniform int32, varying int64, varying int16, UIntMaskType);
-extern "C" void __pseudo_scatter_factored_base_offsets64_half(noescape uniform int8 *uniform, varying int64,
+extern "C" void __pseudo_scatter_factored_base_offsets64_half(NOESCAPE uniform int8 *uniform, varying int64,
                                                               uniform int32, varying int64, varying float16,
                                                               UIntMaskType);
-extern "C" void __pseudo_scatter_factored_base_offsets64_i32(noescape uniform int8 *uniform, varying int64,
+extern "C" void __pseudo_scatter_factored_base_offsets64_i32(NOESCAPE uniform int8 *uniform, varying int64,
                                                              uniform int32, varying int64, varying int32, UIntMaskType);
-extern "C" void __pseudo_scatter_factored_base_offsets64_float(noescape uniform int8 *uniform, varying int64,
+extern "C" void __pseudo_scatter_factored_base_offsets64_float(NOESCAPE uniform int8 *uniform, varying int64,
                                                                uniform int32, varying int64, varying float,
                                                                UIntMaskType);
-extern "C" void __pseudo_scatter_factored_base_offsets64_i64(noescape uniform int8 *uniform, varying int64,
+extern "C" void __pseudo_scatter_factored_base_offsets64_i64(NOESCAPE uniform int8 *uniform, varying int64,
                                                              uniform int32, varying int64, varying int64, UIntMaskType);
-extern "C" void __pseudo_scatter_factored_base_offsets64_double(noescape uniform int8 *uniform, varying int64,
+extern "C" void __pseudo_scatter_factored_base_offsets64_double(NOESCAPE uniform int8 *uniform, varying int64,
                                                                 uniform int32, varying int64, varying double,
                                                                 UIntMaskType);
-extern "C" void __pseudo_scatter_base_offsets32_i8(noescape uniform int8 *uniform, uniform int32, varying int32,
+extern "C" void __pseudo_scatter_base_offsets32_i8(NOESCAPE uniform int8 *uniform, uniform int32, varying int32,
                                                    varying int8, UIntMaskType);
-extern "C" void __pseudo_scatter_base_offsets32_i16(noescape uniform int8 *uniform, uniform int32, varying int32,
+extern "C" void __pseudo_scatter_base_offsets32_i16(NOESCAPE uniform int8 *uniform, uniform int32, varying int32,
                                                     varying int16, UIntMaskType);
-extern "C" void __pseudo_scatter_base_offsets32_half(noescape uniform int8 *uniform, uniform int32, varying int32,
+extern "C" void __pseudo_scatter_base_offsets32_half(NOESCAPE uniform int8 *uniform, uniform int32, varying int32,
                                                      varying float16, UIntMaskType);
-extern "C" void __pseudo_scatter_base_offsets32_i32(noescape uniform int8 *uniform, uniform int32, varying int32,
+extern "C" void __pseudo_scatter_base_offsets32_i32(NOESCAPE uniform int8 *uniform, uniform int32, varying int32,
                                                     varying int32, UIntMaskType);
-extern "C" void __pseudo_scatter_base_offsets32_float(noescape uniform int8 *uniform, uniform int32, varying int32,
+extern "C" void __pseudo_scatter_base_offsets32_float(NOESCAPE uniform int8 *uniform, uniform int32, varying int32,
                                                       varying float, UIntMaskType);
-extern "C" void __pseudo_scatter_base_offsets32_i64(noescape uniform int8 *uniform, uniform int32, varying int32,
+extern "C" void __pseudo_scatter_base_offsets32_i64(NOESCAPE uniform int8 *uniform, uniform int32, varying int32,
                                                     varying int64, UIntMaskType);
-extern "C" void __pseudo_scatter_base_offsets32_double(noescape uniform int8 *uniform, uniform int32, varying int32,
+extern "C" void __pseudo_scatter_base_offsets32_double(NOESCAPE uniform int8 *uniform, uniform int32, varying int32,
                                                        varying double, UIntMaskType);
-extern "C" void __pseudo_scatter_base_offsets64_i8(noescape uniform int8 *uniform, uniform int32, varying int64,
+extern "C" void __pseudo_scatter_base_offsets64_i8(NOESCAPE uniform int8 *uniform, uniform int32, varying int64,
                                                    varying int8, UIntMaskType);
-extern "C" void __pseudo_scatter_base_offsets64_i16(noescape uniform int8 *uniform, uniform int32, varying int64,
+extern "C" void __pseudo_scatter_base_offsets64_i16(NOESCAPE uniform int8 *uniform, uniform int32, varying int64,
                                                     varying int16, UIntMaskType);
-extern "C" void __pseudo_scatter_base_offsets64_half(noescape uniform int8 *uniform, uniform int32, varying int64,
+extern "C" void __pseudo_scatter_base_offsets64_half(NOESCAPE uniform int8 *uniform, uniform int32, varying int64,
                                                      varying float16, UIntMaskType);
-extern "C" void __pseudo_scatter_base_offsets64_i32(noescape uniform int8 *uniform, uniform int32, varying int64,
+extern "C" void __pseudo_scatter_base_offsets64_i32(NOESCAPE uniform int8 *uniform, uniform int32, varying int64,
                                                     varying int32, UIntMaskType);
-extern "C" void __pseudo_scatter_base_offsets64_float(noescape uniform int8 *uniform, uniform int32, varying int64,
+extern "C" void __pseudo_scatter_base_offsets64_float(NOESCAPE uniform int8 *uniform, uniform int32, varying int64,
                                                       varying float, UIntMaskType);
-extern "C" void __pseudo_scatter_base_offsets64_i64(noescape uniform int8 *uniform, uniform int32, varying int64,
+extern "C" void __pseudo_scatter_base_offsets64_i64(NOESCAPE uniform int8 *uniform, uniform int32, varying int64,
                                                     varying int64, UIntMaskType);
-extern "C" void __pseudo_scatter_base_offsets64_double(noescape uniform int8 *uniform, uniform int32, varying int64,
+extern "C" void __pseudo_scatter_base_offsets64_double(NOESCAPE uniform int8 *uniform, uniform int32, varying int64,
                                                        varying double, UIntMaskType);
 
 extern "C" void __pseudo_prefetch_read_varying_1(varying int64, UIntMaskType);
@@ -651,8 +660,13 @@ extern "C" varying int64 __new_varying64_64rt(varying int64, UIntMaskType);
 extern "C" void __delete_uniform_64rt(uniform int8 *uniform);
 extern "C" void __delete_varying_64rt(varying int64, UIntMaskType);
 
+#ifdef ISPC_TARGET_XE
+extern "C" void __do_assert_uniform(ADDRSPACE(2) uniform int8 *uniform, uniform bool, UIntMaskType);
+extern "C" void __do_assert_varying(ADDRSPACE(2) uniform int8 *uniform, UIntMaskType, UIntMaskType);
+#else // ISPC_TARGET_XE
 extern "C" void __do_assert_uniform(uniform int8 *uniform, uniform bool, UIntMaskType);
 extern "C" void __do_assert_varying(uniform int8 *uniform, UIntMaskType, UIntMaskType);
+#endif // ISPC_TARGET_XE
 
 extern "C" uniform int32 __count_trailing_zeros_i32(uniform int32);
 extern "C" uniform int64 __count_trailing_zeros_i64(uniform int64);
@@ -681,5 +695,7 @@ extern "C" uniform int32 __task_count0();
 extern "C" uniform int32 __task_count1();
 extern "C" uniform int32 __task_count2();
 extern "C" uniform int32 __task_count();
+
+#undef NOESCAPE
 
 #endif // ISPC_CORE_ISPH
