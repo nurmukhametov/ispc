@@ -2497,7 +2497,7 @@ const ReferenceType *ReferenceType::ResolveUnboundVariability(Variability v) con
         Assert(m->errorCount > 0);
         return nullptr;
     }
-    return new ReferenceType(targetType->ResolveUnboundVariability(v));
+    return new ReferenceType(targetType->ResolveUnboundVariability(v), addrSpace);
 }
 
 const ReferenceType *ReferenceType::GetAsConstType() const {
@@ -2548,6 +2548,10 @@ std::string ReferenceType::GetString() const {
     }
 
     std::string ret = targetType->GetString();
+
+    if (addrSpace != AddressSpace::ispc_default) {
+        ret += std::string(" addrspace(") + std::to_string((int)addrSpace) + std::string(")");
+    }
 
     ret += std::string(" &");
     return ret;
@@ -2776,6 +2780,17 @@ const Type *FunctionType::GetAsNonUnmaskedType() const {
             asMaskedType->asUnmaskedType = this;
     }
     return asMaskedType;
+}
+
+const Type *FunctionType::GetWithReturnType(const Type *newReturnType) const {
+    if (returnType == newReturnType)
+        return this;
+
+    FunctionType *ft = new FunctionType(newReturnType, paramTypes, paramNames, paramDefaults, paramPositions, isTask,
+                                       isExported, isExternC, isExternSYCL, isUnmasked, isVectorCall, isRegCall);
+    ft->isSafe = isSafe;
+    ft->costOverride = costOverride;
+    return ft;
 }
 
 std::string FunctionType::GetString() const {
@@ -3394,13 +3409,14 @@ static bool lCheckTypeEquality(const Type *a, const Type *b, bool ignoreConst) {
     const PointerType *ptb = CastType<PointerType>(b);
     if (pta != nullptr && ptb != nullptr)
         return (pta->IsUniformType() == ptb->IsUniformType() && pta->IsSlice() == ptb->IsSlice() &&
-                pta->IsFrozenSlice() == ptb->IsFrozenSlice() &&
+                pta->IsFrozenSlice() == ptb->IsFrozenSlice() && pta->GetAddressSpace() == ptb->GetAddressSpace() &&
                 lCheckTypeEquality(pta->GetBaseType(), ptb->GetBaseType(), ignoreConst));
 
     const ReferenceType *rta = CastType<ReferenceType>(a);
     const ReferenceType *rtb = CastType<ReferenceType>(b);
     if (rta != nullptr && rtb != nullptr)
-        return (lCheckTypeEquality(rta->GetReferenceTarget(), rtb->GetReferenceTarget(), ignoreConst));
+        return (rta->GetAddressSpace() == rtb->GetAddressSpace() &&
+                lCheckTypeEquality(rta->GetReferenceTarget(), rtb->GetReferenceTarget(), ignoreConst));
 
     const FunctionType *fta = CastType<FunctionType>(a);
     const FunctionType *ftb = CastType<FunctionType>(b);

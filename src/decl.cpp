@@ -23,6 +23,34 @@
 
 using namespace ispc;
 
+void lCheckAddressSpace(int64_t &addrSpace, const std::string &name, SourcePos pos) {
+    if (addrSpace < 0) {
+        Error(pos, "\"address_space\" attribute must be non-negative, \"%s\".", name.c_str());
+        addrSpace = 0;
+    }
+    if (addrSpace > (int64_t)AddressSpace::ispc_generic) {
+        Error(pos, "\"address_space\" attribute %" PRId64 " is out of scope of supported [%d, %d], \"%s\".", addrSpace,
+              (int)AddressSpace::ispc_default, (int)AddressSpace::ispc_generic, name.c_str());
+        addrSpace = 0;
+    }
+}
+
+const Type *lGetTypeWithAddressSpace(const Type *type, int addrSpace, const std::string &name, SourcePos pos) {
+    if (auto *pt = CastType<PointerType>(type)) {
+        type = pt->GetWithAddrSpace((AddressSpace)addrSpace);
+    } else if (auto *rt = CastType<ReferenceType>(type)) {
+        type = rt->GetWithAddrSpace((AddressSpace)addrSpace);
+    } else {
+        // ISPC type system seems to support only pointer and reference
+        // types with address space, that doesn't look correct in general.
+        // Although, it's not a big deal to support it in the future.
+        // For now, just issue a warning.
+        Warning(pos, "\"address_space\" attribute is only allowed for pointer or reference types, \"%s\".",
+                name.c_str());
+    }
+    return type;
+}
+
 void lCheckVariableTypeQualifiers(int typeQualifiers, SourcePos pos) {
     if (typeQualifiers & TYPEQUAL_TASK) {
         Error(pos, "\"task\" qualifier illegal in variable declaration.");
@@ -427,39 +455,27 @@ void Declarator::InitFromDeclSpecs(DeclSpecs *ds) {
             // Check for unknown attributes in function type.
             attributeList->CheckForUnknownAttributes(pos);
 
+            // Handle "address_space" attribute for function return types.
+            if (attributeList->HasAttribute("address_space")) {
+                auto addrSpace = attributeList->GetAttribute("address_space")->arg.intVal;
+                lCheckAddressSpace(addrSpace, name, pos);
+                if (auto *ft = CastType<FunctionType>(type)) {
+                    auto retType = ft->GetReturnType();
+                    auto newRetType = lGetTypeWithAddressSpace(retType, addrSpace, name, pos);
+                    type = ft->GetWithReturnType(newRetType);
+                }
+            }
+
             // Warn about attributes that are not used for function types.
             if (attributeList->HasAttribute("noescape")) {
                 Warning(pos, "Ignoring \"noescape\" attribute for function \"%s\".", name.c_str());
-            }
-
-            if (attributeList->HasAttribute("address_space")) {
-                Warning(pos, "Ignoring \"address_space\" attribute for function \"%s\".", name.c_str());
             }
         }
     } else {
         if (attributeList && attributeList->HasAttribute("address_space")) {
             int64_t addrSpace = attributeList->GetAttribute("address_space")->arg.intVal;
-            if (addrSpace < 0) {
-                Error(pos, "\"address_space\" attribute must be non-negative, \"%s\".", name.c_str());
-                addrSpace = 0;
-            }
-            if (addrSpace > (int64_t)AddressSpace::ispc_generic) {
-                Error(pos, "\"address_space\" attribute %" PRId64 " is out of scope of supported [%d, %d], \"%s\".",
-                      addrSpace, (int)AddressSpace::ispc_default, (int)AddressSpace::ispc_generic, name.c_str());
-                addrSpace = 0;
-            }
-            if (auto *pt = CastType<PointerType>(type)) {
-                type = pt->GetWithAddrSpace((AddressSpace)addrSpace);
-            } else if (auto *rt = CastType<ReferenceType>(type)) {
-                type = rt->GetWithAddrSpace((AddressSpace)addrSpace);
-            } else {
-                // ISPC type system seems to support only pointer and reference
-                // types with address space, that doesn't look correct in general.
-                // Although, it's not a big deal to support it in the future.
-                // For now, just issue a warning.
-                Warning(pos, "\"address_space\" attribute is only allowed for pointer or reference types, \"%s\".",
-                        name.c_str());
-            }
+            lCheckAddressSpace(addrSpace, name, pos);
+            type = lGetTypeWithAddressSpace(type, addrSpace, name, pos);
         }
     }
 

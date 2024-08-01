@@ -960,6 +960,7 @@ class FunctionType : public Type {
 
     const Type *GetAsUnmaskedType() const;
     const Type *GetAsNonUnmaskedType() const;
+    const Type *GetWithReturnType(const Type *t) const;
 
     std::string GetString() const;
     std::string Mangle() const;
