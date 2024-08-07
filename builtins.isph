@@ -566,12 +566,17 @@ extern "C" void __scatter_elt32_double(uniform int8 *uniform, varying int32, uni
                                        varying double, uniform int32);
 extern "C" void __scatter_elt64_double(uniform int8 *uniform, varying int64, uniform int32, varying int64,
                                        varying double, uniform int32);
+#if (ISPC_MASK_BITS == 1)
+#define PackedStoreResultType uniform int32
+#else
+#define PackedStoreResultType UniformMaskType
+#endif
 extern "C" uniform int32 __packed_load_activei32(uniform int8 *uniform, uniform int8 *uniform, UIntMaskType);
-extern "C" uniform int32 __packed_store_activei32(uniform int8 *uniform, varying int32, UIntMaskType);
-extern "C" uniform int32 __packed_store_active2i32(uniform int8 *uniform, varying int32, UIntMaskType);
+extern "C" inline PackedStoreResultType __packed_store_activei32(uniform int8 *uniform, varying int32, UIntMaskType);
+extern "C" inline PackedStoreResultType __packed_store_active2i32(uniform int8 *uniform, varying int32, UIntMaskType);
 extern "C" uniform int32 __packed_load_activei64(uniform int8 *uniform, uniform int8 *uniform, UIntMaskType);
-extern "C" uniform int32 __packed_store_activei64(uniform int8 *uniform, varying int64, UIntMaskType);
-extern "C" uniform int32 __packed_store_active2i64(uniform int8 *uniform, varying int64, UIntMaskType);
+extern "C" inline PackedStoreResultType __packed_store_activei64(uniform int8 *uniform, varying int64, UIntMaskType);
+extern "C" inline PackedStoreResultType __packed_store_active2i64(uniform int8 *uniform, varying int64, UIntMaskType);
 extern "C" void __prefetch_read_uniform_1(uniform int8 *uniform);
 extern "C" void __prefetch_read_uniform_2(uniform int8 *uniform);
 extern "C" void __prefetch_read_uniform_3(uniform int8 *uniform);

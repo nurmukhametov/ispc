@@ -104,6 +104,20 @@ typedef uniform int8 *uniform opaque_ptr_t;
 #error Unknown value of ISPC_MASK_BITS
 #endif
 
+#if (ISPC_MASK_BITS == 1)
+#define UniformMaskType uniform bool
+#elif (ISPC_MASK_BITS == 8)
+#define UniformMaskType uniform int8
+#elif (ISPC_MASK_BITS == 16)
+#define UniformMaskType uniform int16
+#elif (ISPC_MASK_BITS == 32)
+#define UniformMaskType uniform int32
+#elif (ISPC_MASK_BITS == 64)
+#define UniformMaskType uniform int64
+#else
+#error Unknown value of ISPC_MASK_BITS
+#endif
+
 #if (ISPC_POINTER_SIZE == 32)
 #define SizeType int32
 #elif (ISPC_POINTER_SIZE == 64)
