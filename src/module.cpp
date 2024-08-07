@@ -1247,6 +1247,12 @@ void Module::AddFunctionDeclaration(const std::string &name, const FunctionType 
         function->addFnAttr(llvm::Attribute::AlwaysInline);
     }
 
+    // Force noinline for stdlib functions even if extern "C" is used. In
+    // stdlib headers is used to avoid name mangling.
+    if (functionType->IsInStdlib() && isInline) {
+        function->addFnAttr(llvm::Attribute::AlwaysInline);
+    }
+
     if (isVectorCall) {
         if ((storageClass != SC_EXTERN_C)) {
             Error(pos, "Illegal to use \"__vectorcall\" qualifier on non-extern function \"%s\".", name.c_str());
