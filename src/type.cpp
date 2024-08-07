@@ -2802,7 +2802,7 @@ const Type *FunctionType::GetWithReturnType(const Type *newReturnType) const {
         return this;
 
     FunctionType *ft = new FunctionType(newReturnType, paramTypes, paramNames, paramDefaults, paramPositions, isTask,
-                                        isExported, isExternC, isExternSYCL, isUnmasked, isVectorCall, isRegCall);
+                                        isExported, isExternC, isExternSYCL, isUnmasked, isVectorCall, isRegCall, pos);
     ft->isSafe = isSafe;
     ft->costOverride = costOverride;
     return ft;
