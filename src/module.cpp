@@ -3608,7 +3608,7 @@ static llvm::Module *lInitDispatchModule() {
 // appropriate compiled variant of the function.
 static void lEmitDispatchModule(llvm::Module *module, std::map<std::string, FunctionTargetVariants> &functions) {
     // Get pointers to things we need below
-    llvm::Function *setFunc = module->getFunction("__set_system_isa");
+    llvm::Function *setFunc = module->getFunction(builtin::__set_system_isa);
     Assert(setFunc != nullptr);
     llvm::Value *systemBestISAPtr = module->getGlobalVariable("__system_best_isa", true);
     Assert(systemBestISAPtr != nullptr);

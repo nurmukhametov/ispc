@@ -177,6 +177,8 @@ function(builtin_wasm_to_cpp bit os arch)
     set(cpp ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_CFG_INTDIR}/${name}.cpp)
     set(bc ${BITCODE_FOLDER}/${name}.bc)
 
+    write_common_bitcode_lib(${name} ${os} ${arch})
+
     list(APPEND flags
         -DWASM -s WASM_OBJECT_FILES=0 ${ISPC_OPAQUE_FLAGS} -I${CMAKE_SOURCE_DIR} --std=gnu++17 -S -emit-llvm -c)
     if("${bit}" STREQUAL "64")

@@ -331,6 +331,7 @@ DECL_BUILTIN_NAME(__is_compile_time_constant_varying_int32);
 DECL_BUILTIN_NAME(ISPCAlloc);
 DECL_BUILTIN_NAME(ISPCLaunch);
 DECL_BUILTIN_NAME(ISPCSync);
+DECL_BUILTIN_NAME(ISPCInstrument);
 DECL_BUILTIN_NAME(__log_uniform_double);
 DECL_BUILTIN_NAME(__log_uniform_float);
 DECL_BUILTIN_NAME(__log_uniform_half);
@@ -936,6 +937,7 @@ DECL_BUILTIN_NAME(__vec4_add_float);
 DECL_BUILTIN_NAME(__vec4_add_int32);
 DECL_BUILTIN_NAME(__vselect_float);
 DECL_BUILTIN_NAME(__vselect_i32);
+DECL_BUILTIN_NAME(__wasm_cmp_msk_eq);
 
 std::unordered_map<PersistentGroup, std::vector<const char *>> persistentGroups = {
     {
