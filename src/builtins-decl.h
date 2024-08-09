@@ -376,6 +376,7 @@ extern const char *const __is_compile_time_constant_varying_int32;
 extern const char *const ISPCAlloc;
 extern const char *const ISPCLaunch;
 extern const char *const ISPCSync;
+extern const char *const ISPCInstrument;
 extern const char *const __log_uniform_double;
 extern const char *const __log_uniform_float;
 extern const char *const __log_uniform_half;
@@ -981,6 +982,7 @@ extern const char *const __vec4_add_float;
 extern const char *const __vec4_add_int32;
 extern const char *const __vselect_float;
 extern const char *const __vselect_i32;
+extern const char *const __wasm_cmp_msk_eq;
 
 } // namespace builtin
 

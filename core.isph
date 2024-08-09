@@ -722,6 +722,10 @@ extern "C" uniform int32 __task_count1();
 extern "C" uniform int32 __task_count2();
 extern "C" uniform int32 __task_count();
 
+#ifdef ISPC_TARGET_WASM
+extern "C" uniform bool __wasm_cmp_msk_eq(UIntMaskType, UIntMaskType);
+#endif
+
 #undef NOESCAPE
 
 #endif // ISPC_CORE_ISPH
