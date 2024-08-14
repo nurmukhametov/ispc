@@ -539,7 +539,6 @@ gen_scatter(double)
 ;; reciprocals in double precision, if supported
 
 rsqrtd_decl()
-rcpd_decl()
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; rcp/rsqrt declarations for half

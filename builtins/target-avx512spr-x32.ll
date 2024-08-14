@@ -885,7 +885,6 @@ define_avgs()
 ;; reciprocals in double precision, if supported
 
 rsqrtd_decl()
-rcpd_decl()
 
 
 saturation_arithmetic_novec()

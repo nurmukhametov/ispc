@@ -7455,10 +7455,3 @@ declare <WIDTH x half> @__rcp_varying_half(<WIDTH x half>)
 declare half @__rsqrt_uniform_half(half)
 declare <WIDTH x half> @__rsqrt_varying_half(<WIDTH x half>)
 ')
-
-define(`rcpd_decl', `
-declare  double @__rcp_fast_uniform_double(double)
-declare  double @__rcp_uniform_double(double)
-declare <WIDTH x double> @__rcp_fast_varying_double(<WIDTH x double>)
-declare <WIDTH x double> @__rcp_varying_double(<WIDTH x double>)
-')

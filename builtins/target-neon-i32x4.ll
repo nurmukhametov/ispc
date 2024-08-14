@@ -732,7 +732,6 @@ define <4 x i16> @__psubus_vi16(<4 x i16>, <4 x i16>) {
 ;; reciprocals in double precision, if supported
 
 rsqrtd_decl()
-rcpd_decl()
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; rcp/rsqrt declarations for half

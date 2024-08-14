@@ -523,7 +523,6 @@ define <8 x i16> @__avg_down_int16(<8 x i16>, <8 x i16>) nounwind readnone alway
 ;; reciprocals in double precision, if supported
 
 rsqrtd_decl()
-rcpd_decl()
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; rcp/rsqrt declarations for half

@@ -35,7 +35,6 @@ halfTypeGenericImplementation()
 
 ;; rcp/rsqrt for double
 rsqrtd_decl()
-rcpd_decl()
 
 ;; rcp/rsqrt for half
 rcph_rsqrth_decl

@@ -5841,10 +5841,3 @@ declare  double @__rsqrt_uniform_double(double)
 declare <WIDTH x double> @__rsqrt_fast_varying_double(<WIDTH x double>)
 declare <WIDTH x double> @__rsqrt_varying_double(<WIDTH x double>)
 ')
-
-define(`rcpd_decl', `
-declare double @__rcp_fast_uniform_double(double)
-declare  double @__rcp_uniform_double(double)
-declare <WIDTH x double> @__rcp_fast_varying_double(<WIDTH x double>)
-declare <WIDTH x double> @__rcp_varying_double(<WIDTH x double>)
-')

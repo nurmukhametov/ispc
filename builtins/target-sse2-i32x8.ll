@@ -644,7 +644,6 @@ define <8 x double> @__max_varying_double(<8 x double>, <8 x double>) nounwind r
 ;; reciprocals in double precision, if supported
 
 rsqrtd_decl()
-rcpd_decl()
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; rcp/rsqrt declarations for half
