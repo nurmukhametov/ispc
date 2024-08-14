@@ -34,10 +34,8 @@ saturation_arithmetic()
 halfTypeGenericImplementation()
 
 ;; rcp/rsqrt for double
-rsqrtd_decl()
 
 ;; rcp/rsqrt for half
-rcph_rsqrth_decl
 
 declare <4 x double> @llvm.sqrt.v4f64(<4 x double>)
 declare float @__half_to_float_uniform(i16 %v) nounwind readnone

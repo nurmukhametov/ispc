@@ -5834,10 +5834,3 @@ define(`define_avgs', `
 define_up_avgs()
 define_down_avgs()
 ')
-
-define(`rsqrtd_decl', `
-declare double @__rsqrt_fast_uniform_double(double)
-declare  double @__rsqrt_uniform_double(double)
-declare <WIDTH x double> @__rsqrt_fast_varying_double(<WIDTH x double>)
-declare <WIDTH x double> @__rsqrt_varying_double(<WIDTH x double>)
-')
