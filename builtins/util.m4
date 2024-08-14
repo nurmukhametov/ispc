@@ -5197,8 +5197,6 @@ define(`stdlib_core', `
 
 @__fast_masked_vload = external global i32
 
-declare_gen()
-
 declare i1 @__is_compile_time_constant_mask(<WIDTH x MASK> %mask)
 declare i1 @__is_compile_time_constant_uniform_int32(i32)
 declare i1 @__is_compile_time_constant_varying_int32(<WIDTH x i32>)
@@ -7463,38 +7461,4 @@ declare  double @__rcp_fast_uniform_double(double)
 declare  double @__rcp_uniform_double(double)
 declare <WIDTH x double> @__rcp_fast_varying_double(<WIDTH x double>)
 declare <WIDTH x double> @__rcp_varying_double(<WIDTH x double>)
-')
-
-define(`declare_gen',
-`
-declare i32 @__task_index0()  nounwind readnone alwaysinline
-declare i32 @__task_index1()  nounwind readnone alwaysinline
-declare i32 @__task_index2()  nounwind readnone alwaysinline
-declare i32 @__task_index()  nounwind readnone alwaysinline
-declare i32 @__task_count0()  nounwind readnone alwaysinline
-declare i32 @__task_count1()  nounwind readnone alwaysinline
-declare i32 @__task_count2()  nounwind readnone alwaysinline
-declare i32 @__task_count()  nounwind readnone alwaysinline
-
-declare <WIDTH x i8> @__idiv_int8(<WIDTH x i8>, <WIDTH x i8>) nounwind readnone
-declare <WIDTH x i16> @__idiv_int16(<WIDTH x i16>, <WIDTH x i16>) nounwind readnone
-declare <WIDTH x i32> @__idiv_int32(<WIDTH x i32>, <WIDTH x i32>) nounwind readnone
-declare <WIDTH x i8> @__idiv_uint8(<WIDTH x i8>, <WIDTH x i8>) nounwind readnone
-declare <WIDTH x i16> @__idiv_uint16(<WIDTH x i16>, <WIDTH x i16>) nounwind readnone
-declare <WIDTH x i32> @__idiv_uint32(<WIDTH x i32>, <WIDTH x i32>) nounwind readnone
-
-declare <WIDTH x i8> @__masked_load_private_i8(i8 *, <WIDTH x MASK> %mask)
-declare <WIDTH x i16> @__masked_load_private_i16(i8 *, <WIDTH x MASK> %mask)
-declare <WIDTH x i32> @__masked_load_private_i32(i8 *, <WIDTH x MASK> %mask)
-declare <WIDTH x i64> @__masked_load_private_i64(i8 *, <WIDTH x MASK> %mask)
-declare <WIDTH x float> @__masked_load_private_float(i8 *, <WIDTH x MASK> %mask)
-declare <WIDTH x double> @__masked_load_private_double(i8 *, <WIDTH x MASK> %mask)
-
-declare <WIDTH x i8> @__masked_load_blend_i8(i8 *, <WIDTH x MASK> %mask)
-declare <WIDTH x i16> @__masked_load_blend_i16(i8 *, <WIDTH x MASK> %mask)
-declare <WIDTH x half> @__masked_load_blend_half(i8 *, <WIDTH x MASK> %mask)
-declare <WIDTH x i32> @__masked_load_blend_i32(i8 *, <WIDTH x MASK> %mask)
-declare <WIDTH x i64> @__masked_load_blend_i64(i8 *, <WIDTH x MASK> %mask)
-declare <WIDTH x float> @__masked_load_blend_float(i8 *, <WIDTH x MASK> %mask)
-declare <WIDTH x double> @__masked_load_blend_double(i8 *, <WIDTH x MASK> %mask)
 ')
