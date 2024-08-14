@@ -5197,11 +5197,6 @@ define(`stdlib_core', `
 
 @__fast_masked_vload = external global i32
 
-declare i8* @ISPCAlloc(i8**, i64, i32) nounwind
-declare void @ISPCLaunch(i8**, i8*, i8*, i32, i32, i32) nounwind
-declare void @ISPCSync(i8*) nounwind
-declare void @ISPCInstrument(i8*, i8*, i32, i64) nounwind
-
 declare_gen()
 
 declare i1 @__is_compile_time_constant_mask(<WIDTH x MASK> %mask)

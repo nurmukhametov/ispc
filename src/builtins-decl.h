@@ -57,6 +57,8 @@ extern std::unordered_map<std::string, int> persistentFuncs;
 // function from the group is actually used.
 extern std::unordered_map<PersistentGroup, std::vector<const char *>> persistentGroups;
 
+// TODO: only functions from core.isph should be listed here. As we suppose,
+// that only they can be used in the code.
 extern const char *const __acos_uniform_double;
 extern const char *const __acos_uniform_float;
 extern const char *const __acos_uniform_half;
