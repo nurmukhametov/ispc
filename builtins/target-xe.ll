@@ -1581,7 +1581,6 @@ define void @__sincos_varying_half(<WIDTH x half>, i8*, i8*) nounwind {
   ret void
 }
 
-trigonometry_decl()
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 

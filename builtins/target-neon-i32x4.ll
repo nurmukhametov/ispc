@@ -738,5 +738,3 @@ rcpd_decl()
 ;; rcp/rsqrt declarations for half
 rcph_rsqrth_decl
 
-transcendetals_decl()
-trigonometry_decl()
