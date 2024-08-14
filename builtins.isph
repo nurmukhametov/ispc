@@ -638,6 +638,7 @@ extern "C" inline PackedStoreResultType __packed_store_active2i32(uniform int8 *
 extern "C" inline PackedStoreResultType __packed_store_activei64(uniform int8 *uniform, varying int64, UIntMaskType);
 extern "C" inline PackedStoreResultType __packed_store_active2i64(uniform int8 *uniform, varying int64, UIntMaskType);
 
+// TODO: rewrite in stdlib.ispc
 extern "C" void __prefetch_read_uniform_1(uniform int8 *uniform);
 extern "C" void __prefetch_read_uniform_2(uniform int8 *uniform);
 extern "C" void __prefetch_read_uniform_3(uniform int8 *uniform);
@@ -645,6 +646,7 @@ extern "C" void __prefetch_read_uniform_nt(uniform int8 *uniform);
 extern "C" void __prefetch_write_uniform_1(uniform int8 *uniform);
 extern "C" void __prefetch_write_uniform_2(uniform int8 *uniform);
 extern "C" void __prefetch_write_uniform_3(uniform int8 *uniform);
+
 extern "C" void __prefetch_read_sized_uniform_1(uniform int8 *uniform, uniform int8);
 extern "C" void __prefetch_read_sized_uniform_2(uniform int8 *uniform, uniform int8);
 extern "C" void __prefetch_read_sized_uniform_3(uniform int8 *uniform, uniform int8);
