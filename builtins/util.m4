@@ -2558,8 +2558,6 @@ define void @__prefetch_read_varying_1(<WIDTH x i64> %addr, <WIDTH x MASK> %mask
   ret void
 }
 
-declare void @__prefetch_read_varying_1_native(i8 * %base, i32 %scale, <WIDTH x i32> %offsets, <WIDTH x MASK> %mask) nounwind
-
 define void @__prefetch_read_varying_2(<WIDTH x i64> %addr, <WIDTH x MASK> %mask) alwaysinline {
   per_lane(WIDTH, <WIDTH x MASK> %mask, `
   %iptr_LANE_ID = extractelement <WIDTH x i64> %addr, i32 LANE
@@ -2568,8 +2566,6 @@ define void @__prefetch_read_varying_2(<WIDTH x i64> %addr, <WIDTH x MASK> %mask
   ')
   ret void
 }
-
-declare void @__prefetch_read_varying_2_native(i8 * %base, i32 %scale, <WIDTH x i32> %offsets, <WIDTH x MASK> %mask) nounwind
 
 define void @__prefetch_read_varying_3(<WIDTH x i64> %addr, <WIDTH x MASK> %mask) alwaysinline {
   per_lane(WIDTH, <WIDTH x MASK> %mask, `
@@ -2580,8 +2576,6 @@ define void @__prefetch_read_varying_3(<WIDTH x i64> %addr, <WIDTH x MASK> %mask
   ret void
 }
 
-declare void @__prefetch_read_varying_3_native(i8 * %base, i32 %scale, <WIDTH x i32> %offsets, <WIDTH x MASK> %mask) nounwind
-
 define void @__prefetch_read_varying_nt(<WIDTH x i64> %addr, <WIDTH x MASK> %mask) alwaysinline {
   per_lane(WIDTH, <WIDTH x MASK> %mask, `
   %iptr_LANE_ID = extractelement <WIDTH x i64> %addr, i32 LANE
@@ -2590,8 +2584,6 @@ define void @__prefetch_read_varying_nt(<WIDTH x i64> %addr, <WIDTH x MASK> %mas
   ')
   ret void
 }
-
-declare void @__prefetch_read_varying_nt_native(i8 * %base, i32 %scale, <WIDTH x i32> %offsets, <WIDTH x MASK> %mask) nounwind
 
 define void @__prefetch_write_varying_1(<WIDTH x i64> %addr, <WIDTH x MASK> %mask) alwaysinline {
   per_lane(WIDTH, <WIDTH x MASK> %mask, `
@@ -2602,8 +2594,6 @@ define void @__prefetch_write_varying_1(<WIDTH x i64> %addr, <WIDTH x MASK> %mas
   ret void
 }
 
-declare void @__prefetch_write_varying_1_native(i8 * %base, i32 %scale, <WIDTH x i32> %offsets, <WIDTH x MASK> %mask) nounwind
-
 define void @__prefetch_write_varying_2(<WIDTH x i64> %addr, <WIDTH x MASK> %mask) alwaysinline {
   per_lane(WIDTH, <WIDTH x MASK> %mask, `
   %iptr_LANE_ID = extractelement <WIDTH x i64> %addr, i32 LANE
@@ -2612,8 +2602,6 @@ define void @__prefetch_write_varying_2(<WIDTH x i64> %addr, <WIDTH x MASK> %mas
   ')
   ret void
 }
-
-declare void @__prefetch_write_varying_2_native(i8 * %base, i32 %scale, <WIDTH x i32> %offsets, <WIDTH x MASK> %mask) nounwind
 
 define void @__prefetch_write_varying_3(<WIDTH x i64> %addr, <WIDTH x MASK> %mask) alwaysinline {
   per_lane(WIDTH, <WIDTH x MASK> %mask, `
@@ -2624,17 +2612,6 @@ define void @__prefetch_write_varying_3(<WIDTH x i64> %addr, <WIDTH x MASK> %mas
   ret void
 }
 
-declare void @__prefetch_write_varying_3_native(i8 * %base, i32 %scale, <WIDTH x i32> %offsets, <WIDTH x MASK> %mask) nounwind
-
-declare void @__prefetch_read_sized_uniform_1(i8 *, i8)
-declare void @__prefetch_read_sized_uniform_2(i8 *, i8)
-declare void @__prefetch_read_sized_uniform_3(i8 *, i8)
-declare void @__prefetch_read_sized_uniform_nt(i8 *, i8)
-
-declare void @__prefetch_read_sized_varying_1(<WIDTH x i64>, i8, <WIDTH x MASK>)
-declare void @__prefetch_read_sized_varying_2(<WIDTH x i64>, i8, <WIDTH x MASK>)
-declare void @__prefetch_read_sized_varying_3(<WIDTH x i64>, i8, <WIDTH x MASK>)
-declare void @__prefetch_read_sized_varying_nt(<WIDTH x i64>, i8, <WIDTH x MASK>)
 ')
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -7287,15 +7264,6 @@ define void @__scatter64_$1(<WIDTH x i64> %ptrs, <WIDTH x $1> %values,
 
 '
 )
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; rdrand
-
-define(`rdrand_decls', `
-declare i1 @__rdrand_i16(i8 * nocapture)
-declare i1 @__rdrand_i32(i8 * nocapture)
-declare i1 @__rdrand_i64(i8 * nocapture)
-')
 
 define(`rdrand_definition', `
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

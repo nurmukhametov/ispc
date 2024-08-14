@@ -1725,40 +1725,30 @@ define void @__prefetch_read_sized_varying_1(<WIDTH x i64> %addr, i8 %datasize, 
   ret void
 }
 
-declare void @__prefetch_read_varying_1_native(i8 * %base, i32 %scale, <WIDTH x i32> %offsets, <WIDTH x MASK> %mask) nounwind
-
 define void @__prefetch_read_sized_varying_2(<WIDTH x i64> %addr, i8 %datasize, <WIDTH x MASK> %mask) alwaysinline {
   call void @llvm.genx.lsc.prefetch.stateless.XE_SUFFIX(i1).XE_SUFFIX(i64)(<WIDTH x MASK> %mask, i8 0, i8 1, i8 2, i16 1, i32 0, i8 %datasize, i8 1, i8 1, i8 0, <WIDTH x i64> %addr, i32 0)
   ret void
 }
-
-declare void @__prefetch_read_varying_2_native(i8 * %base, i32 %scale, <WIDTH x i32> %offsets, <WIDTH x MASK> %mask) nounwind
 
 define void @__prefetch_read_sized_varying_3(<WIDTH x i64> %addr, i8 %datasize, <WIDTH x MASK> %mask) alwaysinline {
   call void @llvm.genx.lsc.prefetch.stateless.XE_SUFFIX(i1).XE_SUFFIX(i64)(<WIDTH x MASK> %mask, i8 0, i8 1, i8 2, i16 1, i32 0, i8 %datasize, i8 1, i8 1, i8 0, <WIDTH x i64> %addr, i32 0)
   ret void
 }
 
-declare void @__prefetch_read_varying_3_native(i8 * %base, i32 %scale, <WIDTH x i32> %offsets, <WIDTH x MASK> %mask) nounwind
-
 define void @__prefetch_read_sized_varying_nt(<WIDTH x i64> %addr, i8 %datasize, <WIDTH x MASK> %mask) alwaysinline {
   call void @llvm.genx.lsc.prefetch.stateless.XE_SUFFIX(i1).XE_SUFFIX(i64)(<WIDTH x MASK> %mask, i8 0, i8 6, i8 2, i16 1, i32 0, i8 %datasize, i8 1, i8 1, i8 0, <WIDTH x i64> %addr, i32 0)
   ret void
 }
-
-declare void @__prefetch_read_varying_nt_native(i8 * %base, i32 %scale, <WIDTH x i32> %offsets, <WIDTH x MASK> %mask) nounwind
 
 ;; There is no write prefetch on Xe targets, so do nothing
 define void @__prefetch_write_varying_1(<WIDTH x i64> %addr, <WIDTH x MASK> %mask) alwaysinline {
   ret void
 }
 
-declare void @__prefetch_write_varying_1_native(i8 * %base, i32 %scale, <WIDTH x i32> %offsets, <WIDTH x MASK> %mask) nounwind
 define void @__prefetch_write_varying_2(<WIDTH x i64> %addr, <WIDTH x MASK> %mask) alwaysinline {
   ret void
 }
 
-declare void @__prefetch_write_varying_2_native(i8 * %base, i32 %scale, <WIDTH x i32> %offsets, <WIDTH x MASK> %mask) nounwind
 define void @__prefetch_write_varying_3(<WIDTH x i64> %addr, <WIDTH x MASK> %mask) alwaysinline {
   ret void
 }
@@ -5680,15 +5670,6 @@ define void @__scatter64_$1(<WIDTH x i64> %ptrs, <WIDTH x $1> %values,
 
 '
 )
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; rdrand
-
-define(`rdrand_decls', `
-declare i1 @__rdrand_i16(i8 * nocapture)
-declare i1 @__rdrand_i32(i8 * nocapture)
-declare i1 @__rdrand_i64(i8 * nocapture)
-')
 
 define(`rdrand_definition', `
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

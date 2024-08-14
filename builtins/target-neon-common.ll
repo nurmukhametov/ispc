@@ -123,7 +123,6 @@ define(`NEON_PREFIX_RSQRTSQ',
 stdlib_core()
 scans()
 reduce_equal(WIDTH)
-rdrand_decls()
 define_shuffles()
 define_vector_permutations()
 aossoa()

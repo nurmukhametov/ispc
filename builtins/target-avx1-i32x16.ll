@@ -5,7 +5,6 @@
 define(`ISA',`AVX1')
 include(`target-avx-common-16.ll')
 
-rdrand_decls()
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; svml

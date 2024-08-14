@@ -5,7 +5,6 @@
 define(`ISA',`AVX1')
 include(`target-avx1-i64x4base.ll')
 
-rdrand_decls()
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; svml

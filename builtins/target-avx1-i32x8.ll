@@ -5,7 +5,6 @@
 define(`ISA',`AVX1')
 
 include(`target-avx-common-8.ll')
-rdrand_decls()
 saturation_arithmetic()
 define_shuffles()
 

@@ -21,7 +21,6 @@ include(`util.m4')
 
 stdlib_core()
 scans()
-rdrand_decls()
 define_shuffles()
 define_vector_permutations()
 aossoa()
