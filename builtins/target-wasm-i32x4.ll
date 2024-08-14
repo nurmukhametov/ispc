@@ -32,7 +32,6 @@ svml_stubs(double,d,WIDTH)
 define_avgs()
 saturation_arithmetic()
 halfTypeGenericImplementation()
-dot_product_vnni_decl()
 
 ;; rcp/rsqrt for double
 rsqrtd_decl()

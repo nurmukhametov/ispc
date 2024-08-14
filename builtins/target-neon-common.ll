@@ -130,7 +130,6 @@ aossoa()
 ctlztz()
 popcnt()
 halfTypeGenericImplementation()
-dot_product_vnni_decl()
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; half conversion routines

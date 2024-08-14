@@ -5894,10 +5894,3 @@ global_atomic_varying(WIDTH, fadd, double, double)
 global_atomic_varying(WIDTH, fsub, double, double)
 global_atomic_varying(WIDTH, fmin, double, double)
 global_atomic_varying(WIDTH, fmax, double, double)
-
-define(`dot_product_vnni_decl',`
-    declare <WIDTH x i32> @__dot4add_u8i8packed(<WIDTH x i32>, <WIDTH x i32>, <WIDTH x i32>) nounwind readnone
-    declare <WIDTH x i32> @__dot4add_u8i8packed_sat(<WIDTH x i32>, <WIDTH x i32>, <WIDTH x i32>) nounwind readnone
-    declare <WIDTH x i32> @__dot2add_i16packed(<WIDTH x i32>, <WIDTH x i32>, <WIDTH x i32>) nounwind readnone
-    declare <WIDTH x i32> @__dot2add_i16packed_sat(<WIDTH x i32>, <WIDTH x i32>, <WIDTH x i32>) nounwind readnone
-')

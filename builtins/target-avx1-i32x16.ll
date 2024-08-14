@@ -63,4 +63,3 @@ gen_gather_factored(double)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; dot product
-dot_product_vnni_decl()
