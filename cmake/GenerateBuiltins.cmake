@@ -59,7 +59,7 @@ list(APPEND M4_IMPLICIT_DEPENDENCIES
     builtins/util-xe.m4
     builtins/util.m4)
 
-function(target_ll_to_cpp target bit os)
+function(target_ll_to_cpp target bit os CPP_LIST BC_LIST)
     set(input builtins/target-${target}.ll)
     set(include builtins)
     string(TOUPPER ${os} OS_UP)
@@ -86,13 +86,13 @@ function(target_ll_to_cpp target bit os)
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
     )
 
-    set(tmp_list_cpp ${TARGET_BUILTIN_CPP_FILES})
+    set(tmp_list_cpp ${${CPP_LIST}})
     list(APPEND tmp_list_cpp ${cpp})
-    set(TARGET_BUILTIN_CPP_FILES ${tmp_list_cpp} PARENT_SCOPE)
+    set(${CPP_LIST} ${tmp_list_cpp} PARENT_SCOPE)
 
-    set(tmp_list_bc ${TARGET_BUILTIN_BC_FILES})
+    set(tmp_list_bc ${${BC_LIST}})
     list(APPEND tmp_list_bc ${bc})
-    set(TARGET_BUILTIN_BC_FILES ${tmp_list_bc} PARENT_SCOPE)
+    set(${BC_LIST} ${tmp_list_bc} PARENT_SCOPE)
 endfunction()
 
 function(generate_dispatcher os)
@@ -381,61 +381,7 @@ function (generate_dispatch_builtins)
 endfunction()
 
 function (generate_target_builtins)
-    list(APPEND os_list)
-    if (ISPC_WINDOWS_TARGET)
-        list(APPEND os_list "windows")
-    endif()
-    if (ISPC_UNIX_TARGET)
-        list(APPEND os_list "unix")
-    endif()
-
-    if (NOT os_list)
-        message(FATAL_ERROR "Windows or Linux target has to be enabled")
-    endif()
-
-    # "Regular" targets, targeting specific real ISA: sse/avx
-    if (X86_ENABLED)
-        foreach (target ${X86_TARGETS})
-            foreach (bit 32 64)
-                foreach (os ${os_list})
-                    target_ll_to_cpp(${target} ${bit} ${os})
-                endforeach()
-            endforeach()
-        endforeach()
-    endif()
-
-    # XE targets
-    if (XE_ENABLED)
-        foreach (target ${XE_TARGETS})
-            foreach (os ${os_list})
-                target_ll_to_cpp(${target} 64 ${os})
-            endforeach()
-        endforeach()
-    endif()
-
-    # ARM targets
-    if (ARM_ENABLED)
-        foreach (os ${os_list})
-            foreach (target ${ARM_TARGETS})
-                if (${os} STREQUAL "windows")
-                    continue()
-                endif()
-                target_ll_to_cpp(${target} 32 ${os})
-            endforeach()
-            # Not all targets have 64bit
-            target_ll_to_cpp(neon-i32x4 64 ${os})
-            target_ll_to_cpp(neon-i32x8 64 ${os})
-        endforeach()
-    endif()
-
-    # WASM targets.
-    if (WASM_ENABLED)
-        foreach (target ${WASM_TARGETS})
-            foreach (bit 32 64)
-                target_ll_to_cpp(${target} ${bit} web)
-            endforeach()
-        endforeach()
-    endif()
+    generate_stdlib_or_target_builtins(target_ll_to_cpp dummy TARGET_BUILTIN_CPP_FILES TARGET_BUILTIN_BC_FILES)
 
     if (MSVC)
         # Group generated files inside Visual Studio

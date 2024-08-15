@@ -19,7 +19,7 @@ function(write_stdlib_bitcode_lib name target os bit out_arch out_os)
     set(${out_arch} ${fixed_arch} PARENT_SCOPE)
 endfunction()
 
-function (stdlib_to_cpp ispc_name target bit os)
+function (stdlib_to_cpp ispc_name target bit os CPP_LIST BC_LIST)
     set(name stdlib-${target}-${bit}bit-${os})
     string(REPLACE "-" "_" name "${name}")
     set(cpp ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_CFG_INTDIR}/${name}.cpp)
@@ -54,76 +54,17 @@ function (stdlib_to_cpp ispc_name target bit os)
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
     )
 
-    set(tmp_list_bc ${STDLIB_BC_FILES})
+    set(tmp_list_bc ${${BC_LIST}})
     list(APPEND tmp_list_bc ${bc})
-    set(STDLIB_BC_FILES ${tmp_list_bc} PARENT_SCOPE)
+    set(${BC_LIST} ${tmp_list_bc} PARENT_SCOPE)
 
-    set(tmp_list_cpp ${STDLIB_CPP_FILES})
+    set(tmp_list_cpp ${${CPP_LIST}})
     list(APPEND tmp_list_cpp ${cpp})
-    set(STDLIB_CPP_FILES ${tmp_list_cpp} PARENT_SCOPE)
+    set(${CPP_LIST} ${tmp_list_cpp} PARENT_SCOPE)
 endfunction()
 
 function (generate_stdlibs_1 ispc_name)
-    list(APPEND os_list)
-    if (ISPC_WINDOWS_TARGET)
-        list(APPEND os_list "windows")
-    endif()
-    if (ISPC_UNIX_TARGET)
-        list(APPEND os_list "unix")
-    endif()
-
-    if (NOT os_list)
-        message(FATAL_ERROR "Windows or Linux target has to be enabled")
-    endif()
-
-    # "Regular" targets, targeting specific real ISA: sse/avx
-    if (X86_ENABLED)
-        foreach (target ${X86_TARGETS})
-            foreach (bit 32 64)
-                foreach (os ${os_list})
-                    stdlib_to_cpp(${ispc_name} ${target} ${bit} ${os})
-                endforeach()
-            endforeach()
-        endforeach()
-    endif()
-
-    # XE targets
-    if (XE_ENABLED)
-        foreach (target ${XE_TARGETS})
-            # No cross-compilation for XE targets
-            if (WIN32)
-                stdlib_to_cpp(${ispc_name} ${target} 64 windows)
-            elseif (APPLE)
-                # no xe support
-            else()
-                stdlib_to_cpp(${ispc_name} ${target} 64 unix)
-            endif()
-        endforeach()
-    endif()
-
-    # ARM targets
-    if (ARM_ENABLED)
-        foreach (os ${os_list})
-            foreach (target ${ARM_TARGETS})
-                if (${os} STREQUAL "windows")
-                    continue()
-                endif()
-                stdlib_to_cpp(${ispc_name} ${target} 32 ${os})
-            endforeach()
-            # Not all targets have 64bit
-            stdlib_to_cpp(${ispc_name} neon-i32x4 64 ${os})
-            stdlib_to_cpp(${ispc_name} neon-i32x8 64 ${os})
-        endforeach()
-    endif()
-
-    # WASM targets
-    if (WASM_ENABLED)
-        foreach (target ${WASM_TARGETS})
-            foreach (bit 32 64)
-                stdlib_to_cpp(${ispc_name} ${target} ${bit} web)
-            endforeach()
-        endforeach()
-    endif()
+    generate_stdlib_or_target_builtins(stdlib_to_cpp ${ispc_name} STDLIB_CPP_FILES STDLIB_BC_FILES)
 
     set(STDLIB_BC_FILES ${STDLIB_BC_FILES} PARENT_SCOPE)
     set(STDLIB_CPP_FILES ${STDLIB_CPP_FILES} PARENT_SCOPE)
