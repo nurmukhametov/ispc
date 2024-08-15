@@ -7,53 +7,16 @@
 # ispc Stdlib.cmake
 #
 
-function (write_stdlib_bitcode_lib name target os bit)
-    set(arch "error")
-    if ("${target}" MATCHES "sse|avx")
-        if ("${bit}" STREQUAL "32")
-            set(arch "x86")
-        elseif ("${bit}" STREQUAL "64")
-            set(arch "x86_64")
-        else()
-            set(arch "error")
-        endif()
-    elseif ("${target}" MATCHES "neon")
-        if ("${bit}" STREQUAL "32")
-            set(arch "arm")
-        elseif ("${bit}" STREQUAL "64")
-            set(arch "aarch64")
-        else()
-            set(arch "error")
-        endif()
-    elseif ("${target}" MATCHES "wasm")
-        if ("${bit}" STREQUAL "32")
-            set(arch "wasm32")
-        elseif ("${bit}" STREQUAL "64")
-            set(arch "wasm64")
-        else()
-            set(arch "error")
-        endif()
-    elseif ("${target}" MATCHES "gen9|xe")
-        set(arch "xe64")
-    endif()
-    if ("${arch}" STREQUAL "error")
-        message(FATAL_ERROR "Incorrect target or bit passed to write_stdlib_bitcode_lib ${target} ${os} ${bit}")
-    endif()
-
-    if ("${os}" STREQUAL "unix")
-        set(os "linux")
-    endif()
-
+function(write_stdlib_bitcode_lib name target os bit out_arch out_os)
+    determine_arch_and_os(${target} ${bit} ${os} fixed_arch fixed_os)
     string(REPLACE "-" "_" target ${target})
     file(APPEND ${CMAKE_BINARY_DIR}/bitcode_libs_generated.cpp
-      "static BitcodeLib ${name}(BitcodeLib::BitcodeLibType::Stdlib, \"${name}.bc\", ISPCTarget::${target}, TargetOS::${os}, Arch::${arch});\n")
-
-    if ("${os}" STREQUAL "linux" AND APPLE AND NOT ISPC_LINUX_TARGET)
-        set(os "macos")
+      "static BitcodeLib ${name}(BitcodeLib::BitcodeLibType::Stdlib, \"${name}.bc\", ISPCTarget::${target}, TargetOS::${fixed_os}, Arch::${fixed_arch});\n")
+    if ("${fixed_os}" STREQUAL "linux" AND APPLE AND NOT ISPC_LINUX_TARGET)
+        set(fixed_os "macos")
     endif()
-
-    set(canon_os ${os} PARENT_SCOPE)
-    set(arch ${arch} PARENT_SCOPE)
+    set(${out_os} ${fixed_os} PARENT_SCOPE)
+    set(${out_arch} ${fixed_arch} PARENT_SCOPE)
 endfunction()
 
 function (stdlib_to_cpp ispc_name target bit os)
@@ -74,11 +37,11 @@ function (stdlib_to_cpp ispc_name target bit os)
     endif()
 
     # define canon_os and arch
-    write_stdlib_bitcode_lib(${name} ${target} ${os} ${bit})
+    write_stdlib_bitcode_lib(${name} ${target} ${os} ${bit} canon_arch canon_os)
 
     add_custom_command(
         OUTPUT ${bc}
-        COMMAND ${ispc_name} --nostdlib --gen-stdlib --target=${target} --arch=${arch} --target-os=${canon_os} stdlib.ispc --emit-llvm -o ${bc}
+        COMMAND ${ispc_name} --nostdlib --gen-stdlib --target=${target} --arch=${canon_arch} --target-os=${canon_os} stdlib.ispc --emit-llvm -o ${bc}
         DEPENDS ${ispc_name} ${STDLIB_ISPC_FILES}
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
     )
