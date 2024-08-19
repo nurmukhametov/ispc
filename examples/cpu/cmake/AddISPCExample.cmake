@@ -1,5 +1,5 @@
 #
-#  Copyright (c) 2018-2024, Intel Corporation
+#  Copyright (c) 2018-2023, Intel Corporation
 #
 #  SPDX-License-Identifier: BSD-3-Clause
 
@@ -49,8 +49,6 @@ if(CMAKE_VERSION VERSION_GREATER_EQUAL 3.19.2 AND
     (("${CMAKE_GENERATOR}" MATCHES "Make") OR ("${CMAKE_GENERATOR}" MATCHES "Ninja")) )
     enable_language(ISPC)
     include(${CMAKE_CURRENT_LIST_DIR}/AddISPCExampleModern.cmake)
-    message(STATUS "modern ispc example")
 else()
     include(${CMAKE_CURRENT_LIST_DIR}/AddISPCExampleLegacy.cmake)
-    message(STATUS "legacy ispc example")
 endif()
