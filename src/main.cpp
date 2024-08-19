@@ -1121,6 +1121,14 @@ int main(int Argc, char *Argv[]) {
         }
     }
 
+    if (g->genStdlib) {
+        std::string stdlib = "stdlib/stdlib.ispc";
+        if (stdlib != file) {
+            Error(SourcePos(), "The --gen-stdlib option can be used only with stdlib.ispc.");
+            exit(1);
+        }
+    }
+
     // If [no]discard-value-names is explicitly specified, then use this value.
     // Otherwise enable it only if the output is some form of bitcode.
     // Note that discarding value names significantly saves compile time and memory consumption.
