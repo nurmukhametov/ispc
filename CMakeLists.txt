@@ -475,7 +475,7 @@ list(APPEND FRONTEND_SOURCES
     ${STDLIB_FILES}
     ${BISON_CPP_OUTPUT}
     ${FLEX_OUTPUT}
-    ${CMAKE_CURRENT_SOURCE_DIR}/stdlib.ispc
+    ${CMAKE_CURRENT_SOURCE_DIR}/stdlib/stdlib.ispc
     src/ast.cpp
     src/ast.h
     src/builtins.cpp
@@ -536,14 +536,23 @@ list(APPEND OPT_SOURCES
     src/opt/XeReplaceLLVMIntrinsics.h
 )
 
-set(ALL_STDLIB_HEADERS builtins.isph core.isph stdlib.isph svml.isph target.isph)
 set(STDLIB_HEADERS core.isph stdlib.isph)
-set(STDLIB_ISPC_FILES stdlib.ispc ${ALL_STDLIB_HEADERS})
+set(ALL_STDLIB_HEADERS
+  builtins.isph
+  core.isph
+  stdlib.isph
+  svml.isph
+  target.isph
+)
+set(STDLIB_ISPC_FILES stdlib/stdlib.ispc)
+foreach (header ${ALL_STDLIB_HEADERS})
+    list(APPEND STDLIB_ISPC_FILES stdlib/include/${header})
+endforeach()
 
 # To show stdlib.ispc in VS solution:
 if (WIN32)
-    set_source_files_properties("${CMAKE_CURRENT_SOURCE_DIR}/stdlib.ispc" PROPERTIES HEADER_FILE_ONLY TRUE)
-    source_group("ISPC" FILES "${CMAKE_CURRENT_SOURCE_DIR}/stdlib.ispc")
+    set_source_files_properties("${CMAKE_CURRENT_SOURCE_DIR}/stdlib/stdlib.ispc" PROPERTIES HEADER_FILE_ONLY TRUE)
+    source_group("ISPC" FILES "${CMAKE_CURRENT_SOURCE_DIR}/stdlib/stdlib.ispc")
 endif()
 
 # Build definitions
@@ -879,7 +888,9 @@ endif()
 
 install (TARGETS ispc DESTINATION bin)
 if (ISPC_SLIM_BINARY)
-    install(FILES ${STDLIB_HEADERS} DESTINATION include)
+    foreach (header ${STDLIB_HEADERS})
+        install (FILES "stdlib/include/${header}" DESTINATION include)
+    endforeach()
     install(DIRECTORY ${BITCODE_FOLDER} DESTINATION share)
 endif()
 

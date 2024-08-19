@@ -39,9 +39,11 @@ function (stdlib_to_cpp ispc_name target bit os CPP_LIST BC_LIST)
     # define canon_os and arch
     write_stdlib_bitcode_lib(${name} ${target} ${os} ${bit} canon_arch canon_os)
 
+    set(INCLUDE_FOLDER ${CMAKE_CURRENT_SOURCE_DIR}/stdlib/include)
+
     add_custom_command(
         OUTPUT ${bc}
-        COMMAND ${ispc_name} --nostdlib --gen-stdlib --target=${target} --arch=${canon_arch} --target-os=${canon_os} stdlib.ispc --emit-llvm -o ${bc}
+        COMMAND ${ispc_name} -I ${INCLUDE_FOLDER} --nostdlib --gen-stdlib --target=${target} --arch=${canon_arch} --target-os=${canon_os} stdlib/stdlib.ispc --emit-llvm -o ${bc}
         DEPENDS ${ispc_name} ${STDLIB_ISPC_FILES}
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
     )
@@ -90,7 +92,7 @@ endfunction()
 function (stdlib_headers)
     foreach (header ${STDLIB_HEADERS})
         set(target_name stdlib-${header})
-        set(src ${CMAKE_SOURCE_DIR}/${header})
+        set(src ${CMAKE_SOURCE_DIR}/stdlib/include/${header})
         set(dest ${INCLUDE_FOLDER}/${header})
         list(APPEND stdlib_headers_list ${dest})
 
