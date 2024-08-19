@@ -17,7 +17,7 @@
 // ISPC_INTERNAL_STDLIB_COMPILATION. This allows us to differentiate these
 // situations if needed.
 
-// All macros that used here without defintions are defined in module.cpp
+// All macros that used here without definitions are defined in module.cpp
 // in lSetPreprocessorOptions function.
 
 #ifndef ISPC_CORE_ISPH
@@ -274,7 +274,7 @@ extern "C" READONLY varying double __pseudo_gather64_double(varying int64, UIntM
 // where varying_offset includes non-compile time constant values, and
 // constant_offset includes compile-time constant values.  (The scalar loads
 // generated in turn can then take advantage of the free offsetting and scale by
-// 1/2/4/8 that is offered by the x86 addresisng modes.)
+// 1/2/4/8 that is offered by the x86 addressing modes.)
 //
 // varying int{8,16,32,float,64,double}
 // __pseudo_gather_factored_base_offsets{32,64}_{i8,i16,i32,float,i64,double}(uniform int8 *base,
