@@ -422,7 +422,7 @@ void ispc::debugDumpModule(llvm::Module *module, std::string name, int stage) {
             llvm::sys::fs::create_directories(g->dumpFilePath);
         }
 
-        if (!g->singleTargetCompilation) {
+        if (g->isMultiTargetCompilation) {
             name += std::string("_") + g->target->GetISAString();
         }
         llvm::sys::path::append(path, name);
@@ -545,7 +545,7 @@ void lLinkStdlib(SymbolTable *symbolTable, llvm::Module *module) {
     Assert(stdlib);
     llvm::Module *stdlibBCModule = stdlib->getLLVMModule();
 
-    if (!g->singleTargetCompilation) {
+    if (g->isMultiTargetCompilation) {
         for (llvm::Function &F : stdlibBCModule->functions()) {
             if (!F.isDeclaration() && !F.getName().startswith("llvm")) {
                 F.setName(F.getName() + "_" + g->target->GetISAString());

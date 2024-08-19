@@ -823,9 +823,6 @@ struct Globals {
         vector width to them. */
     bool mangleFunctionsWithTarget;
 
-    /** If enabled, it means that we generate code only for one target. */
-    bool singleTargetCompilation;
-
     /* If enabled, allows the user to directly call LLVM intrinsics. */
     bool enableLLVMIntrinsics;
 

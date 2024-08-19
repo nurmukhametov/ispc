@@ -30,7 +30,7 @@ bool ReplaceStdlibShiftPass::replaceStdlibShiftBuiltin(llvm::BasicBlock &bb) {
     llvm::Module *M = bb.getModule();
     llvm::Function *shifts[6];
     std::string targetSuffix = std::string("_") + g->target->GetISAString();
-    if (g->singleTargetCompilation) {
+    if (!g->isMultiTargetCompilation) {
         targetSuffix = "";
     }
     shifts[0] = M->getFunction(std::string("shift___vytuni") + targetSuffix);
