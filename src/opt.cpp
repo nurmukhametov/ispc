@@ -90,6 +90,7 @@
 #include <llvm/Transforms/Scalar/TailRecursionElimination.h>
 #include <llvm/Transforms/Utils/Mem2Reg.h>
 #include <llvm/Transforms/Vectorize/LoadStoreVectorizer.h>
+#include "llvm/Transforms/Vectorize/SLPVectorizer.h"
 
 #ifdef ISPC_XE_ENABLED
 #include <llvm/GenXIntrinsics/GenXSPIRVWriterAdaptor.h>
@@ -606,6 +607,7 @@ void ispc::Optimize(llvm::Module *module, int optLevel) {
         if (!g->target->isXeTarget()) {
             optPM.addFunctionPass(llvm::MemCpyOptPass());
         }
+        optPM.addFunctionPass(llvm::SLPVectorizerPass());
         optPM.addFunctionPass(llvm::SCCPPass());
         optPM.addFunctionPass(llvm::InstCombinePass());
         optPM.addFunctionPass(InstructionSimplifyPass());
