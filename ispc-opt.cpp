@@ -61,12 +61,12 @@ static void lPrintPasses(raw_ostream &OS) {
 static bool lAddPass(ispc::DebugModulePassManager &PM, const std::string &PassName) {
     using namespace ispc;
 #define MODULE_PASS(NAME, CREATE_PASS)                                                                                 \
-    if (PassName == NAME) {                                                                                            \
+    if (PassName == (NAME)) {                                                                                          \
         PM.addModulePass(CREATE_PASS);                                                                                 \
         return true;                                                                                                   \
     }
 #define FUNCTION_PASS(NAME, CREATE_PASS)                                                                               \
-    if (PassName == NAME) {                                                                                            \
+    if (PassName == (NAME)) {                                                                                          \
         PM.initFunctionPassManager();                                                                                  \
         PM.addFunctionPass(CREATE_PASS);                                                                               \
         PM.commitFunctionToModulePassManager();                                                                        \
@@ -125,7 +125,7 @@ int main(int argc, char **argv) {
     ispc::g = new ispc::Globals;
     LLVMContext *ctx = ispc::g->ctx;
 
-    ispc::ISPCTarget target = ispc::ParseISPCTarget(TargetTarget);
+    ispc::ISPCTarget target = ispc::ParseISPCTarget(TargetTarget.getValue());
 
     // TODO: here, we rely on arch and cpu autodetection in ispc::Target constructor.
     ispc::g->target =
