@@ -247,6 +247,7 @@ EXT varying int32 __atomic_xor_varying_int32_global(varying int64, varying int32
 EXT varying int64 __atomic_xor_varying_int64_global(varying int64, varying int64, UIntMaskType);
 EXT inline READNONE void __memory_barrier();
 
+// saturating math functions
 EXT uniform int64 __abs_ui64(uniform int64);
 EXT varying int64 __abs_vi64(varying int64);
 EXT uniform int16 __padds_ui16(uniform int16, uniform int16);

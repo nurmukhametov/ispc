@@ -67,7 +67,10 @@ ISPCTarget operator++(ISPCTarget &target, int dummy) {
     using underlying = std::underlying_type_t<ISPCTarget>;
     static_assert(static_cast<underlying>(ISPCTarget::host) == static_cast<underlying>(ISPCTarget::none) + 1,
                   "Enum ISPCTarget is not sequential");
-    static_assert(static_cast<underlying>(ISPCTarget::sse2_i32x4) == static_cast<underlying>(ISPCTarget::host) + 1,
+    static_assert(static_cast<underlying>(ISPCTarget::common_i32x4) == static_cast<underlying>(ISPCTarget::host) + 1,
+                  "Enum ISPCTarget is not sequential");
+    static_assert(static_cast<underlying>(ISPCTarget::sse2_i32x4) ==
+                      static_cast<underlying>(ISPCTarget::common_i32x4) + 1,
                   "Enum ISPCTarget is not sequential");
     static_assert(static_cast<underlying>(ISPCTarget::sse2_i32x8) ==
                       static_cast<underlying>(ISPCTarget::sse2_i32x4) + 1,
@@ -424,6 +427,8 @@ std::string ISPCTargetToString(ISPCTarget target) {
     switch (target) {
     case ISPCTarget::host:
         return "host";
+    case ISPCTarget::common_i32x4:
+        return "common-i32x4";
     case ISPCTarget::sse2_i32x4:
         return "sse2-i32x4";
     case ISPCTarget::sse2_i32x8:
