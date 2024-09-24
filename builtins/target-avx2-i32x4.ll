@@ -176,6 +176,16 @@ svml(ISA)
 
 declare void @llvm.trap() noreturn nounwind
 
+declare void @__masked_store_blend_i32(<4 x i32>* nocapture, <4 x i32>,
+                                      <4 x i32> %mask) nounwind alwaysinline 
+declare void @__masked_store_blend_i64(<4 x i64>* nocapture %ptr, <4 x i64> %new,
+                                      <4 x i32> %i32mask) nounwind alwaysinline
+declare i64 @__movmsk(<4 x i32>) nounwind readnone alwaysinline
+
+gen_gather(i8)
+gen_gather(i16)
+gen_gather(half)
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; int32 gathers
 
