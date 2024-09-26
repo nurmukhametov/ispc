@@ -8685,10 +8685,33 @@ FunctionSymbolExpr::FunctionSymbolExpr(const char *n, const std::vector<Symbol *
     matchingFunc = (candidates.size() == 1) ? candidates[0] : nullptr;
 }
 
+FunctionSymbolExpr::FunctionSymbolExpr(const char *n, const std::vector<Symbol *> &candFuncs,
+                                       const std::vector<TemplateSymbol *> &candTempFuncs, SourcePos p)
+    : Expr(p, FunctionSymbolExprID), name(n), candidateFunctions(candFuncs), candidateTemplateFunctions(candTempFuncs),
+      triedToResolve(false), unresolvedButDependent(false) {
+    if (candFuncs.size() == 1 && candTempFuncs.size() == 0) {
+        matchingFunc = candFuncs[0];
+    } else {
+        matchingFunc = nullptr;
+    }
+}
+
 FunctionSymbolExpr::FunctionSymbolExpr(const char *n, const std::vector<TemplateSymbol *> &candidates,
                                        const TemplateArgs &templArgs, SourcePos p)
     : Expr(p, FunctionSymbolExprID), name(n), candidateTemplateFunctions(candidates), templateArgs(templArgs),
       matchingFunc(nullptr), triedToResolve(false), unresolvedButDependent(false) {
+    normalizeTemplateArgs();
+}
+
+FunctionSymbolExpr::FunctionSymbolExpr(const char *n, const std::vector<Symbol *> &candFuncs,
+                                       const std::vector<TemplateSymbol *> &candTempFuncs,
+                                       const TemplateArgs &templArgs, SourcePos p)
+    : Expr(p, FunctionSymbolExprID), name(n), candidateFunctions(candFuncs), candidateTemplateFunctions(candTempFuncs),
+      templateArgs(templArgs), matchingFunc(nullptr), triedToResolve(false), unresolvedButDependent(false) {
+    normalizeTemplateArgs();
+}
+
+void FunctionSymbolExpr::normalizeTemplateArgs() {
     // Do template argument "normalization", i.e apply "varying type default":
     //
     // template <typename T> void foo(T t);
@@ -8724,19 +8747,13 @@ Expr *FunctionSymbolExpr::Optimize() { return this; }
 int FunctionSymbolExpr::EstimateCost() const { return 0; }
 
 FunctionSymbolExpr *FunctionSymbolExpr::Instantiate(TemplateInstantiation &templInst) const {
-    // TODO: interfaces for regular function call and template function call should be unified.
-    // Bonus: it is possbile that a call can possbily refer to both.
-    if (candidateFunctions.size() != 0) {
-        Assert(candidateTemplateFunctions.size() == 0);
-        return new FunctionSymbolExpr(name.c_str(), candidateFunctions, pos);
-    }
     TemplateArgs instTemplateArgs;
     for (auto &arg : templateArgs) {
         instTemplateArgs.push_back(
             arg.IsType() ? TemplateArg(arg.GetAsType()->ResolveDependenceForTopType(templInst), arg.GetPos())
                          : TemplateArg(arg.GetAsExpr()->Instantiate(templInst), arg.GetPos()));
     }
-    return new FunctionSymbolExpr(name.c_str(), candidateTemplateFunctions, instTemplateArgs, pos);
+    return new FunctionSymbolExpr(name.c_str(), candidateFunctions, candidateTemplateFunctions, instTemplateArgs, pos);
 }
 
 void FunctionSymbolExpr::Print(Indent &indent) const {

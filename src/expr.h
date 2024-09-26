@@ -747,6 +747,10 @@ class SymbolExpr : public Expr {
 class FunctionSymbolExpr : public Expr {
   public:
     FunctionSymbolExpr(const char *name, const std::vector<Symbol *> &candFuncs, SourcePos pos);
+    FunctionSymbolExpr(const char *n, const std::vector<Symbol *> &candFuncs,
+                       const std::vector<TemplateSymbol *> &candTempFuncs, SourcePos p);
+    FunctionSymbolExpr(const char *n, const std::vector<Symbol *> &candFuncs,
+                       const std::vector<TemplateSymbol *> &candTempFuncs, const TemplateArgs &templArgs, SourcePos p);
     FunctionSymbolExpr(const char *name, const std::vector<TemplateSymbol *> &candFuncs, const TemplateArgs &templArgs,
                        SourcePos pos);
 
@@ -785,6 +789,7 @@ class FunctionSymbolExpr : public Expr {
     static int computeOverloadCost(const FunctionType *ftype, const std::vector<const Type *> &argTypes,
                                    const std::vector<bool> *argCouldBeNULL, const std::vector<bool> *argIsConstant,
                                    int *cost);
+    void normalizeTemplateArgs();
 
     /** Name of the function that is being called. */
     std::string name;
