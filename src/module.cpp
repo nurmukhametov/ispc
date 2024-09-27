@@ -483,8 +483,21 @@ Symbol *Module::AddLLVMIntrinsicDecl(const std::string &name, ExprList *args, So
         }
         std::vector<llvm::Type *> exprType;
         if (llvm::Intrinsic::isOverloaded(ID)) {
-            int nInits = args->exprs.size();
-            for (int i = 0; i < nInits; ++i) {
+          // vector with 0, 1 ,2 , 3 ... args->exprs.size() - 1
+            std::vector<int> nInits(args->exprs.size());
+            if (ID == llvm::Intrinsic::pow) {
+                nInits = { 0 };
+            }
+            if (ID == llvm::Intrinsic::memset) {
+                nInits = { 0, 2 };
+            }
+            if (ID == llvm::Intrinsic::memcpy) {
+                nInits = { 0, 1, 2 };
+            }
+            if (ID == llvm::Intrinsic::memmove) {
+                nInits = { 0, 1, 2 };
+            }
+            for (const int i : nInits) {
                 const Type *argType = (args->exprs[i])->GetType();
                 Assert(argType);
                 exprType.push_back(argType->LLVMType(g->ctx));
