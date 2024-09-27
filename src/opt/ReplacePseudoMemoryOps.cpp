@@ -54,6 +54,18 @@ struct LMSInfo {
     const char *store;
 };
 
+llvm::StringRef lGetCalledFunctionName(const llvm::CallInst *CI) {
+    if (CI->getCalledFunction())
+        return CI->getCalledFunction()->getName();
+    else {
+        if (CI->getCalledOperand())
+            return CI->getCalledOperand()->getName();
+        else
+            return "";
+    }
+    return "";
+}
+
 static bool lReplacePseudoMaskedStore(llvm::CallInst *callInst) {
     static std::unordered_map<std::string, LMSInfo> replacementRules = {
         {__pseudo_masked_store_i8, LMSInfo(__masked_store_blend_i8, __masked_store_i8)},
@@ -65,7 +77,8 @@ static bool lReplacePseudoMaskedStore(llvm::CallInst *callInst) {
         {__pseudo_masked_store_double, LMSInfo(__masked_store_blend_double, __masked_store_double)},
     };
 
-    auto name = callInst->getCalledFunction()->getName().str();
+    // auto name = callInst->getCalledFunction()->getName().str();
+    auto name = lGetCalledFunctionName(callInst).str();
     auto it = replacementRules.find(name);
     if (it == replacementRules.end()) {
         // it is not a call of __pseudo function stored in replacementRules
@@ -87,6 +100,10 @@ static bool lReplacePseudoMaskedStore(llvm::CallInst *callInst) {
     // replace the __pseudo_* one with it.
     llvm::Module *M = callInst->getModule();
     llvm::Function *fms = doBlend ? info->blendFunc(M) : info->maskedStoreFunc(M);
+    printf("fms: %s\n", fms->getName().str().c_str());
+    lvalue->dump();
+    rvalue->dump();
+    mask->dump();
     llvm::Instruction *inst = LLVMCallInst(fms, lvalue, rvalue, mask, "", callInst);
     LLVMCopyMetadata(inst, callInst);
 
@@ -252,9 +269,7 @@ static bool lReplacePseudoGS(llvm::CallInst *callInst) {
         {__pseudo_prefetch_write_varying_3_native, LowerGSInfo::Prefetch(__prefetch_write_varying_3_native)},
     };
 
-    llvm::Function *calledFunc = callInst->getCalledFunction();
-
-    auto name = calledFunc->getName().str();
+    auto name = lGetCalledFunctionName(callInst).str();
     auto it = replacementRules.find(name);
     if (it == replacementRules.end()) {
         // it is not a call of __pseudo function stored in replacementRules
@@ -288,7 +303,22 @@ bool ReplacePseudoMemoryOpsPass::replacePseudoMemoryOps(llvm::BasicBlock &bb) {
     // is moved forward before the instruction is processed.
     for (llvm::BasicBlock::iterator iter = bb.begin(), e = bb.end(); iter != e;) {
         llvm::CallInst *callInst = llvm::dyn_cast<llvm::CallInst>(&*(iter++));
-        if (callInst == nullptr || callInst->getCalledFunction() == nullptr)
+
+    if (callInst) {
+      callInst->dump();
+      if (callInst->getCalledFunction())
+        printf("  %s\n", callInst->getCalledFunction()->getName().str().c_str());
+      else {
+        printf("  nullptr\n");
+        llvm::Value *calledValue = callInst->getCalledOperand();
+        if (calledValue) {
+          llvm::StringRef calledName = calledValue->getName();
+          printf("  calledValue: %s\n", calledName.str().c_str());
+        }
+      }
+    }
+
+        if (callInst == nullptr)
             continue;
 
         if (lReplacePseudoGS(callInst)) {

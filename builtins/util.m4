@@ -2466,26 +2466,6 @@ define $2 @__atomic_compare_exchange_uniform_$3_global(i8* %ptr, $2 %cmp,
 
 define(`ctlztz', `
 declare_count_zeros()
-
-define i32 @__count_trailing_zeros_i32(i32) nounwind readnone alwaysinline {
-  %c = call i32 @llvm.cttz.i32(i32 %0)
-  ret i32 %c
-}
-
-define i64 @__count_trailing_zeros_i64(i64) nounwind readnone alwaysinline {
-  %c = call i64 @llvm.cttz.i64(i64 %0)
-  ret i64 %c
-}
-
-define i32 @__count_leading_zeros_i32(i32) nounwind readnone alwaysinline {
-  %c = call i32 @llvm.ctlz.i32(i32 %0)
-  ret i32 %c
-}
-
-define i64 @__count_leading_zeros_i64(i64) nounwind readnone alwaysinline {
-  %c = call i64 @llvm.ctlz.i64(i64 %0)
-  ret i64 %c
-}
 ')
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -2495,16 +2475,6 @@ define(`popcnt', `
 
 declare i32 @llvm.ctpop.i32(i32) nounwind readnone
 declare i64 @llvm.ctpop.i64(i64) nounwind readnone
-
-define i32 @__popcnt_int32(i32) nounwind readonly alwaysinline {
-  %call = call i32 @llvm.ctpop.i32(i32 %0)
-  ret i32 %call
-}
-
-define i64 @__popcnt_int64(i64) nounwind readonly alwaysinline {
-  %call = call i64 @llvm.ctpop.i64(i64 %0)
-  ret i64 %call
-}
 ')
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -2513,105 +2483,6 @@ define i64 @__popcnt_int64(i64) nounwind readonly alwaysinline {
 define(`define_prefetches', `
 declare void @llvm.prefetch(i8* nocapture %ptr, i32 %readwrite, i32 %locality,
                             i32 %cachetype) ; cachetype == 1 is dcache
-
-define void @__prefetch_read_uniform_1(i8 *) alwaysinline {
-  call void @llvm.prefetch(i8 * %0, i32 0, i32 3, i32 1)
-  ret void
-}
-
-define void @__prefetch_read_uniform_2(i8 *) alwaysinline {
-  call void @llvm.prefetch(i8 * %0, i32 0, i32 2, i32 1)
-  ret void
-}
-
-define void @__prefetch_read_uniform_3(i8 *) alwaysinline {
-  call void @llvm.prefetch(i8 * %0, i32 0, i32 1, i32 1)
-  ret void
-}
-
-define void @__prefetch_read_uniform_nt(i8 *) alwaysinline {
-  call void @llvm.prefetch(i8 * %0, i32 0, i32 0, i32 1)
-  ret void
-}
-
-define void @__prefetch_write_uniform_1(i8 *) alwaysinline {
-  call void @llvm.prefetch(i8 * %0, i32 1, i32 3, i32 1)
-  ret void
-}
-
-define void @__prefetch_write_uniform_2(i8 *) alwaysinline {
-  call void @llvm.prefetch(i8 * %0, i32 1, i32 2, i32 1)
-  ret void
-}
-
-define void @__prefetch_write_uniform_3(i8 *) alwaysinline {
-  call void @llvm.prefetch(i8 * %0, i32 1, i32 1, i32 1)
-  ret void
-}
-
-define void @__prefetch_read_varying_1(<WIDTH x i64> %addr, <WIDTH x MASK> %mask) alwaysinline {
-  per_lane(WIDTH, <WIDTH x MASK> %mask, `
-  %iptr_LANE_ID = extractelement <WIDTH x i64> %addr, i32 LANE
-  %ptr_LANE_ID = inttoptr i64 %iptr_LANE_ID to i8*
-  call void @llvm.prefetch(i8 * %ptr_LANE_ID, i32 0, i32 3, i32 1)
-  ')
-  ret void
-}
-
-define void @__prefetch_read_varying_2(<WIDTH x i64> %addr, <WIDTH x MASK> %mask) alwaysinline {
-  per_lane(WIDTH, <WIDTH x MASK> %mask, `
-  %iptr_LANE_ID = extractelement <WIDTH x i64> %addr, i32 LANE
-  %ptr_LANE_ID = inttoptr i64 %iptr_LANE_ID to i8*
-  call void @llvm.prefetch(i8 * %ptr_LANE_ID, i32 0, i32 2, i32 1)
-  ')
-  ret void
-}
-
-define void @__prefetch_read_varying_3(<WIDTH x i64> %addr, <WIDTH x MASK> %mask) alwaysinline {
-  per_lane(WIDTH, <WIDTH x MASK> %mask, `
-  %iptr_LANE_ID = extractelement <WIDTH x i64> %addr, i32 LANE
-  %ptr_LANE_ID = inttoptr i64 %iptr_LANE_ID to i8*
-  call void @llvm.prefetch(i8 * %ptr_LANE_ID, i32 0, i32 1, i32 1)
-  ')
-  ret void
-}
-
-define void @__prefetch_read_varying_nt(<WIDTH x i64> %addr, <WIDTH x MASK> %mask) alwaysinline {
-  per_lane(WIDTH, <WIDTH x MASK> %mask, `
-  %iptr_LANE_ID = extractelement <WIDTH x i64> %addr, i32 LANE
-  %ptr_LANE_ID = inttoptr i64 %iptr_LANE_ID to i8*
-  call void @llvm.prefetch(i8 * %ptr_LANE_ID, i32 0, i32 0, i32 1)
-  ')
-  ret void
-}
-
-define void @__prefetch_write_varying_1(<WIDTH x i64> %addr, <WIDTH x MASK> %mask) alwaysinline {
-  per_lane(WIDTH, <WIDTH x MASK> %mask, `
-  %iptr_LANE_ID = extractelement <WIDTH x i64> %addr, i32 LANE
-  %ptr_LANE_ID = inttoptr i64 %iptr_LANE_ID to i8*
-  call void @llvm.prefetch(i8 * %ptr_LANE_ID, i32 1, i32 3, i32 1)
-  ')
-  ret void
-}
-
-define void @__prefetch_write_varying_2(<WIDTH x i64> %addr, <WIDTH x MASK> %mask) alwaysinline {
-  per_lane(WIDTH, <WIDTH x MASK> %mask, `
-  %iptr_LANE_ID = extractelement <WIDTH x i64> %addr, i32 LANE
-  %ptr_LANE_ID = inttoptr i64 %iptr_LANE_ID to i8*
-  call void @llvm.prefetch(i8 * %ptr_LANE_ID, i32 1, i32 3, i32 1)
-  ')
-  ret void
-}
-
-define void @__prefetch_write_varying_3(<WIDTH x i64> %addr, <WIDTH x MASK> %mask) alwaysinline {
-  per_lane(WIDTH, <WIDTH x MASK> %mask, `
-  %iptr_LANE_ID = extractelement <WIDTH x i64> %addr, i32 LANE
-  %ptr_LANE_ID = inttoptr i64 %iptr_LANE_ID to i8*
-  call void @llvm.prefetch(i8 * %ptr_LANE_ID, i32 1, i32 3, i32 1)
-  ')
-  ret void
-}
-
 ')
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -5831,18 +5702,8 @@ i64minmax(WIDTH,max,uint64,ugt)
 ;; $2: {min,max} (used in constructing function names)
 ;; $3: olt,ogt} comparison operator to used
 define(`halfminmax', `
-define half @__$2_uniform_half(half, half) nounwind readnone alwaysinline {
-  %cmp = fcmp $3 half %0, %1
-  %r = select i1 %cmp, half %0, half %1
-  ret half %r
-}
-
-define <$1 x half> @__$2_varying_half(<$1 x half>,
-                                            <$1 x half>) nounwind readnone alwaysinline {
-  %m = fcmp $3 <$1 x half> %0, %1
-  %r = select <$1 x i1> %m, <$1 x half> %0, <$1 x half> %1
-  ret <$1 x half> %r
-}
+declare half @__$2_uniform_half(half, half) nounwind readnone alwaysinline
+declare <$1 x half> @__$2_varying_half(<$1 x half>, <$1 x half>) nounwind readnone alwaysinline
 ')
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -7000,88 +6861,28 @@ define i1 @__rdrand_i64(i8 * %ptr) {
 ;; int8/int16 builtins
 
 define(`define_avg_up_uint8', `
-define <WIDTH x i8> @__avg_up_uint8(<WIDTH x i8>, <WIDTH x i8>) {
-  %a16 = zext <WIDTH x i8> %0 to <WIDTH x i16>
-  %b16 = zext <WIDTH x i8> %1 to <WIDTH x i16>
-  %sum1 = add <WIDTH x i16> %a16, %b16
-  %sum = add <WIDTH x i16> %sum1, < forloop(i, 1, eval(WIDTH-1), `i16 1, ') i16 1 >
-  %avg = lshr <WIDTH x i16> %sum, < forloop(i, 1, eval(WIDTH-1), `i16 1, ') i16 1 >
-  %r = trunc <WIDTH x i16> %avg to <WIDTH x i8>
-  ret <WIDTH x i8> %r
-}')
+')
 
 define(`define_avg_up_int8', `
-define <WIDTH x i8> @__avg_up_int8(<WIDTH x i8>, <WIDTH x i8>) {
-  %a16 = sext <WIDTH x i8> %0 to <WIDTH x i16>
-  %b16 = sext <WIDTH x i8> %1 to <WIDTH x i16>
-  %sum1 = add <WIDTH x i16> %a16, %b16
-  %sum = add <WIDTH x i16> %sum1, < forloop(i, 1, eval(WIDTH-1), `i16 1, ') i16 1 >
-  %avg = sdiv <WIDTH x i16> %sum, < forloop(i, 1, eval(WIDTH-1), `i16 2, ') i16 2 >
-  %r = trunc <WIDTH x i16> %avg to <WIDTH x i8>
-  ret <WIDTH x i8> %r
-}')
+')
 
 define(`define_avg_up_uint16', `
-define <WIDTH x i16> @__avg_up_uint16(<WIDTH x i16>, <WIDTH x i16>) {
-  %a32 = zext <WIDTH x i16> %0 to <WIDTH x i32>
-  %b32 = zext <WIDTH x i16> %1 to <WIDTH x i32>
-  %sum1 = add <WIDTH x i32> %a32, %b32
-  %sum = add <WIDTH x i32> %sum1, < forloop(i, 1, eval(WIDTH-1), `i32 1, ') i32 1 >
-  %avg = lshr <WIDTH x i32> %sum, < forloop(i, 1, eval(WIDTH-1), `i32 1, ') i32 1 >
-  %r = trunc <WIDTH x i32> %avg to <WIDTH x i16>
-  ret <WIDTH x i16> %r
-}')
+')
 
 define(`define_avg_up_int16', `
-define <WIDTH x i16> @__avg_up_int16(<WIDTH x i16>, <WIDTH x i16>) {
-  %a32 = sext <WIDTH x i16> %0 to <WIDTH x i32>
-  %b32 = sext <WIDTH x i16> %1 to <WIDTH x i32>
-  %sum1 = add <WIDTH x i32> %a32, %b32
-  %sum = add <WIDTH x i32> %sum1, < forloop(i, 1, eval(WIDTH-1), `i32 1, ') i32 1 >
-  %avg = sdiv <WIDTH x i32> %sum, < forloop(i, 1, eval(WIDTH-1), `i32 2, ') i32 2 >
-  %r = trunc <WIDTH x i32> %avg to <WIDTH x i16>
-  ret <WIDTH x i16> %r
-}')
+')
 
 define(`define_avg_down_uint8', `
-define <WIDTH x i8> @__avg_down_uint8(<WIDTH x i8>, <WIDTH x i8>) {
-  %a16 = zext <WIDTH x i8> %0 to <WIDTH x i16>
-  %b16 = zext <WIDTH x i8> %1 to <WIDTH x i16>
-  %sum = add <WIDTH x i16> %a16, %b16
-  %avg = lshr <WIDTH x i16> %sum, < forloop(i, 1, eval(WIDTH-1), `i16 1, ') i16 1 >
-  %r = trunc <WIDTH x i16> %avg to <WIDTH x i8>
-  ret <WIDTH x i8> %r
-}')
+')
 
 define(`define_avg_down_int8', `
-define <WIDTH x i8> @__avg_down_int8(<WIDTH x i8>, <WIDTH x i8>) {
-  %a16 = sext <WIDTH x i8> %0 to <WIDTH x i16>
-  %b16 = sext <WIDTH x i8> %1 to <WIDTH x i16>
-  %sum = add <WIDTH x i16> %a16, %b16
-  %avg = sdiv <WIDTH x i16> %sum, < forloop(i, 1, eval(WIDTH-1), `i16 2, ') i16 2 >
-  %r = trunc <WIDTH x i16> %avg to <WIDTH x i8>
-  ret <WIDTH x i8> %r
-}')
+')
 
 define(`define_avg_down_uint16', `
-define <WIDTH x i16> @__avg_down_uint16(<WIDTH x i16>, <WIDTH x i16>) {
-  %a32 = zext <WIDTH x i16> %0 to <WIDTH x i32>
-  %b32 = zext <WIDTH x i16> %1 to <WIDTH x i32>
-  %sum = add <WIDTH x i32> %a32, %b32
-  %avg = lshr <WIDTH x i32> %sum, < forloop(i, 1, eval(WIDTH-1), `i32 1, ') i32 1 >
-  %r = trunc <WIDTH x i32> %avg to <WIDTH x i16>
-  ret <WIDTH x i16> %r
-}')
+')
 
 define(`define_avg_down_int16', `
-define <WIDTH x i16> @__avg_down_int16(<WIDTH x i16>, <WIDTH x i16>) {
-  %a32 = sext <WIDTH x i16> %0 to <WIDTH x i32>
-  %b32 = sext <WIDTH x i16> %1 to <WIDTH x i32>
-  %sum = add <WIDTH x i32> %a32, %b32
-  %avg = sdiv <WIDTH x i32> %sum, < forloop(i, 1, eval(WIDTH-1), `i32 2, ') i32 2 >
-  %r = trunc <WIDTH x i32> %avg to <WIDTH x i16>
-  ret <WIDTH x i16> %r
-}')
+')
 
 define(`define_up_avgs', `
 define_avg_up_uint8()

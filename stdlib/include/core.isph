@@ -202,6 +202,8 @@ typedef uniform int8 *uniform opaque_ptr_t;
 #define ADDRSPACE(N) __attribute__((address_space(N)))
 #define READONLY __attribute__((memory("read")))
 #define READNONE __attribute__((memory("none")))
+#define UNMANGLED __attribute__((unmangled))
+#define CDECL __attribute__((cdecl))
 #define EXT __attribute__((unmangled)) __attribute__((cdecl)) unmasked
 
 struct RNGState {
@@ -649,14 +651,14 @@ EXT inline void __scatter_base_offsets32_double(uniform int8 *uniform, uniform i
 EXT inline void __scatter_base_offsets64_double(uniform int8 *uniform, uniform int32, varying int64, varying double,
                                                 UIntMaskType);
 
-EXT void __prefetch_read_varying_1(varying int64, UIntMaskType);
-EXT void __prefetch_read_varying_2(varying int64, UIntMaskType);
-EXT void __prefetch_read_varying_3(varying int64, UIntMaskType);
-EXT void __prefetch_read_varying_nt(varying int64, UIntMaskType);
-EXT void __prefetch_write_varying_1(varying int64, UIntMaskType);
-EXT void __prefetch_write_varying_2(varying int64, UIntMaskType);
-EXT void __prefetch_write_varying_3(varying int64, UIntMaskType);
-EXT void __prefetch_write_varying_3_native(uniform int8 *uniform, uniform int32, varying int32, UIntMaskType);
+UNMANGLED CDECL void __prefetch_read_varying_1(varying int64);
+UNMANGLED CDECL void __prefetch_read_varying_2(varying int64);
+UNMANGLED CDECL void __prefetch_read_varying_3(varying int64);
+UNMANGLED CDECL void __prefetch_read_varying_nt(varying int64);
+UNMANGLED CDECL void __prefetch_write_varying_1(varying int64);
+UNMANGLED CDECL void __prefetch_write_varying_2(varying int64);
+UNMANGLED CDECL void __prefetch_write_varying_3(varying int64);
+UNMANGLED CDECL void __prefetch_write_varying_3_native(uniform int8 *uniform, uniform int32, varying int32);
 
 EXT void __prefetch_read_varying_nt_native(uniform int8 *uniform, uniform int32, varying int32, UIntMaskType);
 EXT void __prefetch_write_varying_1_native(uniform int8 *uniform, uniform int32, varying int32, UIntMaskType);
@@ -666,13 +668,13 @@ EXT void __prefetch_read_varying_2_native(uniform int8 *uniform, uniform int32, 
 EXT void __prefetch_read_varying_3_native(uniform int8 *uniform, uniform int32, varying int32, UIntMaskType);
 
 // int8/int16 avg builtins
-EXT varying int8 __avg_up_uint8(varying int8, varying int8);
+EXT varying uint8 __avg_up_uint8(varying uint8, varying uint8);
 EXT varying int8 __avg_up_int8(varying int8, varying int8);
-EXT varying int16 __avg_up_uint16(varying int16, varying int16);
+EXT varying uint16 __avg_up_uint16(varying uint16, varying int16);
 EXT varying int16 __avg_up_int16(varying int16, varying int16);
-EXT varying int8 __avg_down_uint8(varying int8, varying int8);
+EXT varying uint8 __avg_down_uint8(varying uint8, varying uint8);
 EXT varying int8 __avg_down_int8(varying int8, varying int8);
-EXT varying int16 __avg_down_uint16(varying int16, varying int16);
+EXT varying uint16 __avg_down_uint16(varying uint16, varying uint16);
 EXT varying int16 __avg_down_int16(varying int16, varying int16);
 
 // FTZ/DAZ functions
