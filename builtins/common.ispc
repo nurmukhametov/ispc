@@ -217,12 +217,13 @@ EXT READNONE varying int32 __dot2add_i16packed(varying uint32, varying uint32, v
 EXT READNONE varying int32 __dot4add_u8i8packed_sat(varying uint32, varying uint32, varying int32) { @llvm.trap(); }
 EXT READNONE varying int32 __dot4add_u8i8packed(varying uint32, varying uint32, varying int32) { @llvm.trap(); }
 
-// // __have_native_half_converts
-// EXT uniform int16 __float_to_half_uniform(uniform float x) { return x; }
-// EXT varying int16 __float_to_half_varying(varying float x) { return x; }
-// EXT uniform float __half_to_float_uniform(uniform int16 x) { return x; }
-// EXT varying float __half_to_float_varying(varying int16 x) { return x; }
-// 
+// half conversion routines
+// __have_native_half_converts
+EXT uniform int16 __float_to_half_uniform(uniform float x) { return x; }
+EXT varying int16 __float_to_half_varying(varying float x) { return x; }
+EXT uniform float __half_to_float_uniform(uniform int16 x) { return x; }
+EXT varying float __half_to_float_varying(varying int16 x) { return x; }
+
 // EXT void __prefetch_read_sized_uniform_1(uniform int8 *uniform, uniform int8) { @llvm.trap(); }
 // EXT void __prefetch_read_sized_uniform_2(uniform int8 *uniform, uniform int8) { @llvm.trap(); }
 // EXT void __prefetch_read_sized_uniform_3(uniform int8 *uniform, uniform int8) { @llvm.trap(); }
@@ -646,12 +647,8 @@ EXT uniform int64 __popcnt_int64(uniform int64 x) { return @llvm.ctpop(x); }
 // // EXT inline READNONE varying double __doublebits_varying_int64(varying int64);
 // // EXT inline READNONE uniform float __floatbits_uniform_int32(uniform int32);
 // // EXT inline READNONE varying float __floatbits_varying_int32(varying int32);
-// // EXT uniform int16 __float_to_half_uniform(uniform float);
-// // EXT varying int16 __float_to_half_varying(varying float);
 // // EXT inline READNONE uniform float16 __halfbits_uniform_int16(uniform int16);
 // // EXT inline READNONE varying float16 __halfbits_varying_int16(varying int16);
-// // EXT uniform float __half_to_float_uniform(uniform int16);
-// // EXT varying float __half_to_float_varying(varying int16);
 // // EXT inline READNONE uniform int64 __intbits_uniform_double(uniform double);
 // // EXT inline READNONE uniform int32 __intbits_uniform_float(uniform float);
 // // EXT inline READNONE uniform int16 __intbits_uniform_half(uniform float16);
