@@ -960,7 +960,7 @@ Target::Target(Arch arch, const char *cpu, ISPCTarget ispc_target, PICLevel picL
         this->m_hasTranscendentals = false;
         this->m_hasTrigonometry = false;
         this->m_hasRsqrtd = false;
-        this->m_hasRcpd = true;
+        this->m_hasRcpd = false;
         this->m_hasVecPrefetch = false;
         this->m_hasDotProductVNNI = false;
         CPUfromISA = CPU_SKX;

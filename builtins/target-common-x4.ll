@@ -7251,26 +7251,6 @@ define float @__rcp_uniform_float(float %v) nounwind readonly alwaysinline {
   %iv_mul = fmul float %iv, %two_minus
   ret float %iv_mul
 }
-
-declare <2 x double> @llvm.x86.avx512.rcp14.sd(<2 x double>, <2 x double>, <2 x double>, i8) nounwind readnone
-define double @__rcp_fast_uniform_double(double) nounwind readonly alwaysinline {
-  %vecval = insertelement <2 x double> undef, double %0, i32 0
-  %call = call <2 x double> @llvm.x86.avx512.rcp14.sd(<2 x double> %vecval, <2 x double> %vecval, <2 x double> undef, i8 -1)
-  %scall = extractelement <2 x double> %call, i32 0
-  ret double %scall
-}
-
-define double @__rcp_uniform_double(double %v) nounwind readonly alwaysinline {
-  %iv = call double @__rcp_fast_uniform_double(double %v)
-
-  ; do one N-R iteration to improve precision
-  ; iv = rcp(v)
-  ; iv * (2. - v * iv)
-  %v_iv = fmul double %v, %iv
-  %two_minus = fsub double 2., %v_iv
-  %iv_mul = fmul double %iv, %two_minus
-  ret double %iv_mul
-}
 ')
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -8277,23 +8257,6 @@ define <4 x float> @__rcp_varying_float(<4 x float>) nounwind readonly alwaysinl
   %two_minus = fsub <4 x float> <float 2., float 2., float 2., float 2.>, %v_iv
   %iv_mul = fmul <4 x float> %call,  %two_minus
   ret <4 x float> %iv_mul
-}
-
-;; rcp double
-declare <4 x double> @llvm.x86.avx512.rcp14.pd.256(<4 x double>, <4 x double>, i8) nounwind readnone
-define <4 x double> @__rcp_fast_varying_double(<4 x double> %val) nounwind readonly alwaysinline {
-  %res = call <4 x double> @llvm.x86.avx512.rcp14.pd.256(<4 x double> %val, <4 x double> undef, i8 -1)
-  ret <4 x double> %res
-}
-define <4 x double> @__rcp_varying_double(<4 x double>) nounwind readonly alwaysinline {
-  %call = call <4 x double> @__rcp_fast_varying_double(<4 x double> %0)
-  ;; do one Newton-Raphson iteration to improve precision
-  ;;  double iv = __rcp_v(v);
-  ;;  return iv * (2. - v * iv);
-  %v_iv = fmul <4 x double> %0, %call
-  %two_minus = fsub <4 x double> <double 2., double 2., double 2., double 2.>, %v_iv
-  %iv_mul = fmul <4 x double> %call,  %two_minus
-  ret <4 x double> %iv_mul
 }
 
 rsqrt14_uniform()

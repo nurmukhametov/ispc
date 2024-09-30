@@ -195,12 +195,12 @@ extern "C" void __not_supported();
 // EXT READNONE uniform float __pow_uniform_float(uniform float, uniform float) { @llvm.trap(); }
 // EXT READNONE varying double __pow_varying_double(varying double, varying double) { @llvm.trap(); }
 // EXT READNONE varying float __pow_varying_float(varying float, varying float) { @llvm.trap(); }
-// 
-// // __have_native_rcpd
-// EXT READNONE uniform double __rcp_fast_uniform_double(uniform double) { @llvm.trap(); }
-// EXT READNONE uniform double __rcp_uniform_double(uniform double) { @llvm.trap(); }
-// EXT READNONE varying double __rcp_fast_varying_double(varying double) { @llvm.trap(); }
-// EXT READNONE varying double __rcp_varying_double(varying double) { @llvm.trap(); }
+
+// __have_native_rcpd
+EXT READNONE uniform double __rcp_fast_uniform_double(uniform double) { __not_supported(); }
+EXT READNONE uniform double __rcp_uniform_double(uniform double) { __not_supported(); }
+EXT READNONE varying double __rcp_fast_varying_double(varying double) { __not_supported(); }
+EXT READNONE varying double __rcp_varying_double(varying double) { __not_supported(); }
 
 // __have_native_half_full_support
 EXT READNONE uniform float16 __rcp_uniform_half(uniform float16) { __not_supported(); }
