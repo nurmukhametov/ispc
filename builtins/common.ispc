@@ -383,17 +383,17 @@ EXT READNONE varying int32 __dot4add_u8i8packed(varying uint32, varying uint32, 
 // // #else
 // // #error Unknown value of TARGET_WIDTH
 // // #endif
-// 
-// // int8/int16 avg builtins
-// EXT varying uint8 __avg_up_uint8(varying uint8 a, varying uint8 b) { return ((uint16)a + (uint16)b + 1) >> 1; }
-// EXT varying int8 __avg_up_int8(varying int8 a, varying int8 b) { return ((int16)a + (int16)b + 1) / 2; }
-// EXT varying uint16 __avg_up_uint16(varying uint16 a, varying uint16 b) { return ((uint32)a + (uint32)b + 1) >> 1; }
-// EXT varying int16 __avg_up_int16(varying int16 a, varying int16 b) { return ((int32)a + (int32)b + 1) >> 1; }
-// EXT varying uint8 __avg_down_uint8(varying uint8 a, varying uint8 b) { return ((uint16)a + (uint16)b) >> 1; }
-// EXT varying int8 __avg_down_int8(varying int8 a, varying int8 b) { return ((int16)a + (int16)b) / 2; }
-// EXT varying uint16 __avg_down_uint16(varying uint16 a, varying uint16 b) { return ((uint32)a + (uint32)b) >> 1; }
-// EXT varying int16 __avg_down_int16(varying int16 a, varying int16 b) { return ((int32)a + (int32)b) / 2; }
-// 
+
+// int8/int16 avg builtins
+EXT varying uint8 __avg_up_uint8(varying uint8 a, varying uint8 b) { return ((uint16)a + (uint16)b + 1) >> 1; }
+EXT varying int8 __avg_up_int8(varying int8 a, varying int8 b) { return ((int16)a + (int16)b + 1) / 2; }
+EXT varying uint16 __avg_up_uint16(varying uint16 a, varying uint16 b) { return ((uint32)a + (uint32)b + 1) >> 1; }
+EXT varying int16 __avg_up_int16(varying int16 a, varying int16 b) { return ((int32)a + (int32)b + 1) >> 1; }
+EXT varying uint8 __avg_down_uint8(varying uint8 a, varying uint8 b) { return ((uint16)a + (uint16)b) >> 1; }
+EXT varying int8 __avg_down_int8(varying int8 a, varying int8 b) { return ((int16)a + (int16)b) / 2; }
+EXT varying uint16 __avg_down_uint16(varying uint16 a, varying uint16 b) { return ((uint32)a + (uint32)b) >> 1; }
+EXT varying int16 __avg_down_int16(varying int16 a, varying int16 b) { return ((int32)a + (int32)b) / 2; }
+
 // // count trailing zeros
 // EXT READNONE uniform int32 __count_trailing_zeros_i32(uniform int32 x) { return @llvm.cttz(x, false); }
 // EXT READNONE uniform int64 __count_trailing_zeros_i64(uniform int64 x) { return @llvm.cttz(x, false); }
