@@ -394,12 +394,12 @@ EXT varying int8 __avg_down_int8(varying int8 a, varying int8 b) { return ((int1
 EXT varying uint16 __avg_down_uint16(varying uint16 a, varying uint16 b) { return ((uint32)a + (uint32)b) >> 1; }
 EXT varying int16 __avg_down_int16(varying int16 a, varying int16 b) { return ((int32)a + (int32)b) / 2; }
 
-// // count trailing zeros
-// EXT READNONE uniform int32 __count_trailing_zeros_i32(uniform int32 x) { return @llvm.cttz(x, false); }
-// EXT READNONE uniform int64 __count_trailing_zeros_i64(uniform int64 x) { return @llvm.cttz(x, false); }
-// EXT READNONE uniform int32 __count_leading_zeros_i32(uniform int32 x) { return @llvm.ctlz(x, false); }
-// EXT READNONE uniform int64 __count_leading_zeros_i64(uniform int64 x) { return @llvm.ctlz(x, false); }
-// 
+// count trailing zeros
+EXT READNONE uniform int32 __count_trailing_zeros_i32(uniform int32 x) { return @llvm.cttz(x, false); }
+EXT READNONE uniform int64 __count_trailing_zeros_i64(uniform int64 x) { return @llvm.cttz(x, false); }
+EXT READNONE uniform int32 __count_leading_zeros_i32(uniform int32 x) { return @llvm.ctlz(x, false); }
+EXT READNONE uniform int64 __count_leading_zeros_i64(uniform int64 x) { return @llvm.ctlz(x, false); }
+
 // // population count
 // EXT uniform int32 __popcnt_int32(uniform int32 x) { return @llvm.ctpop(x); }
 // EXT uniform int64 __popcnt_int64(uniform int64 x) { return @llvm.ctpop(x); }
