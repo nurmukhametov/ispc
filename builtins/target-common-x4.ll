@@ -7032,30 +7032,6 @@ define_vector_permutations()
 aossoa()
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; half conversion routines
-
-define float @__half_to_float_uniform(i16 %v) nounwind readnone {
-  %v1 = bitcast i16 %v to <1 x i16>
-  %vv = shufflevector <1 x i16> %v1, <1 x i16> undef,
-           <8 x i32> <i32 0, i32 undef, i32 undef, i32 undef,
-                      i32 undef, i32 undef, i32 undef, i32 undef>
-  %rv = call <8 x float> @llvm.x86.vcvtph2ps.256(<8 x i16> %vv)
-  %r = extractelement <8 x float> %rv, i32 0
-  ret float %r
-}
-
-define i16 @__float_to_half_uniform(float %v) nounwind readnone {
-  %v1 = bitcast float %v to <1 x float>
-  %vv = shufflevector <1 x float> %v1, <1 x float> undef,
-           <8 x i32> <i32 0, i32 undef, i32 undef, i32 undef,
-                      i32 undef, i32 undef, i32 undef, i32 undef>
-  ; round to nearest even
-  %rv = call <8 x i16> @llvm.x86.vcvtps2ph.256(<8 x float> %vv, i32 0)
-  %r = extractelement <8 x i16> %rv, i32 0
-  ret i16 %r
-}
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; fast math mode
 fastMathFTZDAZ_x86()
 
@@ -7541,27 +7517,6 @@ define i8 @__cast_mask_to_i8 (<WIDTH x MASK> %mask) alwaysinline {
   %mask_i8 = zext i4 %mask_i4 to i8
   ret i8 %mask_i8
 }
-
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; half conversion routines
-
-declare <4 x float> @llvm.x86.vcvtph2ps.128(<4 x i16>) nounwind readnone
-declare <8 x i16> @llvm.x86.vcvtps2ph.128(<4 x float>, i32) nounwind readnone
-declare <8 x float> @llvm.x86.vcvtph2ps.256(<8 x i16>) nounwind readnone
-declare <8 x i16> @llvm.x86.vcvtps2ph.256(<8 x float>, i32) nounwind readnone
-
-define <4 x float> @__half_to_float_varying(<4 x i16> %v) nounwind readnone {
-  %r = call <4 x float> @llvm.x86.vcvtph2ps.128(<4 x i16> %v)
-  ret <4 x float> %r
-}
-
-define <4 x i16> @__float_to_half_varying(<4 x float> %v) nounwind readnone {
-  %r = call <8 x i16> @llvm.x86.vcvtps2ph.128(<4 x float> %v, i32 0)
-  %res = shufflevector <8 x i16> %r, <8 x i16> undef, <4 x i32> <i32 0, i32 1, i32 2, i32 3>
-  ret <4 x i16> %res
-}
-
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; rounding floats
