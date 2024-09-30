@@ -860,6 +860,8 @@ function(add_ispc_slim NAME)
     # Defines stdlib target
     generate_stdlibs(${NAME})
 
+    generate_common_target_bcs(${NAME})
+
     # stdlib, stdlibs-bc, stdlibs-cpp targets are created in Stdlib.cmake
     configure_ispc_obj(stdlib)
 
@@ -867,6 +869,7 @@ function(add_ispc_slim NAME)
     configure_ispc_exe(${NAME})
     target_link_libraries(${NAME} ${LINK_LIBRARIES} optimization common frontend)
     add_dependencies(${NAME} builtins-bc)
+    add_dependencies(common-target-bc ${NAME})
     if (${NAME} STREQUAL "ispc")
         set_target_properties(stdlibs-bc PROPERTIES EXCLUDE_FROM_ALL OFF)
     endif()

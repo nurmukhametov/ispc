@@ -35,6 +35,7 @@ std::string ArchToString(Arch arch);
 enum class ISPCTarget {
     none,
     host,
+    common_x4,
     sse2_i32x4,
     sse2_i32x8,
     sse41_i8x16,
