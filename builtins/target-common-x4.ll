@@ -2,6 +2,11 @@
 ;;
 ;;  SPDX-License-Identifier: BSD-3-Clause
 
+declare i32 @llvm.ctlz.i32(i32)
+declare i64 @llvm.ctlz.i64(i64)
+declare i32 @llvm.cttz.i32(i32)
+declare i64 @llvm.cttz.i64(i64)
+
 define(`WIDTH',`4')
 define(`ISA',`AVX512SKX')
 
@@ -2472,33 +2477,6 @@ define $2 @__atomic_compare_exchange_uniform_$3_global(i8* %ptr, $2 %cmp,
    %r_t = cmpxchg $2 * %ptr_typed, $2 %cmp, $2 %val seq_cst seq_cst
    %r = extractvalue { $2, i1 } %r_t, 0
    ret $2 %r
-}
-')
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; count trailing zeros
-
-define(`ctlztz', `
-declare_count_zeros()
-
-define i32 @__count_trailing_zeros_i32(i32) nounwind readnone alwaysinline {
-  %c = call i32 @llvm.cttz.i32(i32 %0)
-  ret i32 %c
-}
-
-define i64 @__count_trailing_zeros_i64(i64) nounwind readnone alwaysinline {
-  %c = call i64 @llvm.cttz.i64(i64 %0)
-  ret i64 %c
-}
-
-define i32 @__count_leading_zeros_i32(i32) nounwind readnone alwaysinline {
-  %c = call i32 @llvm.ctlz.i32(i32 %0)
-  ret i32 %c
-}
-
-define i64 @__count_leading_zeros_i64(i64) nounwind readnone alwaysinline {
-  %c = call i64 @llvm.ctlz.i64(i64 %0)
-  ret i64 %c
 }
 ')
 
@@ -6674,25 +6652,7 @@ define(`packed_load_and_store', `
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; reduce_equal
 
-;; count leading/trailing zeros
-;; Macros declares set of count-trailing and count-leading zeros.
-;; Macros behaves as a static functon - it works only at first invokation
-;; to avoid redifinition.
-define(`declare_count_zeros', `
-ifelse(count_zeros_are_defined, true, `',
-`
-declare i32 @llvm.ctlz.i32(i32)
-declare i64 @llvm.ctlz.i64(i64)
-declare i32 @llvm.cttz.i32(i32)
-declare i64 @llvm.cttz.i64(i64)
-
-define(`count_zeros_are_defined', true)
-')
-
-')
-
 define(`reduce_equal_aux', `
-declare_count_zeros()
 
 define i1 @__reduce_equal_$3(<$1 x $2> %v, i8 * %samevalue,
                              <$1 x MASK> %mask) nounwind alwaysinline {
@@ -7322,7 +7282,6 @@ scans()
 reduce_equal(WIDTH)
 rdrand_definition()
 popcnt()
-ctlztz()
 halfTypeGenericImplementation()
 define_vector_permutations()
 
