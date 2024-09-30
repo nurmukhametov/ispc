@@ -343,24 +343,24 @@ EXT READNONE varying int32 __dot4add_u8i8packed(varying uint32, varying uint32, 
 // // #define LLVM_EXP_V_F16 EXPAND_AND_CONCAT3(@llvm.exp.v, TARGET_WIDTH, f16)
 // // #define LLVM_POW_V_F16 EXPAND_AND_CONCAT3(@llvm.pow.v, TARGET_WIDTH, f16)
 // // #define LLVM_SQRT_V_F16 EXPAND_AND_CONCAT3(@llvm.sqrt.v, TARGET_WIDTH, f16)
-// 
-// EXT READNONE uniform float16 __round_uniform_half(uniform float16 x) { return @llvm.roundeven(x); }
-// EXT READNONE varying float16 __round_varying_half(varying float16 x) { return @llvm.roundeven(x); }
-// EXT READNONE uniform float16 __floor_uniform_half(uniform float16 x) { return @llvm.floor(x); }
-// EXT READNONE varying float16 __floor_varying_half(varying float16 x) { return @llvm.floor(x); }
-// EXT READNONE uniform float16 __ceil_uniform_half(uniform float16 x) { return @llvm.ceil(x); }
-// EXT READNONE varying float16 __ceil_varying_half(varying float16 x) { return @llvm.ceil(x); }
-// EXT READNONE uniform float16 __trunc_uniform_half(uniform float16 x) { return @llvm.trunc(x); }
-// EXT READNONE varying float16 __trunc_varying_half(varying float16 x) { return @llvm.trunc(x); }
-// EXT READNONE uniform float16 __log_uniform_half(uniform float16 x) { return @llvm.log(x); }
-// EXT READNONE varying float16 __log_varying_half(varying float16 x) { return @llvm.log(x); }
-// EXT READNONE uniform float16 __exp_uniform_half(uniform float16 x) { return @llvm.exp(x); }
-// EXT READNONE varying float16 __exp_varying_half(varying float16 x) { return @llvm.exp(x); }
-// EXT READNONE uniform float16 __pow_uniform_half(uniform float16 x, uniform float16 y) { return @llvm.pow(x, y); }
-// EXT READNONE varying float16 __pow_varying_half(varying float16 x, varying float16 y) { return @llvm.pow(x, y); }
-// EXT READNONE uniform float16 __sqrt_uniform_half(uniform float16 x) { return @llvm.sqrt(x); }
-// EXT READNONE varying float16 __sqrt_varying_half(varying float16 x) { return @llvm.sqrt(x); }
-// 
+
+EXT READNONE uniform float16 __round_uniform_half(uniform float16 x) { return @llvm.roundeven(x); }
+EXT READNONE varying float16 __round_varying_half(varying float16 x) { return @llvm.roundeven(x); }
+EXT READNONE uniform float16 __floor_uniform_half(uniform float16 x) { return @llvm.floor(x); }
+EXT READNONE varying float16 __floor_varying_half(varying float16 x) { return @llvm.floor(x); }
+EXT READNONE uniform float16 __ceil_uniform_half(uniform float16 x) { return @llvm.ceil(x); }
+EXT READNONE varying float16 __ceil_varying_half(varying float16 x) { return @llvm.ceil(x); }
+EXT READNONE uniform float16 __trunc_uniform_half(uniform float16 x) { return @llvm.trunc(x); }
+EXT READNONE varying float16 __trunc_varying_half(varying float16 x) { return @llvm.trunc(x); }
+EXT READNONE uniform float16 __log_uniform_half(uniform float16 x) { return @llvm.log(x); }
+EXT READNONE varying float16 __log_varying_half(varying float16 x) { return @llvm.log(x); }
+EXT READNONE uniform float16 __exp_uniform_half(uniform float16 x) { return @llvm.exp(x); }
+EXT READNONE varying float16 __exp_varying_half(varying float16 x) { return @llvm.exp(x); }
+EXT READNONE uniform float16 __pow_uniform_half(uniform float16 x, uniform float16 y) { return @llvm.pow(x, y); }
+EXT READNONE varying float16 __pow_varying_half(varying float16 x, varying float16 y) { return @llvm.pow(x, y); }
+EXT READNONE uniform float16 __sqrt_uniform_half(uniform float16 x) { return @llvm.sqrt(x); }
+EXT READNONE varying float16 __sqrt_varying_half(varying float16 x) { return @llvm.sqrt(x); }
+
 // EXT READNONE uniform float16 __min_uniform_half(uniform float16 x, uniform float16 y) { return x < y ? x : y; }
 // EXT READNONE varying float16 __min_varying_half(varying float16 x, varying float16 y) { return x < y ? x : y; }
 // EXT READNONE uniform float16 __max_uniform_half(uniform float16 x, uniform float16 y) { return x > y ? x : y; }
