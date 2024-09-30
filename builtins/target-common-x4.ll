@@ -7226,42 +7226,6 @@ define float @__rsqrt_uniform_float(float) nounwind readonly alwaysinline {
   ret float %half_scale
 }
 
-declare <2 x double> @llvm.x86.avx512.rsqrt14.sd(<2 x double>, <2 x double>, <2 x double>, i8) nounwind readnone
-define double @__rsqrt_fast_uniform_double(double) nounwind readonly alwaysinline {
-  %v = insertelement <2 x double> undef, double %0, i32 0
-  %vis = call <2 x double> @llvm.x86.avx512.rsqrt14.sd(<2 x double> %v, <2 x double> %v, <2 x double> undef, i8 -1)
-  %is = extractelement <2 x double> %vis, i32 0
-  ret double %is
-}
-
-declare i8 @llvm.x86.avx512.mask.fpclass.sd(<2 x double>, i32, i8)
-define double @__rsqrt_uniform_double(double %v) nounwind readonly alwaysinline {
-  ; detect +/-0 and +inf to deal with them differently.
-  %vec = insertelement <2 x double> undef, double %v, i32 0
-  %corner_cases_i8 = call i8 @llvm.x86.avx512.mask.fpclass.sd(<2 x double> %vec, i32 14, i8 -1)
-  %corner_cases = icmp ne i8 %corner_cases_i8, 0
-  %is = call double @__rsqrt_fast_uniform_double(double %v)
-
-  ; Precision refinement sequence based on minimax approximation.
-  ; This sequence is a little slower than Newton-Raphson, but has much better precision
-  ; Relative error is around 3 ULPs.
-  ; t1 = 1.0 - (v * is) * is
-  ; t2 = 0.37500000407453632 + t1 * 0.31250000550062401
-  ; t3 = 0.5 + t1 * t2
-  ; t4 = is + (t1*is) * t3
-  %v_is = fmul double %v,  %is
-  %v_is_is = fmul double %v_is,  %is
-  %t1 = fsub double 1., %v_is_is
-  %t1_03125 = fmul double 0.31250000550062401, %t1
-  %t2 = fadd double 0.37500000407453632, %t1_03125
-  %t1_t2 = fmul double %t1, %t2
-  %t3 = fadd double 0.5, %t1_t2
-  %t1_is = fmul double %t1, %is
-  %t1_is_t3 = fmul double %t1_is, %t3
-  %t4 = fadd double %is, %t1_is_t3
-  %ret = select i1 %corner_cases, double %is, double %t4
-  ret double %ret
-}
 ')
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -8350,38 +8314,6 @@ define <4 x float> @__rsqrt_varying_float(<4 x float> %v) nounwind readonly alwa
   %is_mul = fmul <4 x float> %is,  %three_sub
   %half_scale = fmul <4 x float> <float 0.5, float 0.5, float 0.5, float 0.5>, %is_mul
   ret <4 x float> %half_scale
-}
-
-;; rsqrt double
-declare <4 x double> @llvm.x86.avx512.rsqrt14.pd.256(<4 x double>,  <4 x double>,  i8) nounwind readnone
-define <4 x double> @__rsqrt_fast_varying_double(<4 x double> %val) nounwind readonly alwaysinline {
-  %res = call <4 x double> @llvm.x86.avx512.rsqrt14.pd.256(<4 x double> %val, <4 x double> undef, i8 -1)
-  ret <4 x double> %res
-}
-declare <4 x i1> @llvm.x86.avx512.fpclass.pd.256(<4 x double>, i32)
-define <4 x double> @__rsqrt_varying_double(<4 x double> %v) nounwind readonly alwaysinline {
-  %corner_cases = call <4 x i1> @llvm.x86.avx512.fpclass.pd.256(<4 x double> %v, i32 14)
-  %is = call <4 x double> @__rsqrt_fast_varying_double(<4 x double> %v)
-
-  ; Precision refinement sequence based on minimax approximation.
-  ; This sequence is a little slower than Newton-Raphson, but has much better precision
-  ; Relative error is around 3 ULPs.
-  ; t1 = 1.0 - (v * is) * is
-  ; t2 = 0.37500000407453632 + t1 * 0.31250000550062401
-  ; t3 = 0.5 + t1 * t2
-  ; t4 = is + (t1*is) * t3
-  %v_is = fmul <4 x double> %v,  %is
-  %v_is_is = fmul <4 x double> %v_is,  %is
-  %t1 = fsub <4 x double> <double 1., double 1., double 1., double 1.>, %v_is_is
-  %t1_03125 = fmul <4 x double> <double 0.31250000550062401, double 0.31250000550062401, double 0.31250000550062401, double 0.31250000550062401>, %t1
-  %t2 = fadd <4 x double> <double 0.37500000407453632, double 0.37500000407453632, double 0.37500000407453632, double 0.37500000407453632>, %t1_03125
-  %t1_t2 = fmul <4 x double> %t1, %t2
-  %t3 = fadd <4 x double> <double 0.5, double 0.5, double 0.5, double 0.5>, %t1_t2
-  %t1_is = fmul <4 x double> %t1, %is
-  %t1_is_t3 = fmul <4 x double> %t1_is, %t3
-  %t4 = fadd <4 x double> %is, %t1_is_t3
-  %ret = select <4 x i1> %corner_cases, <4 x double> %is, <4 x double> %t4
-  ret <4 x double> %ret
 }
 
 ;;saturation_arithmetic_novec()
