@@ -954,6 +954,7 @@ Target::Target(Arch arch, const char *cpu, ISPCTarget ispc_target, PICLevel picL
         this->m_maskingIsFree = true;
         this->m_maskBitCount = 1;
         this->m_hasHalfConverts = true;
+        this->m_hasHalfFullSupport = false;
         this->m_hasRand = true;
         this->m_hasGather = this->m_hasScatter = true;
         this->m_hasTranscendentals = false;
