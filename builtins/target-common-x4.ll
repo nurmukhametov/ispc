@@ -7315,112 +7315,6 @@ define i1 @__rdrand_i64(i8 * %ptr) {
   ret i1 %good
 }
 ')
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; int8/int16 builtins
-
-define(`define_avg_up_uint8', `
-define <WIDTH x i8> @__avg_up_uint8(<WIDTH x i8>, <WIDTH x i8>) {
-  %a16 = zext <WIDTH x i8> %0 to <WIDTH x i16>
-  %b16 = zext <WIDTH x i8> %1 to <WIDTH x i16>
-  %sum1 = add <WIDTH x i16> %a16, %b16
-  %sum = add <WIDTH x i16> %sum1, < forloop(i, 1, eval(WIDTH-1), `i16 1, ') i16 1 >
-  %avg = lshr <WIDTH x i16> %sum, < forloop(i, 1, eval(WIDTH-1), `i16 1, ') i16 1 >
-  %r = trunc <WIDTH x i16> %avg to <WIDTH x i8>
-  ret <WIDTH x i8> %r
-}')
-
-define(`define_avg_up_int8', `
-define <WIDTH x i8> @__avg_up_int8(<WIDTH x i8>, <WIDTH x i8>) {
-  %a16 = sext <WIDTH x i8> %0 to <WIDTH x i16>
-  %b16 = sext <WIDTH x i8> %1 to <WIDTH x i16>
-  %sum1 = add <WIDTH x i16> %a16, %b16
-  %sum = add <WIDTH x i16> %sum1, < forloop(i, 1, eval(WIDTH-1), `i16 1, ') i16 1 >
-  %avg = sdiv <WIDTH x i16> %sum, < forloop(i, 1, eval(WIDTH-1), `i16 2, ') i16 2 >
-  %r = trunc <WIDTH x i16> %avg to <WIDTH x i8>
-  ret <WIDTH x i8> %r
-}')
-
-define(`define_avg_up_uint16', `
-define <WIDTH x i16> @__avg_up_uint16(<WIDTH x i16>, <WIDTH x i16>) {
-  %a32 = zext <WIDTH x i16> %0 to <WIDTH x i32>
-  %b32 = zext <WIDTH x i16> %1 to <WIDTH x i32>
-  %sum1 = add <WIDTH x i32> %a32, %b32
-  %sum = add <WIDTH x i32> %sum1, < forloop(i, 1, eval(WIDTH-1), `i32 1, ') i32 1 >
-  %avg = lshr <WIDTH x i32> %sum, < forloop(i, 1, eval(WIDTH-1), `i32 1, ') i32 1 >
-  %r = trunc <WIDTH x i32> %avg to <WIDTH x i16>
-  ret <WIDTH x i16> %r
-}')
-
-define(`define_avg_up_int16', `
-define <WIDTH x i16> @__avg_up_int16(<WIDTH x i16>, <WIDTH x i16>) {
-  %a32 = sext <WIDTH x i16> %0 to <WIDTH x i32>
-  %b32 = sext <WIDTH x i16> %1 to <WIDTH x i32>
-  %sum1 = add <WIDTH x i32> %a32, %b32
-  %sum = add <WIDTH x i32> %sum1, < forloop(i, 1, eval(WIDTH-1), `i32 1, ') i32 1 >
-  %avg = sdiv <WIDTH x i32> %sum, < forloop(i, 1, eval(WIDTH-1), `i32 2, ') i32 2 >
-  %r = trunc <WIDTH x i32> %avg to <WIDTH x i16>
-  ret <WIDTH x i16> %r
-}')
-
-define(`define_avg_down_uint8', `
-define <WIDTH x i8> @__avg_down_uint8(<WIDTH x i8>, <WIDTH x i8>) {
-  %a16 = zext <WIDTH x i8> %0 to <WIDTH x i16>
-  %b16 = zext <WIDTH x i8> %1 to <WIDTH x i16>
-  %sum = add <WIDTH x i16> %a16, %b16
-  %avg = lshr <WIDTH x i16> %sum, < forloop(i, 1, eval(WIDTH-1), `i16 1, ') i16 1 >
-  %r = trunc <WIDTH x i16> %avg to <WIDTH x i8>
-  ret <WIDTH x i8> %r
-}')
-
-define(`define_avg_down_int8', `
-define <WIDTH x i8> @__avg_down_int8(<WIDTH x i8>, <WIDTH x i8>) {
-  %a16 = sext <WIDTH x i8> %0 to <WIDTH x i16>
-  %b16 = sext <WIDTH x i8> %1 to <WIDTH x i16>
-  %sum = add <WIDTH x i16> %a16, %b16
-  %avg = sdiv <WIDTH x i16> %sum, < forloop(i, 1, eval(WIDTH-1), `i16 2, ') i16 2 >
-  %r = trunc <WIDTH x i16> %avg to <WIDTH x i8>
-  ret <WIDTH x i8> %r
-}')
-
-define(`define_avg_down_uint16', `
-define <WIDTH x i16> @__avg_down_uint16(<WIDTH x i16>, <WIDTH x i16>) {
-  %a32 = zext <WIDTH x i16> %0 to <WIDTH x i32>
-  %b32 = zext <WIDTH x i16> %1 to <WIDTH x i32>
-  %sum = add <WIDTH x i32> %a32, %b32
-  %avg = lshr <WIDTH x i32> %sum, < forloop(i, 1, eval(WIDTH-1), `i32 1, ') i32 1 >
-  %r = trunc <WIDTH x i32> %avg to <WIDTH x i16>
-  ret <WIDTH x i16> %r
-}')
-
-define(`define_avg_down_int16', `
-define <WIDTH x i16> @__avg_down_int16(<WIDTH x i16>, <WIDTH x i16>) {
-  %a32 = sext <WIDTH x i16> %0 to <WIDTH x i32>
-  %b32 = sext <WIDTH x i16> %1 to <WIDTH x i32>
-  %sum = add <WIDTH x i32> %a32, %b32
-  %avg = sdiv <WIDTH x i32> %sum, < forloop(i, 1, eval(WIDTH-1), `i32 2, ') i32 2 >
-  %r = trunc <WIDTH x i32> %avg to <WIDTH x i16>
-  ret <WIDTH x i16> %r
-}')
-
-define(`define_up_avgs', `
-define_avg_up_uint8()
-define_avg_up_int8()
-define_avg_up_uint16()
-define_avg_up_int16()
-')
-
-define(`define_down_avgs', `
-define_avg_down_uint8()
-define_avg_down_int8()
-define_avg_down_uint16()
-define_avg_down_int16()
-')
-
-define(`define_avgs', `
-define_up_avgs()
-define_down_avgs()
-')
 ;; end of included util.m4
 
 stdlib_core()
@@ -8738,11 +8632,6 @@ packed_load_and_store(TRUE)
 ;; prefetch
 
 define_prefetches()
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; int8/int16 builtins
-
-define_avgs()
 
 ;; Trigonometry
 ;; end of included target-avx512-common-4.ll
