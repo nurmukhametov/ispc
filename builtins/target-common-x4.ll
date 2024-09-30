@@ -7,6 +7,9 @@ declare i64 @llvm.ctlz.i64(i64)
 declare i32 @llvm.cttz.i32(i32)
 declare i64 @llvm.cttz.i64(i64)
 
+declare i32 @llvm.ctpop.i32(i32) nounwind readnone
+declare i64 @llvm.ctpop.i64(i64) nounwind readnone
+
 define(`WIDTH',`4')
 define(`ISA',`AVX512SKX')
 
@@ -2477,25 +2480,6 @@ define $2 @__atomic_compare_exchange_uniform_$3_global(i8* %ptr, $2 %cmp,
    %r_t = cmpxchg $2 * %ptr_typed, $2 %cmp, $2 %val seq_cst seq_cst
    %r = extractvalue { $2, i1 } %r_t, 0
    ret $2 %r
-}
-')
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; population count
-
-define(`popcnt', `
-
-declare i32 @llvm.ctpop.i32(i32) nounwind readnone
-declare i64 @llvm.ctpop.i64(i64) nounwind readnone
-
-define i32 @__popcnt_int32(i32) nounwind readonly alwaysinline {
-  %call = call i32 @llvm.ctpop.i32(i32 %0)
-  ret i32 %call
-}
-
-define i64 @__popcnt_int64(i64) nounwind readonly alwaysinline {
-  %call = call i64 @llvm.ctpop.i64(i64 %0)
-  ret i64 %call
 }
 ')
 
@@ -7281,7 +7265,6 @@ stdlib_core()
 scans()
 reduce_equal(WIDTH)
 rdrand_definition()
-popcnt()
 halfTypeGenericImplementation()
 define_vector_permutations()
 
