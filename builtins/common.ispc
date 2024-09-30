@@ -203,21 +203,25 @@
 // EXT READNONE varying float16 __rcp_varying_half(varying float16) { @llvm.trap(); }
 // EXT READNONE uniform float16 __rsqrt_uniform_half(uniform float16) { @llvm.trap(); }
 // EXT READNONE varying float16 __rsqrt_varying_half(varying float16) { @llvm.trap(); }
-// 
-// // __have_native_rsqrtd
-// EXT READNONE uniform double __rsqrt_fast_uniform_double(uniform double) { @llvm.trap(); }
-// EXT READNONE varying double __rsqrt_fast_varying_double(varying double) { @llvm.trap(); }
-// EXT READNONE uniform double __rsqrt_uniform_double(uniform double) { @llvm.trap(); }
-// EXT READNONE varying double __rsqrt_varying_double(varying double) { @llvm.trap(); }
+
+extern "C" void __not_supported();
+
+// __have_native_rsqrtd
+EXT READNONE uniform double __rsqrt_fast_uniform_double(uniform double) { __not_supported(); }
+EXT READNONE varying double __rsqrt_fast_varying_double(varying double) { __not_supported(); }
+EXT READNONE uniform double __rsqrt_uniform_double(uniform double)      { __not_supported(); }
+EXT READNONE varying double __rsqrt_varying_double(varying double)      { __not_supported(); }
 
 // dot product
 // __have_dot_product_vnni
-EXT READNONE varying int32 __dot2add_i16packed_sat(varying uint32, varying uint32, varying int32) { @llvm.trap(); }
-EXT READNONE varying int32 __dot2add_i16packed(varying uint32, varying uint32, varying int32) { @llvm.trap(); }
-EXT READNONE varying int32 __dot4add_u8i8packed_sat(varying uint32, varying uint32, varying int32) { @llvm.trap(); }
-EXT READNONE varying int32 __dot4add_u8i8packed(varying uint32, varying uint32, varying int32) { @llvm.trap(); }
+EXT READNONE varying int32 __dot2add_i16packed_sat(varying uint32, varying uint32, varying int32) { __not_supported(); }
+EXT READNONE varying int32 __dot2add_i16packed(varying uint32, varying uint32, varying int32) { __not_supported(); }
+EXT READNONE varying int32 __dot4add_u8i8packed_sat(varying uint32, varying uint32, varying int32) {
+    __not_supported();
+}
+EXT READNONE varying int32 __dot4add_u8i8packed(varying uint32, varying uint32, varying int32) { __not_supported(); }
 
-// half conversion routines
+// half conversion routines TODO: change to __not_supported call
 // __have_native_half_converts
 EXT uniform int16 __float_to_half_uniform(uniform float x) { return x; }
 EXT varying int16 __float_to_half_varying(varying float x) { return x; }
