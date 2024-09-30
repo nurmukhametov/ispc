@@ -20,6 +20,10 @@
 // #define NOALIAS __attribute__((noalias))
 #define NOALIAS
 
+// Declared function to trap unsupported functions during compilation (linking) time.
+// In sane cases, this function call should always be removed.
+extern "C" void __not_supported();
+
 // // EXT uniform bool __is_compile_time_constant_mask(UIntMaskType);
 // // EXT uniform bool __is_compile_time_constant_uniform_int32(uniform int32);
 // // EXT uniform bool __is_compile_time_constant_varying_int32(varying int32);
@@ -197,14 +201,12 @@
 // EXT READNONE uniform double __rcp_uniform_double(uniform double) { @llvm.trap(); }
 // EXT READNONE varying double __rcp_fast_varying_double(varying double) { @llvm.trap(); }
 // EXT READNONE varying double __rcp_varying_double(varying double) { @llvm.trap(); }
-// 
-// // __have_native_half_full_support
-// EXT READNONE uniform float16 __rcp_uniform_half(uniform float16) { @llvm.trap(); }
-// EXT READNONE varying float16 __rcp_varying_half(varying float16) { @llvm.trap(); }
-// EXT READNONE uniform float16 __rsqrt_uniform_half(uniform float16) { @llvm.trap(); }
-// EXT READNONE varying float16 __rsqrt_varying_half(varying float16) { @llvm.trap(); }
 
-extern "C" void __not_supported();
+// __have_native_half_full_support
+EXT READNONE uniform float16 __rcp_uniform_half(uniform float16) { __not_supported(); }
+EXT READNONE varying float16 __rcp_varying_half(varying float16) { __not_supported(); }
+EXT READNONE uniform float16 __rsqrt_uniform_half(uniform float16) { __not_supported(); }
+EXT READNONE varying float16 __rsqrt_varying_half(varying float16) { __not_supported(); }
 
 // __have_native_rsqrtd
 EXT READNONE uniform double __rsqrt_fast_uniform_double(uniform double) { __not_supported(); }
