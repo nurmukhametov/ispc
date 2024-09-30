@@ -400,10 +400,10 @@ EXT READNONE uniform int64 __count_trailing_zeros_i64(uniform int64 x) { return 
 EXT READNONE uniform int32 __count_leading_zeros_i32(uniform int32 x) { return @llvm.ctlz(x, false); }
 EXT READNONE uniform int64 __count_leading_zeros_i64(uniform int64 x) { return @llvm.ctlz(x, false); }
 
-// // population count
-// EXT uniform int32 __popcnt_int32(uniform int32 x) { return @llvm.ctpop(x); }
-// EXT uniform int64 __popcnt_int64(uniform int64 x) { return @llvm.ctpop(x); }
-// 
+// population count
+EXT uniform int32 __popcnt_int32(uniform int32 x) { return @llvm.ctpop(x); }
+EXT uniform int64 __popcnt_int64(uniform int64 x) { return @llvm.ctpop(x); }
+
 // // // vector ops
 // // EXT uniform bool __extract_bool(IntMaskType vec, uniform int32 lane);
 // // // {
