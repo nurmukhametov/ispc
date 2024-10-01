@@ -5709,36 +5709,6 @@ aossoa()
 fastMathFTZDAZ_x86()
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; int min/max
-
-define i32 @__min_uniform_int32(i32, i32) nounwind readonly alwaysinline {
-  %cmp = icmp sgt i32 %1, %0
-  %ret = select i1 %cmp, i32 %0, i32 %1
-  ret i32 %ret
-}
-
-define i32 @__max_uniform_int32(i32, i32) nounwind readonly alwaysinline {
-  %cmp = icmp sgt i32 %1, %0
-  %ret = select i1 %cmp, i32 %1, i32 %0
-  ret i32 %ret
-}
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; unsigned int min/max
-
-define i32 @__min_uniform_uint32(i32, i32) nounwind readonly alwaysinline {
-  %cmp = icmp ugt i32 %1, %0
-  %ret = select i1 %cmp, i32 %0, i32 %1
-  ret i32 %ret
-}
-
-define i32 @__max_uniform_uint32(i32, i32) nounwind readonly alwaysinline {
-  %cmp = icmp ugt i32 %1, %0
-  %ret = select i1 %cmp, i32 %1, i32 %0
-  ret i32 %ret
-}
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; double precision min/max
 
 define double @__min_uniform_double(double, double) nounwind readnone alwaysinline {
@@ -5954,39 +5924,6 @@ define i8 @__cast_mask_to_i8 (<WIDTH x MASK> %mask) alwaysinline {
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; min/max
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; unsigned int min/max
-
-declare <4 x i32> @llvm.x86.avx512.mask.pmins.d.128(<4 x i32>, <4 x i32>, <4 x i32>, i8)
-declare <4 x i32> @llvm.x86.avx512.mask.pmaxs.d.128(<4 x i32>, <4 x i32>, <4 x i32>, i8)
-
-define <4 x i32> @__min_varying_int32(<4 x i32>, <4 x i32>) nounwind readonly alwaysinline {
-  %ret = call <4 x i32> @llvm.x86.avx512.mask.pmins.d.128(<4 x i32> %0, <4 x i32> %1, 
-                                                           <4 x i32> zeroinitializer, i8 -1)
-  ret <4 x i32> %ret
-}
-
-define <4 x i32> @__max_varying_int32(<4 x i32>, <4 x i32>) nounwind readonly alwaysinline {
-  %ret = call <4 x i32> @llvm.x86.avx512.mask.pmaxs.d.128(<4 x i32> %0, <4 x i32> %1,
-                                                           <4 x i32> zeroinitializer, i8 -1)
-  ret <4 x i32> %ret
-}
-
-declare <4 x i32> @llvm.x86.avx512.mask.pminu.d.128(<4 x i32>, <4 x i32>, <4 x i32>, i8)
-declare <4 x i32> @llvm.x86.avx512.mask.pmaxu.d.128(<4 x i32>, <4 x i32>, <4 x i32>, i8)
-
-define <4 x i32> @__min_varying_uint32(<4 x i32>, <4 x i32>) nounwind readonly alwaysinline {
-  %ret = call <4 x i32> @llvm.x86.avx512.mask.pminu.d.128(<4 x i32> %0, <4 x i32> %1,
-                                                           <4 x i32> zeroinitializer, i8 -1)
-  ret <4 x i32> %ret
-}
-
-define <4 x i32> @__max_varying_uint32(<4 x i32>, <4 x i32>) nounwind readonly alwaysinline {
-  %ret = call <4 x i32> @llvm.x86.avx512.mask.pmaxu.d.128(<4 x i32> %0, <4 x i32> %1,
-                                                           <4 x i32> zeroinitializer, i8 -1)
-  ret <4 x i32> %ret
-}
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; double precision min/max
