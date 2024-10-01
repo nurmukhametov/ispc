@@ -4246,23 +4246,6 @@ define void
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 define(`masked_store_float_double', `
-define void @__masked_store_float(<WIDTH x float> * nocapture, <WIDTH x float>,
-                                  <WIDTH x MASK>) nounwind alwaysinline {
-  %ptr = bitcast <WIDTH x float> * %0 to <WIDTH x i32> *
-  %val = bitcast <WIDTH x float> %1 to <WIDTH x i32>
-  call void @__masked_store_i32(<WIDTH x i32> * %ptr, <WIDTH x i32> %val, <WIDTH x MASK> %2)
-  ret void
-}
-
-
-define void @__masked_store_double(<WIDTH x double> * nocapture, <WIDTH x double>,
-                                   <WIDTH x MASK>) nounwind alwaysinline {
-  %ptr = bitcast <WIDTH x double> * %0 to <WIDTH x i64> *
-  %val = bitcast <WIDTH x double> %1 to <WIDTH x i64>
-  call void @__masked_store_i64(<WIDTH x i64> * %ptr, <WIDTH x i64> %val, <WIDTH x MASK> %2)
-  ret void
-}
-
 define void @__masked_store_blend_float(<WIDTH x float> * nocapture, <WIDTH x float>,
                                         <WIDTH x MASK>) nounwind alwaysinline {
   %ptr = bitcast <WIDTH x float> * %0 to <WIDTH x i32> *
@@ -4280,14 +4263,6 @@ define void @__masked_store_blend_double(<WIDTH x double> * nocapture, <WIDTH x 
   ret void
 }
 
-
-define void @__masked_store_half(<WIDTH x half> * nocapture, <WIDTH x half>,
-                                  <WIDTH x MASK>) nounwind alwaysinline {
-  %ptr = bitcast <WIDTH x half> * %0 to <WIDTH x i16> *
-  %val = bitcast <WIDTH x half> %1 to <WIDTH x i16>
-  call void @__masked_store_i16(<WIDTH x i16> * %ptr, <WIDTH x i16> %val, <WIDTH x MASK> %2)
-  ret void
-}
 
 define void @__masked_store_blend_half(<WIDTH x half> * nocapture, <WIDTH x half>,
                                         <WIDTH x MASK>) nounwind alwaysinline {
@@ -5874,42 +5849,6 @@ define i1 @__none(<WIDTH x MASK> %mask) nounwind readnone alwaysinline {
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; unaligned loads/loads+broadcasts
-
-gen_masked_store(i8) ; llvm.x86.sse2.storeu.dq
-gen_masked_store(i16)
-gen_masked_store(half)
-
-declare void @llvm.x86.avx512.mask.storeu.d.128(i8*, <4 x i32>, i8)
-define void @__masked_store_i32(<4 x i32>* nocapture, <4 x i32> %v, <WIDTH x MASK> %mask) nounwind alwaysinline {
-  %mask_i8 = call i8 @__cast_mask_to_i8 (<WIDTH x MASK> %mask)
-  %ptr_i8 = bitcast <4 x i32>* %0 to i8*
-  call void @llvm.x86.avx512.mask.storeu.d.128(i8* %ptr_i8, <4 x i32> %v, i8 %mask_i8)
-  ret void
-}
-
-declare void @llvm.x86.avx512.mask.storeu.q.256(i8*, <4 x i64>, i8)
-define void @__masked_store_i64(<4 x i64>* nocapture, <4 x i64> %v, <WIDTH x MASK> %mask) nounwind alwaysinline {
-  %mask_i8 = call i8 @__cast_mask_to_i8 (<WIDTH x MASK> %mask)
-  %ptr_i8 = bitcast <4 x i64>* %0 to i8*
-  call void @llvm.x86.avx512.mask.storeu.q.256(i8* %ptr_i8, <4 x i64> %v, i8 %mask_i8)
-  ret void
-}
-
-declare void @llvm.x86.avx512.mask.storeu.ps.128(i8*, <4 x float>, i8)
-define void @__masked_store_float(<4 x float>* nocapture, <4 x float> %v, <WIDTH x MASK> %mask) nounwind alwaysinline {
-  %mask_i8 = call i8 @__cast_mask_to_i8 (<WIDTH x MASK> %mask)
-  %ptr_i8 = bitcast <4 x float>* %0 to i8*
-  call void @llvm.x86.avx512.mask.storeu.ps.128(i8* %ptr_i8, <4 x float> %v, i8 %mask_i8)
-  ret void
-}
-
-declare void @llvm.x86.avx512.mask.storeu.pd.256(i8*, <4 x double>, i8)
-define void @__masked_store_double(<4 x double>* nocapture, <4 x double> %v, <WIDTH x MASK> %mask) nounwind alwaysinline {
-  %mask_i8 = call i8 @__cast_mask_to_i8 (<WIDTH x MASK> %mask)
-  %ptr_i8 = bitcast <4 x double>* %0 to i8*
-  call void @llvm.x86.avx512.mask.storeu.pd.256(i8* %ptr_i8, <4 x double> %v, i8 %mask_i8)
-  ret void
-}
 
 define void @__masked_store_blend_i8(<4 x i8>* nocapture, <4 x i8>,
                                      <WIDTH x MASK>) nounwind alwaysinline {

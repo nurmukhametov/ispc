@@ -960,52 +960,27 @@ EXT varying double __masked_load_double(varying double *uniform ptr, UIntMaskTyp
     return @llvm.masked.load((uniform int8 * uniform) ptr, 1, mask, passthru);
 }
 
-// // EXT varying float16 __masked_load_half(uniform int8 *uniform ptr, UIntMaskType mask) {
-// //     return __halfbits_varying_int16(__masked_load_i16(ptr, mask));
-// // }
-// // EXT varying float __masked_load_float(uniform int8 *uniform ptr, UIntMaskType mask) {
-// //     return __floatbits_varying_int32(__masked_load_i32(ptr, mask));
-// // }
-// // EXT varying double __masked_load_double(uniform int8 *uniform ptr, UIntMaskType mask) {
-// //     return __doublebits_varying_int64(__masked_load_i64(ptr, mask));
-// // }
-// // UNMANGLED CDECL void __masked_store_i8(NOESCAPE varying int8 *uniform ptr, varying int8 val) {
-// //     foreach_active(i) {
-// //         uniform int8 *uniform ptr_lane = (uniform int8 * uniform) ptr;
-// //         uniform int8 val_lane = __extract_int8(val, i);
-// //         ptr_lane[i] = val_lane;
-// //     }
-// // }
-// // UNMANGLED CDECL void __masked_store_i16(NOESCAPE varying int16 *uniform ptr, varying int16 val) {
-// //     foreach_active(i) {
-// //         uniform int16 *uniform ptr_lane = (uniform int16 * uniform) ptr;
-// //         uniform int16 val_lane = __extract_int16(val, i);
-// //         ptr_lane[i] = val_lane;
-// //     }
-// // }
-// // UNMANGLED CDECL void __masked_store_i32(NOESCAPE varying int32 *uniform ptr, varying int32 val) {
-// //     foreach_active(i) {
-// //         uniform int32 *uniform ptr_lane = (uniform int32 * uniform) ptr;
-// //         uniform int32 val_lane = __extract_int32(val, i);
-// //         ptr_lane[i] = val_lane;
-// //     }
-// // }
-// // UNMANGLED CDECL void __masked_store_i64(NOESCAPE varying int64 *uniform ptr, varying int64 val) {
-// //     foreach_active(i) {
-// //         uniform int64 *uniform ptr_lane = (uniform int64 * uniform) ptr;
-// //         uniform int64 val_lane = __extract_int64(val, i);
-// //         ptr_lane[i] = val_lane;
-// //     }
-// // }
-// // EXT void __masked_store_half(NOESCAPE varying float16 *uniform ptr, varying float16 val, UIntMaskType mask) {
-// //     __masked_store_i16((varying int16 * uniform) ptr, val, mask);
-// // }
-// // EXT void __masked_store_float(NOESCAPE varying float *uniform ptr, varying float val, UIntMaskType mask) {
-// //     __masked_store_i32((varying int32 * uniform) ptr, val, mask);
-// // }
-// // EXT void __masked_store_double(NOESCAPE varying double *uniform ptr, varying double val, UIntMaskType mask) {
-// //     __masked_store_i64((varying int64 * uniform) ptr, val, mask);
-// // }
+EXT void __masked_store_i8(NOESCAPE varying int8 *uniform ptr, varying int8 val, UIntMaskType mask) {
+    @llvm.masked.store(val, (uniform int8 * uniform) ptr, 1, mask);
+}
+EXT void __masked_store_i16(NOESCAPE varying int16 *uniform ptr, varying int16 val, UIntMaskType mask) {
+    @llvm.masked.store(val, (uniform int8 * uniform) ptr, 1, mask);
+}
+EXT void __masked_store_i32(NOESCAPE varying int32 *uniform ptr, varying int32 val, UIntMaskType mask) {
+    @llvm.masked.store(val, (uniform int8 * uniform) ptr, 1, mask);
+}
+EXT void __masked_store_i64(NOESCAPE varying int64 *uniform ptr, varying int64 val, UIntMaskType mask) {
+    @llvm.masked.store(val, (uniform int8 * uniform) ptr, 1, mask);
+}
+EXT void __masked_store_half(NOESCAPE varying float16 *uniform ptr, varying float16 val, UIntMaskType mask) {
+    @llvm.masked.store(val, (uniform int8 * uniform) ptr, 1, mask);
+}
+EXT void __masked_store_float(NOESCAPE varying float *uniform ptr, varying float val, UIntMaskType mask) {
+    @llvm.masked.store(val, (uniform int8 * uniform) ptr, 1, mask);
+}
+EXT void __masked_store_double(NOESCAPE varying double *uniform ptr, varying double val, UIntMaskType mask) {
+    @llvm.masked.store(val, (uniform int8 * uniform) ptr, 1, mask);
+}
 // // UNMANGLED CDECL void __masked_store_blend_i8(NOESCAPE varying int8 *uniform ptr, varying int8 val) { *ptr = val; }
 // // UNMANGLED CDECL void __masked_store_blend_i16(NOESCAPE varying int16 *uniform ptr, varying int16 val) { *ptr = val; }
 // // UNMANGLED CDECL void __masked_store_blend_i32(NOESCAPE varying int32 *uniform ptr, varying int32 val) { *ptr = val; }
