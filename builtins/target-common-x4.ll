@@ -6380,26 +6380,6 @@ define i1 @__none(<WIDTH x MASK> %mask) nounwind readnone alwaysinline {
 }
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; horizontal float ops
-
-declare <4 x float> @llvm.x86.sse3.hadd.ps(<4 x float>, <4 x float>) nounwind readnone
-
-define float @__reduce_add_float(<4 x float>) nounwind readonly alwaysinline {
-  %v1 = call <4 x float> @llvm.x86.sse3.hadd.ps(<4 x float> %0, <4 x float> %0)
-  %v2 = call <4 x float> @llvm.x86.sse3.hadd.ps(<4 x float> %v1, <4 x float> %v1)
-  %sum = extractelement <4 x float> %v2, i32 0
-  ret float %sum
-}
-
-define float @__reduce_min_float(<4 x float>) nounwind readnone alwaysinline {
-  reduce4(float, @__min_varying_float, @__min_uniform_float)
-}
-
-define float @__reduce_max_float(<4 x float>) nounwind readnone alwaysinline {
-  reduce4(float, @__max_varying_float, @__max_uniform_float)
-}
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; horizontal int32 ops
 
 define internal <4 x i32> @__add_varying_int32(<4 x i32>, <4 x i32>) nounwind readnone alwaysinline {
