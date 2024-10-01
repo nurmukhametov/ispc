@@ -173,6 +173,7 @@ function (generate_common_target_bcs ispc_name)
     set(bc_ll ${BITCODE_FOLDER}/${name}_ll.bc)
     set(bc_ispc ${BITCODE_FOLDER}/${name}_ispc.bc)
     set(bit 64)
+    set(INCLUDE_FOLDER ${CMAKE_CURRENT_SOURCE_DIR}/stdlib/include)
 
     add_custom_command(
         OUTPUT ${bc_ll}

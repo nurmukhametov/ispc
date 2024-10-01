@@ -1,7 +1,7 @@
 #define ISPC_INTERNAL_STDLIB_COMPILATION
 #include "core.isph"
-// 
-// #include "builtins.isph"
+
+#include "builtins.isph"
 // #include "stdlib.isph"
 // #include "svml.isph"
 // #include "target.isph"
@@ -439,61 +439,61 @@ EXT uniform int64 __popcnt_int64(uniform int64 x) { return @llvm.ctpop(x); }
 // // EXT READNONE varying int32 __insert_int32(varying int32 vec, uniform int32 lane, uniform int32 val);
 // // EXT READNONE varying int64 __insert_int64(varying int64 vec, uniform int32 lane, uniform int64 val);
 // // EXT READNONE varying int8 __insert_int8(varying int8 vec, uniform int32 lane, uniform int8 val);
-// // 
-// // // prefetching
-// // EXT void __prefetch_read_uniform_1(uniform int8 *uniform ptr) { @llvm.prefetch(ptr, 0, 3, 1); }
-// // EXT void __prefetch_read_uniform_2(uniform int8 *uniform ptr) { @llvm.prefetch(ptr, 0, 2, 1); }
-// // EXT void __prefetch_read_uniform_3(uniform int8 *uniform ptr) { @llvm.prefetch(ptr, 0, 1, 1); }
-// // EXT void __prefetch_read_uniform_nt(uniform int8 *uniform ptr) { @llvm.prefetch(ptr, 0, 0, 1); }
-// // EXT void __prefetch_write_uniform_1(uniform int8 *uniform ptr) { @llvm.prefetch(ptr, 1, 3, 1); }
-// // EXT void __prefetch_write_uniform_2(uniform int8 *uniform ptr) { @llvm.prefetch(ptr, 1, 2, 1); }
-// // EXT void __prefetch_write_uniform_3(uniform int8 *uniform ptr) { @llvm.prefetch(ptr, 1, 1, 1); }
-// // UNMANGLED CDECL void __prefetch_read_varying_1(varying int64 addr) {
-// //     foreach_active(i) {
-// //         uniform int64 p_lane = __extract_int64(addr, i);
-// //         __prefetch_read_uniform_1((uniform int8 * uniform) p_lane);
-// //     }
-// // }
-// // UNMANGLED CDECL void __prefetch_read_varying_2(varying int64 addr) {
-// //     foreach_active(i) {
-// //         uniform int64 p_lane = __extract_int64(addr, i);
-// //         __prefetch_read_uniform_2((uniform int8 * uniform) p_lane);
-// //     }
-// // }
-// // UNMANGLED CDECL void __prefetch_read_varying_3(varying int64 addr) {
-// //     foreach_active(i) {
-// //         uniform int64 p_lane = __extract_int64(addr, i);
-// //         __prefetch_read_uniform_3((uniform int8 * uniform) p_lane);
-// //     }
-// // }
-// // UNMANGLED CDECL void __prefetch_read_varying_nt(varying int64 addr) {
-// //     foreach_active(i) {
-// //         uniform int64 p_lane = __extract_int64(addr, i);
-// //         __prefetch_read_uniform_nt((uniform int8 * uniform) p_lane);
-// //     }
-// // }
-// // UNMANGLED CDECL void __prefetch_write_varying_1(varying int64 addr) {
-// //     foreach_active(i) {
-// //         uniform int64 p_lane = __extract_int64(addr, i);
-// //         __prefetch_write_uniform_1((uniform int8 * uniform) p_lane);
-// //     }
-// // }
-// // UNMANGLED CDECL void __prefetch_write_varying_2(varying int64 addr) {
-// //     foreach_active(i) {
-// //         uniform int64 p_lane = __extract_int64(addr, i);
-// //         __prefetch_write_uniform_2((uniform int8 * uniform) p_lane);
-// //     }
-// // }
-// // UNMANGLED CDECL void __prefetch_write_varying_3(varying int64 addr) {
-// //     foreach_active(i) {
-// //         uniform int64 p_lane = __extract_int64(addr, i);
-// //         __prefetch_write_uniform_3((uniform int8 * uniform) p_lane);
-// //     }
-// // }
-// // UNMANGLED CDECL void __prefetch_write_varying_3_native(uniform int8 *uniform, uniform int32, varying int32) {
-// //     @llvm.trap();
-// // }
-// 
+
+// prefetching
+EXT void __prefetch_read_uniform_1(uniform int8 *uniform ptr) { @llvm.prefetch(ptr, 0, 3, 1); }
+EXT void __prefetch_read_uniform_2(uniform int8 *uniform ptr) { @llvm.prefetch(ptr, 0, 2, 1); }
+EXT void __prefetch_read_uniform_3(uniform int8 *uniform ptr) { @llvm.prefetch(ptr, 0, 1, 1); }
+EXT void __prefetch_read_uniform_nt(uniform int8 *uniform ptr) { @llvm.prefetch(ptr, 0, 0, 1); }
+EXT void __prefetch_write_uniform_1(uniform int8 *uniform ptr) { @llvm.prefetch(ptr, 1, 3, 1); }
+EXT void __prefetch_write_uniform_2(uniform int8 *uniform ptr) { @llvm.prefetch(ptr, 1, 2, 1); }
+EXT void __prefetch_write_uniform_3(uniform int8 *uniform ptr) { @llvm.prefetch(ptr, 1, 1, 1); }
+UNMANGLED CDECL void __prefetch_read_varying_1(varying int64 addr) {
+    foreach_active(i) {
+        uniform int64 p_lane = __extract_int64(addr, i);
+        __prefetch_read_uniform_1((uniform int8 * uniform) p_lane);
+    }
+}
+UNMANGLED CDECL void __prefetch_read_varying_2(varying int64 addr) {
+    foreach_active(i) {
+        uniform int64 p_lane = __extract_int64(addr, i);
+        __prefetch_read_uniform_2((uniform int8 * uniform) p_lane);
+    }
+}
+UNMANGLED CDECL void __prefetch_read_varying_3(varying int64 addr) {
+    foreach_active(i) {
+        uniform int64 p_lane = __extract_int64(addr, i);
+        __prefetch_read_uniform_3((uniform int8 * uniform) p_lane);
+    }
+}
+UNMANGLED CDECL void __prefetch_read_varying_nt(varying int64 addr) {
+    foreach_active(i) {
+        uniform int64 p_lane = __extract_int64(addr, i);
+        __prefetch_read_uniform_nt((uniform int8 * uniform) p_lane);
+    }
+}
+UNMANGLED CDECL void __prefetch_write_varying_1(varying int64 addr) {
+    foreach_active(i) {
+        uniform int64 p_lane = __extract_int64(addr, i);
+        __prefetch_write_uniform_1((uniform int8 * uniform) p_lane);
+    }
+}
+UNMANGLED CDECL void __prefetch_write_varying_2(varying int64 addr) {
+    foreach_active(i) {
+        uniform int64 p_lane = __extract_int64(addr, i);
+        __prefetch_write_uniform_2((uniform int8 * uniform) p_lane);
+    }
+}
+UNMANGLED CDECL void __prefetch_write_varying_3(varying int64 addr) {
+    foreach_active(i) {
+        uniform int64 p_lane = __extract_int64(addr, i);
+        __prefetch_write_uniform_3((uniform int8 * uniform) p_lane);
+    }
+}
+UNMANGLED CDECL void __prefetch_write_varying_3_native(uniform int8 *uniform, uniform int32, varying int32) {
+    __not_supported();
+}
+
 // // EXT READNONE varying int8 __shuffle_i8(varying int8 v, varying int32 perm) {
 // //     varying double result = 0;
 // //     for (uniform int32 i = 0; i < TARGET_WIDTH; i++) {
