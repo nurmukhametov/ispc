@@ -151,19 +151,21 @@ extern "C" void __not_supported();
 // EXT varying int32 __psubus_vi32(varying int32, varying int32) { @llvm.trap(); }
 // EXT varying int64 __psubus_vi64(varying int64, varying int64) { @llvm.trap(); }
 // EXT varying int8 __psubus_vi8(varying int8, varying int8) { @llvm.trap(); }
-// 
-// EXT READNONE uniform double __ceil_uniform_double(uniform double x) { return @llvm.ceil(x); }
-// EXT READNONE uniform float __ceil_uniform_float(uniform float x) { return @llvm.ceil(x); }
-// EXT READNONE varying double __ceil_varying_double(varying double x) { return @llvm.ceil(x); }
-// EXT READNONE varying float __ceil_varying_float(varying float x) { return @llvm.ceil(x); }
-// EXT READNONE uniform double __floor_uniform_double(uniform double x) { return @llvm.floor(x); }
-// EXT READNONE uniform float __floor_uniform_float(uniform float x) { return @llvm.floor(x); }
-// EXT READNONE varying double __floor_varying_double(varying double x) { return @llvm.floor(x); }
-// EXT READNONE varying float __floor_varying_float(varying float x) { return @llvm.floor(x); }
-// EXT READNONE uniform double __round_uniform_double(uniform double x) { return @llvm.roundeven(x); }
-// EXT READNONE uniform float __round_uniform_float(uniform float x) { return @llvm.roundeven(x); }
-// EXT READNONE varying double __round_varying_double(varying double x) { return @llvm.roundeven(x); }
-// EXT READNONE varying float __round_varying_float(varying float x) { return @llvm.roundeven(x); }
+
+// rounding floats and doubles
+EXT READNONE uniform double __ceil_uniform_double(uniform double x) { return @llvm.ceil(x); }
+EXT READNONE uniform float __ceil_uniform_float(uniform float x) { return @llvm.ceil(x); }
+EXT READNONE varying double __ceil_varying_double(varying double x) { return @llvm.ceil(x); }
+EXT READNONE varying float __ceil_varying_float(varying float x) { return @llvm.ceil(x); }
+EXT READNONE uniform double __floor_uniform_double(uniform double x) { return @llvm.floor(x); }
+EXT READNONE uniform float __floor_uniform_float(uniform float x) { return @llvm.floor(x); }
+EXT READNONE varying double __floor_varying_double(varying double x) { return @llvm.floor(x); }
+EXT READNONE varying float __floor_varying_float(varying float x) { return @llvm.floor(x); }
+EXT READNONE uniform double __round_uniform_double(uniform double x) { return @llvm.roundeven(x); }
+EXT READNONE uniform float __round_uniform_float(uniform float x) { return @llvm.roundeven(x); }
+EXT READNONE varying double __round_varying_double(varying double x) { return @llvm.roundeven(x); }
+EXT READNONE varying float __round_varying_float(varying float x) { return @llvm.roundeven(x); }
+
 // EXT READNONE uniform float __rcp_fast_uniform_float(uniform float x) { return 1 / x; }
 // EXT READNONE varying float __rcp_fast_varying_float(varying float x) { return 1 / x; }
 // EXT READNONE uniform float __rcp_uniform_float(uniform float x) { return 1 / x;}
