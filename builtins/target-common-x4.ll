@@ -1963,113 +1963,6 @@ define $2 @__atomic_compare_exchange_uniform_$3_global(i8* %ptr, $2 %cmp,
 ')
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; prefetching
-
-define(`define_prefetches', `
-declare void @llvm.prefetch(i8* nocapture %ptr, i32 %readwrite, i32 %locality,
-                            i32 %cachetype) ; cachetype == 1 is dcache
-
-define void @__prefetch_read_uniform_1(i8 *) alwaysinline {
-  call void @llvm.prefetch(i8 * %0, i32 0, i32 3, i32 1)
-  ret void
-}
-
-define void @__prefetch_read_uniform_2(i8 *) alwaysinline {
-  call void @llvm.prefetch(i8 * %0, i32 0, i32 2, i32 1)
-  ret void
-}
-
-define void @__prefetch_read_uniform_3(i8 *) alwaysinline {
-  call void @llvm.prefetch(i8 * %0, i32 0, i32 1, i32 1)
-  ret void
-}
-
-define void @__prefetch_read_uniform_nt(i8 *) alwaysinline {
-  call void @llvm.prefetch(i8 * %0, i32 0, i32 0, i32 1)
-  ret void
-}
-
-define void @__prefetch_write_uniform_1(i8 *) alwaysinline {
-  call void @llvm.prefetch(i8 * %0, i32 1, i32 3, i32 1)
-  ret void
-}
-
-define void @__prefetch_write_uniform_2(i8 *) alwaysinline {
-  call void @llvm.prefetch(i8 * %0, i32 1, i32 2, i32 1)
-  ret void
-}
-
-define void @__prefetch_write_uniform_3(i8 *) alwaysinline {
-  call void @llvm.prefetch(i8 * %0, i32 1, i32 1, i32 1)
-  ret void
-}
-
-define void @__prefetch_read_varying_1(<WIDTH x i64> %addr, <WIDTH x MASK> %mask) alwaysinline {
-  per_lane(WIDTH, <WIDTH x MASK> %mask, `
-  %iptr_LANE_ID = extractelement <WIDTH x i64> %addr, i32 LANE
-  %ptr_LANE_ID = inttoptr i64 %iptr_LANE_ID to i8*
-  call void @llvm.prefetch(i8 * %ptr_LANE_ID, i32 0, i32 3, i32 1)
-  ')
-  ret void
-}
-
-define void @__prefetch_read_varying_2(<WIDTH x i64> %addr, <WIDTH x MASK> %mask) alwaysinline {
-  per_lane(WIDTH, <WIDTH x MASK> %mask, `
-  %iptr_LANE_ID = extractelement <WIDTH x i64> %addr, i32 LANE
-  %ptr_LANE_ID = inttoptr i64 %iptr_LANE_ID to i8*
-  call void @llvm.prefetch(i8 * %ptr_LANE_ID, i32 0, i32 2, i32 1)
-  ')
-  ret void
-}
-
-define void @__prefetch_read_varying_3(<WIDTH x i64> %addr, <WIDTH x MASK> %mask) alwaysinline {
-  per_lane(WIDTH, <WIDTH x MASK> %mask, `
-  %iptr_LANE_ID = extractelement <WIDTH x i64> %addr, i32 LANE
-  %ptr_LANE_ID = inttoptr i64 %iptr_LANE_ID to i8*
-  call void @llvm.prefetch(i8 * %ptr_LANE_ID, i32 0, i32 1, i32 1)
-  ')
-  ret void
-}
-
-define void @__prefetch_read_varying_nt(<WIDTH x i64> %addr, <WIDTH x MASK> %mask) alwaysinline {
-  per_lane(WIDTH, <WIDTH x MASK> %mask, `
-  %iptr_LANE_ID = extractelement <WIDTH x i64> %addr, i32 LANE
-  %ptr_LANE_ID = inttoptr i64 %iptr_LANE_ID to i8*
-  call void @llvm.prefetch(i8 * %ptr_LANE_ID, i32 0, i32 0, i32 1)
-  ')
-  ret void
-}
-
-define void @__prefetch_write_varying_1(<WIDTH x i64> %addr, <WIDTH x MASK> %mask) alwaysinline {
-  per_lane(WIDTH, <WIDTH x MASK> %mask, `
-  %iptr_LANE_ID = extractelement <WIDTH x i64> %addr, i32 LANE
-  %ptr_LANE_ID = inttoptr i64 %iptr_LANE_ID to i8*
-  call void @llvm.prefetch(i8 * %ptr_LANE_ID, i32 1, i32 3, i32 1)
-  ')
-  ret void
-}
-
-define void @__prefetch_write_varying_2(<WIDTH x i64> %addr, <WIDTH x MASK> %mask) alwaysinline {
-  per_lane(WIDTH, <WIDTH x MASK> %mask, `
-  %iptr_LANE_ID = extractelement <WIDTH x i64> %addr, i32 LANE
-  %ptr_LANE_ID = inttoptr i64 %iptr_LANE_ID to i8*
-  call void @llvm.prefetch(i8 * %ptr_LANE_ID, i32 1, i32 3, i32 1)
-  ')
-  ret void
-}
-
-define void @__prefetch_write_varying_3(<WIDTH x i64> %addr, <WIDTH x MASK> %mask) alwaysinline {
-  per_lane(WIDTH, <WIDTH x MASK> %mask, `
-  %iptr_LANE_ID = extractelement <WIDTH x i64> %addr, i32 LANE
-  %ptr_LANE_ID = inttoptr i64 %iptr_LANE_ID to i8*
-  call void @llvm.prefetch(i8 * %ptr_LANE_ID, i32 1, i32 3, i32 1)
-  ')
-  ret void
-}
-
-')
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; AOS/SOA conversion primitives
 
 ;; take 4 4-wide vectors laid out like <r0 g0 b0 a0> <r1 g1 b1 a1> ...
@@ -7490,11 +7383,6 @@ define void
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; packed_load/store
 packed_load_and_store(TRUE)
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; prefetch
-
-define_prefetches()
 
 ;; Trigonometry
 ;; end of included target-avx512-common-4.ll
