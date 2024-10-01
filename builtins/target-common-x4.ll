@@ -6380,31 +6380,6 @@ define i1 @__none(<WIDTH x MASK> %mask) nounwind readnone alwaysinline {
 }
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; horizontal int32 ops
-
-define internal <4 x i32> @__add_varying_int32(<4 x i32>, <4 x i32>) nounwind readnone alwaysinline {
-  %s = add <4 x i32> %0, %1
-  ret <4 x i32> %s
-}
-
-define internal i32 @__add_uniform_int32(i32, i32) nounwind readnone alwaysinline {
-  %s = add i32 %0, %1
-  ret i32 %s
-}
-
-define i32 @__reduce_add_int32(<4 x i32>) nounwind readnone alwaysinline {
-  reduce4(i32, @__add_varying_int32, @__add_uniform_int32)
-}
-
-define i32 @__reduce_min_int32(<4 x i32>) nounwind readnone alwaysinline {
-  reduce4(i32, @__min_varying_int32, @__min_uniform_int32)
-}
-
-define i32 @__reduce_max_int32(<4 x i32>) nounwind readnone alwaysinline {
-  reduce4(i32, @__max_varying_int32, @__max_uniform_int32)
-}
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; horizontal uint32 ops
 
 define i32 @__reduce_min_uint32(<4 x i32>) nounwind readnone alwaysinline {
