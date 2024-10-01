@@ -1825,39 +1825,6 @@ define(`binary2to16', `
 )
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; truncate()
-;; Implements uniform and varying trunc() for float and double types.
-;; This uses generic LLVM intrinsics.
-;;
-;; Takes no parameters
-
-define(`truncate', `
-declare float @llvm.trunc.f32(float %val)
-define float @__trunc_uniform_float(float %val) {
-  %r = call float @llvm.trunc.f32(float %val)
-  ret float %r
-}
-
-declare <WIDTH x float> @llvm.trunc.v`'WIDTH`'f32(<WIDTH x float> %val)
-define <WIDTH x float> @__trunc_varying_float(<WIDTH x float> %val) {
-  %r = call <WIDTH x float> @llvm.trunc.v`'WIDTH`'f32(<WIDTH x float> %val)
-  ret <WIDTH x float> %r
-}
-
-declare double @llvm.trunc.f64(double %val)
-define double @__trunc_uniform_double(double %val) {
-  %r = call double @llvm.trunc.f64(double %val)
-  ret double %r
-}
-
-declare <WIDTH x double> @llvm.trunc.v`'WIDTH`'f64(<WIDTH x double> %val)
-define <WIDTH x double> @__trunc_varying_double(<WIDTH x double> %val) {
-  %r = call <WIDTH x double> @llvm.trunc.v`'WIDTH`'f64(<WIDTH x double> %val)
-  ret <WIDTH x double> %r
-}
-')
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; forloop macro
 
 divert(`-1')
@@ -7228,11 +7195,6 @@ define i8 @__cast_mask_to_i8 (<WIDTH x MASK> %mask) alwaysinline {
   %mask_i8 = zext i4 %mask_i4 to i8
   ret i8 %mask_i8
 }
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; trunc float and double
-
-truncate()
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; min/max
