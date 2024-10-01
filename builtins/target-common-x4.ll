@@ -6380,17 +6380,6 @@ define i1 @__none(<WIDTH x MASK> %mask) nounwind readnone alwaysinline {
 }
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;; horizontal uint64 ops
-
-define i64 @__reduce_min_uint64(<4 x i64>) nounwind readnone alwaysinline {
-  reduce4(i64, @__min_varying_uint64, @__min_uniform_uint64)
-}
-
-define i64 @__reduce_max_uint64(<4 x i64>) nounwind readnone alwaysinline {
-  reduce4(i64, @__max_varying_uint64, @__max_uniform_uint64)
-}
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; unaligned loads/loads+broadcasts
 
 masked_load(i8,  1)
