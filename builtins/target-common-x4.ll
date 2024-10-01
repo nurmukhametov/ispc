@@ -5709,21 +5709,6 @@ aossoa()
 fastMathFTZDAZ_x86()
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; float min/max
-
-define float @__max_uniform_float(float, float) nounwind readonly alwaysinline {
-  %cmp = fcmp ogt float %1, %0
-  %ret = select i1 %cmp, float %1, float %0
-  ret float %ret
-}
-
-define float @__min_uniform_float(float, float) nounwind readonly alwaysinline {
-  %cmp = fcmp ogt float %1, %0
-  %ret = select i1 %cmp, float %0, float %1
-  ret float %ret
-}
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; int min/max
 
 define i32 @__min_uniform_int32(i32, i32) nounwind readonly alwaysinline {
@@ -5969,22 +5954,6 @@ define i8 @__cast_mask_to_i8 (<WIDTH x MASK> %mask) alwaysinline {
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; min/max
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; float min/max
-
-declare <4 x float> @llvm.x86.avx512.mask.max.ps.128(<4 x float>, <4 x float>, <4 x float>, i8)
-declare <4 x float> @llvm.x86.avx512.mask.min.ps.128(<4 x float>, <4 x float>, <4 x float>, i8)
-
-define <4 x float> @__max_varying_float(<4 x float>, <4 x float>) nounwind readonly alwaysinline {
-  %res = call <4 x float> @llvm.x86.avx512.mask.max.ps.128(<4 x float> %0, <4 x float> %1, <4 x float>zeroinitializer, i8 -1)
-  ret <4 x float> %res
-}
-
-define <4 x float> @__min_varying_float(<4 x float>, <4 x float>) nounwind readonly alwaysinline {
-  %res = call <4 x float> @llvm.x86.avx512.mask.min.ps.128(<4 x float> %0, <4 x float> %1, <4 x float>zeroinitializer, i8 -1)
-  ret <4 x float> %res
-}
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; unsigned int min/max
