@@ -4919,39 +4919,12 @@ define void @__restore_ftz_daz_flags(i32 %oldVal) nounwind alwaysinline {
 }
 ')
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; 16-bit float reduction
-
-define(`halfReduce', `
-;; add
-define internal <WIDTH x half> @__add_varying_half(<WIDTH x half>,
-                                              <WIDTH x half>) nounwind readnone alwaysinline {
-  %r = fadd <WIDTH x half> %0, %1
-  ret <WIDTH x half> %r
-}
-define internal half @__add_uniform_half(half, half) nounwind readnone alwaysinline {
-  %r = fadd half %0, %1
-  ret half %r
-}
-;; reduce
-define half @__reduce_add_half(<WIDTH x half>) nounwind readnone alwaysinline {
-  reduce_func(half, @__add_varying_half, @__add_uniform_half)
-}
-define half @__reduce_min_half(<WIDTH x half>) nounwind readnone {
-  reduce_func(half, @__min_varying_half, @__min_uniform_half)
-}
-define half @__reduce_max_half(<WIDTH x half>) nounwind readnone {
-  reduce_func(half, @__max_varying_half, @__max_uniform_half)
-}
-')
-
 ;; this is the function that target .ll files should call; it just takes the target
 ;; vector width as a parameter
 
 define(`halfTypeGenericImplementation', `
 halfminmax(WIDTH,min,olt)
 halfminmax(WIDTH,max,ogt)
-halfReduce(WIDTH)
 ')
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
