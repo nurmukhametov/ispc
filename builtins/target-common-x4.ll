@@ -4856,28 +4856,6 @@ i64minmax(WIDTH,max,uint64,ugt)
 ')
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; 16-bit float min and max functions
-
-;; utility function used by halfminmax below.
-;; $1: target vector width
-;; $2: {min,max} (used in constructing function names)
-;; $3: olt,ogt} comparison operator to used
-define(`halfminmax', `
-define half @__$2_uniform_half(half, half) nounwind readnone alwaysinline {
-  %cmp = fcmp $3 half %0, %1
-  %r = select i1 %cmp, half %0, half %1
-  ret half %r
-}
-
-define <$1 x half> @__$2_varying_half(<$1 x half>,
-                                            <$1 x half>) nounwind readnone alwaysinline {
-  %m = fcmp $3 <$1 x half> %0, %1
-  %r = select <$1 x i1> %m, <$1 x half> %0, <$1 x half> %1
-  ret <$1 x half> %r
-}
-')
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; fast math, FTZ/DAZ functions
 define(`fastMathFTZDAZ_x86', `
 declare void @llvm.x86.sse.stmxcsr(i8 *) nounwind
@@ -4917,14 +4895,6 @@ define void @__restore_ftz_daz_flags(i32 %oldVal) nounwind alwaysinline {
   call void @llvm.x86.sse.ldmxcsr(i8 * %ptr8)
   ret void
 }
-')
-
-;; this is the function that target .ll files should call; it just takes the target
-;; vector width as a parameter
-
-define(`halfTypeGenericImplementation', `
-halfminmax(WIDTH,min,olt)
-halfminmax(WIDTH,max,ogt)
 ')
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -5980,7 +5950,6 @@ stdlib_core()
 scans()
 reduce_equal(WIDTH)
 rdrand_definition()
-halfTypeGenericImplementation()
 define_vector_permutations()
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
