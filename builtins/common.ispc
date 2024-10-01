@@ -362,6 +362,35 @@ EXT READNONE varying float16 __pow_varying_half(varying float16 x, varying float
 EXT READNONE uniform float16 __sqrt_uniform_half(uniform float16 x) { return @llvm.sqrt(x); }
 EXT READNONE varying float16 __sqrt_varying_half(varying float16 x) { return @llvm.sqrt(x); }
 
+// 16-bit float reduction
+EXT READNONE uniform float16 __reduce_add_half(varying float16 x) {
+    uniform float16 sum = 0;
+    int16 v = (int16)__intbits_varying_half(x);
+    for (uniform int32 i = 0; i < TARGET_WIDTH; i++) {
+        uniform float16 l = __halfbits_uniform_int16(__extract_int16(v, i));
+        sum += l;
+    }
+    return sum;
+}
+EXT READNONE uniform float16 __reduce_max_half(varying float16 x) {
+    uniform float16 max = -F16_MAX;
+    int16 v = (int16)__intbits_varying_half(x);
+    for (uniform int32 i = 0; i < TARGET_WIDTH; i++) {
+        uniform float16 l = __halfbits_uniform_int16(__extract_int16(v, i));
+        max = max > l ? max : l;
+    }
+    return max;
+}
+EXT READNONE uniform float16 __reduce_min_half(varying float16 x) {
+    uniform float16 min = F16_MAX;
+    int16 v = (int16)__intbits_varying_half(x);
+    for (uniform int32 i = 0; i < TARGET_WIDTH; i++) {
+        uniform float16 l = __halfbits_uniform_int16(__extract_int16(v, i));
+        min = min < l ? min : l;
+    }
+    return min;
+}
+
 // EXT READNONE uniform float16 __min_uniform_half(uniform float16 x, uniform float16 y) { return x < y ? x : y; }
 // EXT READNONE varying float16 __min_varying_half(varying float16 x, varying float16 y) { return x < y ? x : y; }
 // EXT READNONE uniform float16 __max_uniform_half(uniform float16 x, uniform float16 y) { return x > y ? x : y; }
