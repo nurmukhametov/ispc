@@ -466,6 +466,24 @@ EXT READNONE uniform int32 __reduce_max_int32(varying int32 x) {
     return max;
 }
 
+// horizontal uint32 ops
+EXT READNONE uniform uint32 __reduce_min_uint32(varying uint32 x) {
+    uniform uint32 min = UINT32_MAX;
+    for (uniform int32 i = 0; i < TARGET_WIDTH; i++) {
+        uniform uint32 l = __extract_int32(x, i);
+        min = min < l ? min : l;
+    }
+    return min;
+}
+EXT READNONE uniform uint32 __reduce_max_uint32(varying uint32 x) {
+    uniform uint32 max = 0;
+    for (uniform int32 i = 0; i < TARGET_WIDTH; i++) {
+        uniform uint32 l = __extract_int32(x, i);
+        max = max > l ? max : l;
+    }
+    return max;
+}
+
 // // #if TARGET_WIDTH == 2
 // // #define ONE_INITIALIZER 1, 1
 // // #elif TARGET_WIDTH == 4
