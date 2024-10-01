@@ -180,21 +180,21 @@ extern "C" void __not_supported();
 // EXT READNONE uniform float __trunc_uniform_float(uniform float x) { return @llvm.trunc(x); }
 // EXT READNONE varying double __trunc_varying_double(varying double x) { return @llvm.trunc(x); }
 // EXT READNONE varying float __trunc_varying_float(varying float x) { return @llvm.trunc(x); }
-// 
-// // transcendental float math functions
-// // __have_native_transcendentals
-// EXT READNONE uniform double __exp_uniform_double(uniform double) { @llvm.trap(); }
-// EXT READNONE uniform float __exp_uniform_float(uniform float) { @llvm.trap(); }
-// EXT READNONE varying double __exp_varying_double(varying double) { @llvm.trap(); }
-// EXT READNONE varying float __exp_varying_float(varying float) { @llvm.trap(); }
-// EXT READNONE uniform double __log_uniform_double(uniform double) { @llvm.trap(); }
-// EXT READNONE uniform float __log_uniform_float(uniform float) { @llvm.trap(); }
-// EXT READNONE varying double __log_varying_double(varying double) { @llvm.trap(); }
-// EXT READNONE varying float __log_varying_float(varying float) { @llvm.trap(); }
-// EXT READNONE uniform double __pow_uniform_double(uniform double, uniform double) { @llvm.trap(); }
-// EXT READNONE uniform float __pow_uniform_float(uniform float, uniform float) { @llvm.trap(); }
-// EXT READNONE varying double __pow_varying_double(varying double, varying double) { @llvm.trap(); }
-// EXT READNONE varying float __pow_varying_float(varying float, varying float) { @llvm.trap(); }
+
+// transcendental float math functions
+// __have_native_transcendentals
+EXT READNONE uniform double __exp_uniform_double(uniform double) { __not_supported(); }
+EXT READNONE uniform float __exp_uniform_float(uniform float) { __not_supported(); }
+EXT READNONE varying double __exp_varying_double(varying double) { __not_supported(); }
+EXT READNONE varying float __exp_varying_float(varying float) { __not_supported(); }
+EXT READNONE uniform double __log_uniform_double(uniform double) { __not_supported(); }
+EXT READNONE uniform float __log_uniform_float(uniform float) { __not_supported(); }
+EXT READNONE varying double __log_varying_double(varying double) { __not_supported(); }
+EXT READNONE varying float __log_varying_float(varying float) { __not_supported(); }
+EXT READNONE uniform double __pow_uniform_double(uniform double, uniform double) { __not_supported(); }
+EXT READNONE uniform float __pow_uniform_float(uniform float, uniform float) { __not_supported(); }
+EXT READNONE varying double __pow_varying_double(varying double, varying double) { __not_supported(); }
+EXT READNONE varying float __pow_varying_float(varying float, varying float) { __not_supported(); }
 
 // __have_native_rcpd
 EXT READNONE uniform double __rcp_fast_uniform_double(uniform double) { __not_supported(); }
