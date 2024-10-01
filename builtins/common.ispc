@@ -981,17 +981,28 @@ EXT void __masked_store_float(NOESCAPE varying float *uniform ptr, varying float
 EXT void __masked_store_double(NOESCAPE varying double *uniform ptr, varying double val, UIntMaskType mask) {
     @llvm.masked.store(val, (uniform int8 * uniform) ptr, 1, mask);
 }
-// // UNMANGLED CDECL void __masked_store_blend_i8(NOESCAPE varying int8 *uniform ptr, varying int8 val) { *ptr = val; }
-// // UNMANGLED CDECL void __masked_store_blend_i16(NOESCAPE varying int16 *uniform ptr, varying int16 val) { *ptr = val; }
-// // UNMANGLED CDECL void __masked_store_blend_i32(NOESCAPE varying int32 *uniform ptr, varying int32 val) { *ptr = val; }
-// // UNMANGLED CDECL void __masked_store_blend_i64(NOESCAPE varying int64 *uniform ptr, varying int64 val) { *ptr = val; }
-// // UNMANGLED CDECL void __masked_store_blend_half(NOESCAPE varying float16 *uniform ptr, varying float16 val) {
-// //     *ptr = val;
-// // }
-// // UNMANGLED CDECL void __masked_store_blend_float(NOESCAPE varying float *uniform ptr, varying float val) { *ptr = val; }
-// // UNMANGLED CDECL void __masked_store_blend_double(NOESCAPE varying double *uniform ptr, varying double val) {
-// //     *ptr = val;
-// // }
+
+EXT void __masked_store_blend_i8(NOESCAPE varying int8 *uniform ptr, varying int8 val, UIntMaskType mask) {
+    @llvm.masked.store(val, (uniform int8 * uniform) ptr, 1, mask);
+}
+EXT void __masked_store_blend_i16(NOESCAPE varying int16 *uniform ptr, varying int16 val, UIntMaskType mask) {
+    @llvm.masked.store(val, (uniform int8 * uniform) ptr, 1, mask);
+}
+EXT void __masked_store_blend_i32(NOESCAPE varying int32 *uniform ptr, varying int32 val, UIntMaskType mask) {
+    @llvm.masked.store(val, (uniform int8 * uniform) ptr, 1, mask);
+}
+EXT void __masked_store_blend_i64(NOESCAPE varying int64 *uniform ptr, varying int64 val, UIntMaskType mask) {
+    @llvm.masked.store(val, (uniform int8 * uniform) ptr, 1, mask);
+}
+EXT void __masked_store_blend_half(NOESCAPE varying float16 *uniform ptr, varying float16 val, UIntMaskType mask) {
+    @llvm.masked.store(val, (uniform int8 * uniform) ptr, 1, mask);
+}
+EXT void __masked_store_blend_float(NOESCAPE varying float *uniform ptr, varying float val, UIntMaskType mask) {
+    @llvm.masked.store(val, (uniform int8 * uniform) ptr, 1, mask);
+}
+EXT void __masked_store_blend_double(NOESCAPE varying double *uniform ptr, varying double val, UIntMaskType mask) {
+    @llvm.masked.store(val, (uniform int8 * uniform) ptr, 1, mask);
+}
 
 #undef NOESCAPE
 #undef ADDRSPACE
