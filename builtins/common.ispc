@@ -484,6 +484,34 @@ EXT READNONE uniform uint32 __reduce_max_uint32(varying uint32 x) {
     return max;
 }
 
+// horizontal double ops
+EXT READNONE uniform double __reduce_add_double(varying double x) {
+    uniform double sum = 0;
+    int64 v = __intbits_varying_double(x);
+    for (uniform int32 i = 0; i < TARGET_WIDTH; i++) {
+        sum += __doublebits_uniform_int64(__extract_int64(v, i));
+    }
+    return sum;
+}
+EXT READNONE uniform double __reduce_min_double(varying double x) {
+    uniform double min = DBL_MAX;
+    int64 v = __intbits_varying_double(x);
+    for (uniform int32 i = 0; i < TARGET_WIDTH; i++) {
+        uniform double l = __doublebits_uniform_int64(__extract_int64(v, i));
+        min = min < l ? min : l;
+    }
+    return min;
+}
+EXT READNONE uniform double __reduce_max_double(varying double x) {
+    uniform double max = -DBL_MAX;
+    int64 v = __intbits_varying_double(x);
+    for (uniform int32 i = 0; i < TARGET_WIDTH; i++) {
+        uniform double l = __doublebits_uniform_int64(__extract_int64(v, i));
+        max = max > l ? max : l;
+    }
+    return max;
+}
+
 // // #if TARGET_WIDTH == 2
 // // #define ONE_INITIALIZER 1, 1
 // // #elif TARGET_WIDTH == 4
