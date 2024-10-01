@@ -6936,34 +6936,6 @@ define double @__max_uniform_double(double, double) nounwind readnone alwaysinli
 }
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; rsqrt
-
-define(`rsqrt14_uniform', `
-declare <4 x float> @llvm.x86.avx512.rsqrt14.ss(<4 x float>, <4 x float>, <4 x float>, i8) nounwind readnone
-define float @__rsqrt_fast_uniform_float(float) nounwind readonly alwaysinline {
-  %v = insertelement <4 x float> undef, float %0, i32 0
-  %vis = call <4 x float> @llvm.x86.avx512.rsqrt14.ss(<4 x float> %v, <4 x float> %v, <4 x float> undef, i8 -1)
-  %is = extractelement <4 x float> %vis, i32 0
-  ret float %is
-}
-
-define float @__rsqrt_uniform_float(float) nounwind readonly alwaysinline {
-  %is = call float @__rsqrt_fast_uniform_float(float %0)
-
-  ; Newton-Raphson iteration to improve precision
-  ;  return 0.5 * is * (3. - (v * is) * is);
-  %v_is = fmul float %0, %is
-  %v_is_is = fmul float %v_is, %is
-  %three_sub = fsub float 3., %v_is_is
-  %is_mul = fmul float %is, %three_sub
-  %half_scale = fmul float 0.5, %is_mul
-  ret float %half_scale
-}
-
-')
-
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; switch macro
 ;; This is required to ensure that gather intrinsics are used with constant scale value.
 ;; This particular implementation of the routine is used by avx512 targets only.
@@ -7858,31 +7830,5 @@ define_prefetches()
 
 ;; Trigonometry
 ;; end of included target-avx512-common-4.ll
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; rcp/rsqrt declarations for half
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; rcp, rsqrt
-
-rsqrt14_uniform()
-;; rsqrt float
-declare <4 x float> @llvm.x86.avx512.rsqrt14.ps.128(<4 x float>,  <4 x float>,  i8) nounwind readnone
-define <4 x float> @__rsqrt_fast_varying_float(<4 x float> %v) nounwind readonly alwaysinline {
-  %ret = call <4 x float> @llvm.x86.avx512.rsqrt14.ps.128(<4 x float> %v,  <4 x float> undef,  i8 -1)
-  ret <4 x float> %ret
-}
-define <4 x float> @__rsqrt_varying_float(<4 x float> %v) nounwind readonly alwaysinline {
-  %is = call <4 x float> @__rsqrt_fast_varying_float(<4 x float> %v)
-  ; Newton-Raphson iteration to improve precision
-  ;  float is = __rsqrt_v(v);
-  ;  return 0.5 * is * (3. - (v * is) * is);
-  %v_is = fmul <4 x float> %v,  %is
-  %v_is_is = fmul <4 x float> %v_is,  %is
-  %three_sub = fsub <4 x float> <float 3., float 3., float 3., float 3.>, %v_is_is
-  %is_mul = fmul <4 x float> %is,  %three_sub
-  %half_scale = fmul <4 x float> <float 0.5, float 0.5, float 0.5, float 0.5>, %is_mul
-  ret <4 x float> %half_scale
-}
 
 ;;saturation_arithmetic_novec()
