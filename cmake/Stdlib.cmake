@@ -185,7 +185,7 @@ function (generate_common_target_bcs ispc_name)
 
     add_custom_command(
         OUTPUT ${bc_ispc}
-        COMMAND ${ispc_name} -I ${INCLUDE_FOLDER} --enable-llvm-intrinsics --nostdlib --gen-stdlib --target=${target} --arch=${fixed_arch} --target-os=${fixed_os}  --emit-llvm -o ${bc_ispc} ${input_ispc}
+        COMMAND ${ispc_name} -I ${INCLUDE_FOLDER} --enable-llvm-intrinsics --nostdlib --gen-stdlib --target=${target} --arch=${fixed_arch} --target-os=${fixed_os}  --emit-llvm -o ${bc_ispc} ${input_ispc} -DBUILD_OS=${OS_UP} -DRUNTIME=${bit}
         DEPENDS ${ispc_name} ${input_ispc}
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
     )

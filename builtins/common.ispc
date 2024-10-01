@@ -565,78 +565,146 @@ UNMANGLED CDECL void __prefetch_write_varying_3_native(uniform int8 *uniform, un
 // // EXT READNONE varying int32 __shuffle2_i32(varying int32, varying int32, varying int32);
 // // EXT READNONE varying int64 __shuffle2_i64(varying int64, varying int64, varying int32);
 // // EXT READNONE varying int8 __shuffle2_i8(varying int8, varying int8, varying int32);
+
+#define UNIX 1
+#define WINDOWS 2
+
+#ifndef BUILD_OS
+#error "BUILD_OS not defined"
+#endif
+
+#ifndef RUNTIME
+#error "RUNTIME not defined"
+#endif
+
+// new/delete
 // 
-// // #ifndef BUILD_OS
-// // #error "BUILD_OS not defined"
-// // #endif
-// // 
-// // #ifndef RUNTIME
-// // #error "RUNTIME not defined"
-// // #endif
-// // 
-// // EXT uniform int32 posix_memalign(uniform int8 *uniform *uniform, uniform int32, uniform int32);
-// // EXT void free(uniform int8 *uniform);
-// // 
-// // // new/delete
-// // #if BUILD_OS == UNIX && RUNTIME == 32
-// // EXT uniform int8 *uniform __new_uniform_32rt(uniform int64 size) {
-// //     uniform int8 *uniform ptr = 0;
-// //     posix_memalign(&ptr, __memory_alignment, size);
-// //     return ptr;
-// // }
-// // UNMANGLED CDECL varying int64 __new_varying32_32rt(varying int32 size) {
-// //     varying int64 addr = 0;
-// //     foreach_active(i) {
-// //         uniform int64 s = __extract_int32(size, i);
-// //         uniform int8 *uniform ptr = 0;
-// //         posix_memalign(&ptr, __memory_alignment, s);
-// //         addr = __insert_int64(addr, i, (uniform int64)ptr);
-// //     }
-// //     return addr;
-// // }
-// // EXT void __delete_uniform_32rt(uniform int8 *uniform ptr) { free(ptr); }
-// // UNMANGLED CDECL void __delete_varying_32rt(varying int64 addr) {
-// //     foreach_active(i) {
-// //         uniform int64 p_lane = __extract_int64(addr, i);
-// //         free((uniform int8 *uniform) p_lane);
-// //     }
-// // }
-// // #endif // BUILD_OS == UNIX && RUNTIME == 32
-// // #if BUILD_OS == UNIX && RUNTIME == 64
-// // EXT uniform int8 *uniform __new_uniform_64rt(uniform int64 size) {
-// //     uniform int8 *uniform ptr = 0;
-// //     posix_memalign(&ptr, __memory_alignment, size);
-// //     return ptr;
-// // }
-// // UNMANGLED CDECL varying int64 __new_varying32_64rt(varying int32 size) {
-// //     varying int64 addr = 0;
-// //     foreach_active(i) {
-// //         uniform int32 s = __extract_int32(size, i);
-// //         uniform int8 *uniform ptr = 0;
-// //         posix_memalign(&ptr, __memory_alignment, s);
-// //         addr = __insert_int64(addr, i, (uniform int64)ptr);
-// //     }
-// //     return addr;
-// // }
-// // UNMANGLED CDECL varying int64 __new_varying64_64rt(varying int64 size) {
-// //     varying int64 addr = 0;
-// //     foreach_active(i) {
-// //         uniform int64 s = __extract_int64(size, i);
-// //         uniform int8 *uniform ptr = 0;
-// //         posix_memalign(&ptr, __memory_alignment, s);
-// //         addr = __insert_int64(addr, i, (uniform int64)ptr);
-// //     }
-// //     return addr;
-// // }
-// // EXT void __delete_uniform_64rt(uniform int8 *uniform ptr) { free(ptr); }
-// // UNMANGLED CDECL void __delete_varying_64rt(varying int64 addr) {
-// //     foreach_active(i) {
-// //         uniform int64 p_lane = __extract_int64(addr, i);
-// //         free((uniform int8 * uniform) p_lane);
-// //     }
-// // }
-// // #endif // BUILD_OS == UNIX && RUNTIME == 64
-// // 
+// Set of functions for 32 bit and 64 bit runtime.
+// They are different for Windows and Unix (Linux/MacOS),
+// on Windows we have to use _aligned_malloc/_aligned_free,
+// while on Unix we use posix_memalign/free
+
+#if BUILD_OS == UNIX
+EXT uniform int32 posix_memalign(uniform int8 *uniform *uniform, uniform int32, uniform int32);
+EXT void free(uniform int8 *uniform);
+#endif // BUILD_OS == UNIX
+
+#if BUILD_OS == WINDOWS
+uniform int8 *uniform _aligned_malloc(uniform int32, uniform int32);
+void _aligned_free(uniform int8 *uniform);
+#endif // BUILD_OS == WINDOWS
+
+// new/delete
+#if BUILD_OS == UNIX && RUNTIME == 32
+EXT uniform int8 *uniform __new_uniform_32rt(uniform int64 size) {
+    uniform int8 *uniform ptr = 0;
+    posix_memalign(&ptr, __memory_alignment, size);
+    return ptr;
+}
+UNMANGLED CDECL varying int64 __new_varying32_32rt(varying int32 size) {
+    varying int64 addr = 0;
+    foreach_active(i) {
+        uniform int64 s = __extract_int32(size, i);
+        uniform int8 *uniform ptr = 0;
+        posix_memalign(&ptr, __memory_alignment, s);
+        addr = __insert_int64(addr, i, (uniform int64)ptr);
+    }
+    return addr;
+}
+EXT void __delete_uniform_32rt(uniform int8 *uniform ptr) { free(ptr); }
+UNMANGLED CDECL void __delete_varying_32rt(varying int64 addr) {
+    foreach_active(i) {
+        uniform int64 p_lane = __extract_int64(addr, i);
+        free((uniform int8 *uniform) p_lane);
+    }
+}
+#endif // BUILD_OS == UNIX && RUNTIME == 32
+
+#if BUILD_OS == UNIX && RUNTIME == 64
+EXT uniform int8 *uniform __new_uniform_64rt(uniform int64 size) {
+    uniform int8 *uniform ptr = 0;
+    posix_memalign(&ptr, __memory_alignment, size);
+    return ptr;
+}
+UNMANGLED CDECL varying int64 __new_varying32_64rt(varying int32 size) {
+    varying int64 addr = 0;
+    foreach_active(i) {
+        uniform int32 s = __extract_int32(size, i);
+        uniform int8 *uniform ptr = 0;
+        posix_memalign(&ptr, __memory_alignment, s);
+        addr = __insert_int64(addr, i, (uniform int64)ptr);
+    }
+    return addr;
+}
+UNMANGLED CDECL varying int64 __new_varying64_64rt(varying int64 size) {
+    varying int64 addr = 0;
+    foreach_active(i) {
+        uniform int64 s = __extract_int64(size, i);
+        uniform int8 *uniform ptr = 0;
+        posix_memalign(&ptr, __memory_alignment, s);
+        addr = __insert_int64(addr, i, (uniform int64)ptr);
+    }
+    return addr;
+}
+EXT void __delete_uniform_64rt(uniform int8 *uniform ptr) { free(ptr); }
+UNMANGLED CDECL void __delete_varying_64rt(varying int64 addr) {
+    foreach_active(i) {
+        uniform int64 p_lane = __extract_int64(addr, i);
+        free((uniform int8 * uniform) p_lane);
+    }
+}
+#endif // BUILD_OS == UNIX && RUNTIME == 64
+
+#if BUILD_OS == WINDOWS && RUNTIME == 32
+EXT uniform int8 *uniform __new_uniform_32rt(uniform int64 size) { return _aligned_malloc(size, __memory_alignment); }
+UNMANGLED CDECL varying int64 __new_varying32_32rt(varying int32 size) {
+    varying int64 addr = 0;
+    foreach_active(i) {
+        uniform int64 s = __extract_int32(size, i);
+        uniform int8 *uniform ptr = _aligned_malloc(s, __memory_alignment);
+        addr = __insert_int64(addr, i, (uniform int64)ptr);
+    }
+    return addr;
+}
+EXT void __delete_uniform_32rt(uniform int8 *uniform ptr) { _aligned_free(ptr); }
+UNMANGLED CDECL void __delete_varying_32rt(varying int64 addr) {
+    foreach_active(i) {
+        uniform int64 p_lane = __extract_int64(addr, i);
+        _aligned_free((uniform int8 *uniform) p_lane);
+    }
+}
+#endif // BUILD_OS == WINDOWS && RUNTIME == 32
+
+#if BUILD_OS == WINDOWS
+#error "Not implemented"
+EXT uniform int8 *uniform __new_uniform_64rt(uniform int64 size) { return _aligned_malloc(size, __memory_alignment); }
+UNMANGLED CDECL varying int64 __new_varying32_64rt(varying int32 size) {
+    varying int64 addr = 0;
+    foreach_active(i) {
+        uniform int32 s = __extract_int32(size, i);
+        uniform int8 *uniform ptr = _aligned_malloc(s, __memory_alignment);
+        addr = __insert_int64(addr, i, (uniform int64)ptr);
+    }
+    return addr;
+}
+UNMANGLED CDECL varying int64 __new_varying64_64rt(varying int64 size) {
+    varying int64 addr = 0;
+    foreach_active(i) {
+        uniform int64 s = __extract_int64(size, i);
+        uniform int8 *uniform ptr = _aligned_malloc(s, __memory_alignment);
+        addr = __insert_int64(addr, i, (uniform int64)ptr);
+    }
+    return addr;
+}
+EXT void __delete_uniform_64rt(uniform int8 *uniform ptr) { _aligned_free(ptr); }
+UNMANGLED CDECL void __delete_varying_64rt(varying int64 addr) {
+    foreach_active(i) {
+        uniform int64 p_lane = __extract_int64(addr, i);
+        _aligned_free((uniform int8 * uniform) p_lane);
+    }
+}
+#endif // BUILD_OS == WINDOWS && RUNTIME == 64
+
 // // // various bitcasts from one type to another
 // // EXT inline READNONE uniform double __doublebits_uniform_int64(uniform int64);
 // // EXT inline READNONE varying double __doublebits_varying_int64(varying int64);
