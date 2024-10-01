@@ -228,25 +228,26 @@ EXT void __prefetch_read_sized_varying_2(varying int64, uniform int8, UIntMaskTy
 EXT void __prefetch_read_sized_varying_3(varying int64, uniform int8, UIntMaskType) { __not_supported(); }
 EXT void __prefetch_read_sized_varying_nt(varying int64, uniform int8, UIntMaskType) { __not_supported(); }
 
-// // EXT void __memcpy32(uniform int8 *uniform dst, uniform int8 *uniform src, uniform int32 len) {
-// //     @llvm.memcpy(dst, src, len, false);
-// // }
-// // EXT void __memcpy64(uniform int8 *uniform dst, uniform int8 *uniform src, uniform int64 len) {
-// //     @llvm.memcpy(dst, src, len, false);
-// // }
-// // EXT void __memmove32(uniform int8 *uniform dst, uniform int8 *uniform src, uniform int32 len) {
-// //     @llvm.memmove(dst, src, len, false);
-// // }
-// // EXT void __memmove64(uniform int8 *uniform dst, uniform int8 *uniform src, uniform int64 len) {
-// //     @llvm.memmove(dst, src, len, false);
-// // }
-// // EXT void __memset32(uniform int8 *uniform dst, uniform int8 val, uniform int32 len) {
-// //     @llvm.memset(dst, val, len, false);
-// // }
-// // EXT void __memset64(uniform int8 *uniform dst, uniform int8 val, uniform int64 len) {
-// //     @llvm.memset(dst, val, len, false);
-// // }
-// // 
+// memcpy/memmove/memset
+EXT void __memcpy32(uniform int8 *uniform dst, uniform int8 *uniform src, uniform int32 len) {
+    @llvm.memcpy(dst, src, len, false);
+}
+EXT void __memcpy64(uniform int8 *uniform dst, uniform int8 *uniform src, uniform int64 len) {
+    @llvm.memcpy(dst, src, len, false);
+}
+EXT void __memmove32(uniform int8 *uniform dst, uniform int8 *uniform src, uniform int32 len) {
+    @llvm.memmove(dst, src, len, false);
+}
+EXT void __memmove64(uniform int8 *uniform dst, uniform int8 *uniform src, uniform int64 len) {
+    @llvm.memmove(dst, src, len, false);
+}
+EXT void __memset32(uniform int8 *uniform dst, uniform int8 val, uniform int32 len) {
+    @llvm.memset(dst, val, len, false);
+}
+EXT void __memset64(uniform int8 *uniform dst, uniform int8 val, uniform int64 len) {
+    @llvm.memset(dst, val, len, false);
+}
+
 // // EXT uniform int32 puts(uniform int8 *uniform str);
 // // EXT void abort();
 // // EXT void __do_assume_uniform(uniform bool test) { @llvm.assume(test); }
