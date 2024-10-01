@@ -512,6 +512,31 @@ EXT READNONE uniform double __reduce_max_double(varying double x) {
     return max;
 }
 
+// horizontal int64 ops
+EXT READNONE uniform int64 __reduce_add_int64(varying int64 x) {
+    uniform int64 sum = 0;
+    for (uniform int32 i = 0; i < TARGET_WIDTH; i++) {
+        sum += __extract_int64(x, i);
+    }
+    return sum;
+}
+EXT READNONE uniform int64 __reduce_min_int64(varying int64 x) {
+    uniform int64 min = INT64_MAX;
+    for (uniform int32 i = 0; i < TARGET_WIDTH; i++) {
+        uniform int64 l = __extract_int64(x, i);
+        min = min < l ? min : l;
+    }
+    return min;
+}
+EXT READNONE uniform int64 __reduce_max_int64(varying int64 x) {
+    uniform int64 max = INT64_MIN;
+    for (uniform int32 i = 0; i < TARGET_WIDTH; i++) {
+        uniform int64 l = __extract_int64(x, i);
+        max = max > l ? max : l;
+    }
+    return max;
+}
+
 // // #if TARGET_WIDTH == 2
 // // #define ONE_INITIALIZER 1, 1
 // // #elif TARGET_WIDTH == 4
