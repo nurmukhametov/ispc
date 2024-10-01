@@ -579,14 +579,14 @@ EXT inline READNONE uniform float __reduce_max_float(varying float);
 EXT inline READNONE uniform float16 __reduce_max_half(varying float16);
 EXT inline READNONE uniform int32 __reduce_max_int32(varying int32);
 EXT inline READNONE uniform int64 __reduce_max_int64(varying int64);
-EXT inline READNONE uniform int32 __reduce_max_uint32(varying int32);
+EXT inline READNONE uniform uint32 __reduce_max_uint32(varying uint32);
 EXT inline READNONE uniform int64 __reduce_max_uint64(varying int64);
 EXT inline READNONE uniform double __reduce_min_double(varying double);
 EXT inline READNONE uniform float __reduce_min_float(varying float);
 EXT inline READNONE uniform float16 __reduce_min_half(varying float16);
 EXT inline READNONE uniform int32 __reduce_min_int32(varying int32);
 EXT inline READNONE uniform int64 __reduce_min_int64(varying int64);
-EXT inline READNONE uniform int32 __reduce_min_uint32(varying int32);
+EXT inline READNONE uniform uint32 __reduce_min_uint32(varying uint32);
 EXT inline READNONE uniform int64 __reduce_min_uint64(varying int64);
 
 // TODO: move implementation to stdlib.ispc
