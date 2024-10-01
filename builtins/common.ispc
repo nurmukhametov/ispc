@@ -585,6 +585,12 @@ EXT READNONE varying int32 __max_varying_int32(varying int32 x, varying int32 y)
 EXT READNONE varying uint32 __min_varying_uint32(varying uint32 x, varying uint32 y) { return x < y ? x : y; }
 EXT READNONE varying uint32 __max_varying_uint32(varying uint32 x, varying uint32 y) { return x > y ? x : y; }
 
+// double precision min/max
+EXT READNONE uniform double __min_uniform_double(uniform double x, uniform double y) { return x < y ? x : y; }
+EXT READNONE uniform double __max_uniform_double(uniform double x, uniform double y) { return x > y ? x : y; }
+EXT READNONE varying double __min_varying_double(varying double x, varying double y) { return x < y ? x : y; }
+EXT READNONE varying double __max_varying_double(varying double x, varying double y) { return x > y ? x : y; }
+
 // // #if TARGET_WIDTH == 2
 // // #define ONE_INITIALIZER 1, 1
 // // #elif TARGET_WIDTH == 4
