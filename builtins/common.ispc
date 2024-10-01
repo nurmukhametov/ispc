@@ -27,61 +27,57 @@ extern "C" void __not_supported();
 // // EXT uniform bool __is_compile_time_constant_mask(UIntMaskType);
 // // EXT uniform bool __is_compile_time_constant_uniform_int32(uniform int32);
 // // EXT uniform bool __is_compile_time_constant_varying_int32(varying int32);
-// 
-// // trigonometric functions
-// // __have_native_trigonometry
-// EXT READNONE uniform double __acos_uniform_double(uniform double) { @llvm.trap(); }
-// EXT READNONE uniform float __acos_uniform_float(uniform float) { @llvm.trap(); }
-// EXT READNONE uniform float16 __acos_uniform_half(uniform float16) { @llvm.trap(); }
-// EXT READNONE varying double __acos_varying_double(varying double) { @llvm.trap(); }
-// EXT READNONE varying float __acos_varying_float(varying float) { @llvm.trap(); }
-// EXT READNONE varying float16 __acos_varying_half(varying float16) { @llvm.trap(); }
-// EXT READNONE uniform double __asin_uniform_double(uniform double) { @llvm.trap(); }
-// EXT READNONE uniform float __asin_uniform_float(uniform float) { @llvm.trap(); }
-// EXT READNONE uniform float16 __asin_uniform_half(uniform float16) { @llvm.trap(); }
-// EXT READNONE varying double __asin_varying_double(varying double) { @llvm.trap(); }
-// EXT READNONE varying float __asin_varying_float(varying float) { @llvm.trap(); }
-// EXT READNONE varying float16 __asin_varying_half(varying float16) { @llvm.trap(); }
-// EXT READNONE uniform double __atan2_uniform_double(uniform double, uniform double) { @llvm.trap(); }
-// EXT READNONE uniform float __atan2_uniform_float(uniform float, uniform float) { @llvm.trap(); }
-// EXT READNONE uniform float16 __atan2_uniform_half(uniform float16, uniform float16) { @llvm.trap(); }
-// EXT READNONE varying double __atan2_varying_double(varying double, varying double) { @llvm.trap(); }
-// EXT READNONE varying float __atan2_varying_float(varying float, varying float) { @llvm.trap(); }
-// EXT READNONE varying float16 __atan2_varying_half(varying float16, varying float16) { @llvm.trap(); }
-// EXT READNONE uniform double __atan_uniform_double(uniform double) { @llvm.trap(); }
-// EXT READNONE uniform float __atan_uniform_float(uniform float) { @llvm.trap(); }
-// EXT READNONE uniform float16 __atan_uniform_half(uniform float16) { @llvm.trap(); }
-// EXT READNONE varying double __atan_varying_double(varying double) { @llvm.trap(); }
-// EXT READNONE varying float __atan_varying_float(varying float) { @llvm.trap(); }
-// EXT READNONE varying float16 __atan_varying_half(varying float16) { @llvm.trap(); }
-// EXT READNONE uniform double __cos_uniform_double(uniform double) { @llvm.trap(); }
-// EXT READNONE uniform float __cos_uniform_float(uniform float) { @llvm.trap(); }
-// EXT READNONE uniform float16 __cos_uniform_half(uniform float16) { @llvm.trap(); }
-// EXT READNONE varying double __cos_varying_double(varying double) { @llvm.trap(); }
-// EXT READNONE varying float __cos_varying_float(varying float) { @llvm.trap(); }
-// EXT READNONE varying float16 __cos_varying_half(varying float16) { @llvm.trap(); }
-// EXT void __sincos_uniform_double(uniform double, uniform int8 *uniform, uniform int8 *uniform) {
-//     @llvm.trap();
-// }
-// EXT void __sincos_uniform_float(uniform float, uniform int8 *uniform, uniform int8 *uniform) { @llvm.trap(); }
-// EXT void __sincos_uniform_half(uniform float16, uniform int8 *uniform, uniform int8 *uniform) { @llvm.trap(); }
-// EXT void __sincos_varying_double(varying double, uniform int8 *uniform, uniform int8 *uniform) {
-//     @llvm.trap();
-// }
-// EXT void __sincos_varying_float(varying float, uniform int8 *uniform, uniform int8 *uniform) { @llvm.trap(); }
-// EXT void __sincos_varying_half(varying float16, uniform int8 *uniform, uniform int8 *uniform) { @llvm.trap(); }
-// EXT READNONE uniform double __sin_uniform_double(uniform double) { @llvm.trap(); }
-// EXT READNONE uniform float __sin_uniform_float(uniform float) { @llvm.trap(); }
-// EXT READNONE uniform float16 __sin_uniform_half(uniform float16) { @llvm.trap(); }
-// EXT READNONE varying double __sin_varying_double(varying double) { @llvm.trap(); }
-// EXT READNONE varying float __sin_varying_float(varying float) { @llvm.trap(); }
-// EXT READNONE varying float16 __sin_varying_half(varying float16) { @llvm.trap(); }
-// EXT READNONE uniform double __tan_uniform_double(uniform double) { @llvm.trap(); }
-// EXT READNONE uniform float __tan_uniform_float(uniform float) { @llvm.trap(); }
-// EXT READNONE uniform float16 __tan_uniform_half(uniform float16) { @llvm.trap(); }
-// EXT READNONE varying double __tan_varying_double(varying double) { @llvm.trap(); }
-// EXT READNONE varying float __tan_varying_float(varying float) { @llvm.trap(); }
-// EXT READNONE varying float16 __tan_varying_half(varying float16) { @llvm.trap(); }
+
+// trigonometric functions
+// __have_native_trigonometry
+EXT READNONE uniform double __acos_uniform_double(uniform double) { __not_supported(); }
+EXT READNONE uniform float __acos_uniform_float(uniform float) { __not_supported(); }
+EXT READNONE uniform float16 __acos_uniform_half(uniform float16) { __not_supported(); }
+EXT READNONE varying double __acos_varying_double(varying double) { __not_supported(); }
+EXT READNONE varying float __acos_varying_float(varying float) { __not_supported(); }
+EXT READNONE varying float16 __acos_varying_half(varying float16) { __not_supported(); }
+EXT READNONE uniform double __asin_uniform_double(uniform double) { __not_supported(); }
+EXT READNONE uniform float __asin_uniform_float(uniform float) { __not_supported(); }
+EXT READNONE uniform float16 __asin_uniform_half(uniform float16) { __not_supported(); }
+EXT READNONE varying double __asin_varying_double(varying double) { __not_supported(); }
+EXT READNONE varying float __asin_varying_float(varying float) { __not_supported(); }
+EXT READNONE varying float16 __asin_varying_half(varying float16) { __not_supported(); }
+EXT READNONE uniform double __atan2_uniform_double(uniform double, uniform double) { __not_supported(); }
+EXT READNONE uniform float __atan2_uniform_float(uniform float, uniform float) { __not_supported(); }
+EXT READNONE uniform float16 __atan2_uniform_half(uniform float16, uniform float16) { __not_supported(); }
+EXT READNONE varying double __atan2_varying_double(varying double, varying double) { __not_supported(); }
+EXT READNONE varying float __atan2_varying_float(varying float, varying float) { __not_supported(); }
+EXT READNONE varying float16 __atan2_varying_half(varying float16, varying float16) { __not_supported(); }
+EXT READNONE uniform double __atan_uniform_double(uniform double) { __not_supported(); }
+EXT READNONE uniform float __atan_uniform_float(uniform float) { __not_supported(); }
+EXT READNONE uniform float16 __atan_uniform_half(uniform float16) { __not_supported(); }
+EXT READNONE varying double __atan_varying_double(varying double) { __not_supported(); }
+EXT READNONE varying float __atan_varying_float(varying float) { __not_supported(); }
+EXT READNONE varying float16 __atan_varying_half(varying float16) { __not_supported(); }
+EXT READNONE uniform double __cos_uniform_double(uniform double) { __not_supported(); }
+EXT READNONE uniform float __cos_uniform_float(uniform float) { __not_supported(); }
+EXT READNONE uniform float16 __cos_uniform_half(uniform float16) { __not_supported(); }
+EXT READNONE varying double __cos_varying_double(varying double) { __not_supported(); }
+EXT READNONE varying float __cos_varying_float(varying float) { __not_supported(); }
+EXT READNONE varying float16 __cos_varying_half(varying float16) { __not_supported(); }
+EXT void __sincos_uniform_double(uniform double, uniform int8 *uniform, uniform int8 *uniform) { __not_supported(); }
+EXT void __sincos_uniform_float(uniform float, uniform int8 *uniform, uniform int8 *uniform) { __not_supported(); }
+EXT void __sincos_uniform_half(uniform float16, uniform int8 *uniform, uniform int8 *uniform) { __not_supported(); }
+EXT void __sincos_varying_double(varying double, uniform int8 *uniform, uniform int8 *uniform) { __not_supported(); }
+EXT void __sincos_varying_float(varying float, uniform int8 *uniform, uniform int8 *uniform) { __not_supported(); }
+EXT void __sincos_varying_half(varying float16, uniform int8 *uniform, uniform int8 *uniform) { __not_supported(); }
+EXT READNONE uniform double __sin_uniform_double(uniform double) { __not_supported(); }
+EXT READNONE uniform float __sin_uniform_float(uniform float) { __not_supported(); }
+EXT READNONE uniform float16 __sin_uniform_half(uniform float16) { __not_supported(); }
+EXT READNONE varying double __sin_varying_double(varying double) { __not_supported(); }
+EXT READNONE varying float __sin_varying_float(varying float) { __not_supported(); }
+EXT READNONE varying float16 __sin_varying_half(varying float16) { __not_supported(); }
+EXT READNONE uniform double __tan_uniform_double(uniform double) { __not_supported(); }
+EXT READNONE uniform float __tan_uniform_float(uniform float) { __not_supported(); }
+EXT READNONE uniform float16 __tan_uniform_half(uniform float16) { __not_supported(); }
+EXT READNONE varying double __tan_varying_double(varying double) { __not_supported(); }
+EXT READNONE varying float __tan_varying_float(varying float) { __not_supported(); }
+EXT READNONE varying float16 __tan_varying_half(varying float16) { __not_supported(); }
 
 // saturating math functions
 // m_hasSaturatingArithmetic
