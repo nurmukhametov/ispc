@@ -6380,27 +6380,6 @@ define i1 @__none(<WIDTH x MASK> %mask) nounwind readnone alwaysinline {
 }
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; horizontal double ops
-
-declare <4 x double> @llvm.x86.avx.hadd.pd.256(<4 x double>, <4 x double>) nounwind readnone
-
-define double @__reduce_add_double(<4 x double>) nounwind readonly alwaysinline {
-  %sum0 = call <4 x double> @llvm.x86.avx.hadd.pd.256(<4 x double> %0, <4 x double> %0)
-  %final0 = extractelement <4 x double> %sum0, i32 0
-  %final1 = extractelement <4 x double> %sum0, i32 2
-  %sum = fadd double %final0, %final1
-  ret double %sum
-}
-
-define double @__reduce_min_double(<4 x double>) nounwind readnone alwaysinline {
-  reduce4(double, @__min_varying_double, @__min_uniform_double)
-}
-
-define double @__reduce_max_double(<4 x double>) nounwind readnone alwaysinline {
-  reduce4(double, @__max_varying_double, @__max_uniform_double)
-}
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; horizontal int64 ops
 
 define internal <4 x i64> @__add_varying_int64(<4 x i64>, <4 x i64>) nounwind readnone alwaysinline {
