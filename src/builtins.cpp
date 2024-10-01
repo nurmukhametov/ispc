@@ -1587,6 +1587,29 @@ void lLinkTargetBuiltins(llvm::Module *module, int &debug_num) {
         debugDumpModule(module, "Parent", debug_num++);
     }
 
+    // new/delete use __pseudo_masked_store functions which we need to add in persistent and link again
+    // TODO: redo to avoid duplication
+    lAddPersistentToLLVMUsed(*module);
+    lRemoveUnused(module);
+    lRemoveUnusedPersistentFunctions(module);
+    while (lHasUnresolvedSymbols(module)) {
+        target = GetParentTarget(target);
+        printf("Parent target: %s\n", ISPCTargetToString(target).c_str());
+        if (target == ISPCTarget::none) {
+            // Error(SourcePos(), "Unresolved symbols in target bitcode.");
+            break;
+        }
+        const BitcodeLib *parentLib = tgtReg->getISPCTargetLib(target, g->target_os, g->target->getArch());
+        printf("Bitcode lib: %s\n", parentLib->getFilename().c_str());
+        Assert(parentLib);
+        llvm::Module *parentBCModule = parentLib->getLLVMModule();
+        lFillTargetBuiltins(parentBCModule, targetBuiltins);
+        parentBCModule->setDataLayout(g->target->getDataLayout()->getStringRepresentation());
+        lAddBitcodeToModule(parentBCModule, module);
+        // dump module
+        debugDumpModule(module, "Parent", debug_num++);
+    }
+
     lSetAsInternal(module, targetBuiltins);
 }
 
