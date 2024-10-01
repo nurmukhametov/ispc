@@ -4245,31 +4245,6 @@ define void
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-define(`masked_load_float_double', `
-define <WIDTH x float> @__masked_load_float(i8 * %ptr,
-                                             <WIDTH x MASK> %mask) readonly alwaysinline {
-  %v32 = call <WIDTH x i32> @__masked_load_i32(i8 * %ptr, <WIDTH x MASK> %mask)
-  %vf = bitcast <WIDTH x i32> %v32 to <WIDTH x float>
-  ret <WIDTH x float> %vf
-}
-
-define <WIDTH x double> @__masked_load_double(i8 * %ptr,
-                                             <WIDTH x MASK> %mask) readonly alwaysinline {
-  %v64 = call <WIDTH x i64> @__masked_load_i64(i8 * %ptr, <WIDTH x MASK> %mask)
-  %vd = bitcast <WIDTH x i64> %v64 to <WIDTH x double>
-  ret <WIDTH x double> %vd
-}
-
-define <WIDTH x half> @__masked_load_half(i8 * %ptr, <WIDTH x MASK> %mask) readonly alwaysinline {
-  %v16 = call <WIDTH x i16> @__masked_load_i16(i8 * %ptr, <WIDTH x MASK> %mask)
-  %vh = bitcast <WIDTH x i16> %v16 to <WIDTH x half>
-  ret <WIDTH x half> %vh
-}
-
-')
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
 define(`masked_store_float_double', `
 define void @__masked_store_float(<WIDTH x float> * nocapture, <WIDTH x float>,
                                   <WIDTH x MASK>) nounwind alwaysinline {
@@ -4642,53 +4617,6 @@ define void @__restore_ftz_daz_flags(i32 %oldVal) nounwind alwaysinline {
   call void @llvm.x86.sse.ldmxcsr(i8 * %ptr8)
   ret void
 }
-')
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Emit general-purpose code to do a masked load for targets that dont have
-;; an instruction to do that.  Parameters:
-;; $1: element type for which to emit the function (i32, i64, ...) (and suffix for function name)
-;; $2: alignment for elements of type $1 (4, 8, ...)
-
-define(`masked_load', `
-declare <WIDTH x $1> @llvm.masked.load.TYPE_SUFFIX($1)(<WIDTH x $1>*, i32, <WIDTH x i1>, <WIDTH x $1>)
-
-define <WIDTH x $1> @__masked_load_$1(i8 *, <WIDTH x MASK> %mask) nounwind alwaysinline {
-entry:
-  %mm = call i64 @__movmsk(<WIDTH x MASK> %mask)
-
-  ; if the first lane and the last lane are on, then it is safe to do a vector load
-  ; of the whole thing--what the lanes in the middle want turns out to not matter...
-  %mm_and_low = and i64 %mm, 1
-  %mm_and_high = and i64 %mm, MASK_HIGH_BIT_ON
-  %mm_and_high_shift = lshr i64 %mm_and_high, eval(WIDTH-1)
-  %mm_and_low_i1 = trunc i64 %mm_and_low to i1
-  %mm_and_high_shift_i1 = trunc i64 %mm_and_high_shift to i1
-  %can_vload = and i1 %mm_and_low_i1, %mm_and_high_shift_i1
-
-  %fast32 = load i32, i32* @__fast_masked_vload
-  %fast_i1 = trunc i32 %fast32 to i1
-  %can_vload_maybe_fast = or i1 %fast_i1, %can_vload
-
-  ; if we are not able to do a singe vload, we will accumulate lanes in this memory..
-  %retptr = alloca <WIDTH x $1>
-  %retptr32 = bitcast <WIDTH x $1> * %retptr to $1 *
-  %ptr = bitcast i8* %0 to <WIDTH x $1>*
-  br i1 %can_vload_maybe_fast, label %load, label %loop
-
-load:
-  %valall = load PTR_OP_ARGS(`<WIDTH x $1> ')  %ptr, align $2
-  ret <WIDTH x $1> %valall
-
-loop:
-ifelse(MASK,i1, `
-  %res = call <WIDTH x $1> @llvm.masked.load.TYPE_SUFFIX($1)(<WIDTH x $1>* %ptr, i32 SIZEOF($1), <WIDTH x i1> %mask, <WIDTH x $1> undef)
-', `
-  %maski1 = trunc <WIDTH x MASK> %mask to <WIDTH x i1>
-  %res = call <WIDTH x $1> @llvm.masked.load.TYPE_SUFFIX($1)(<WIDTH x $1>* %ptr, i32 SIZEOF($1), <WIDTH x i1> %maski1, <WIDTH x $1> undef)
-')
-  ret <WIDTH x $1> %res
- }
 ')
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -5946,39 +5874,6 @@ define i1 @__none(<WIDTH x MASK> %mask) nounwind readnone alwaysinline {
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; unaligned loads/loads+broadcasts
-
-masked_load(i8,  1)
-masked_load(i16, 2)
-masked_load(half, 2)
-
-declare <4 x i32> @llvm.x86.avx512.mask.loadu.d.128(i8*, <4 x i32>, i8)
-define <4 x i32> @__masked_load_i32(i8 * %ptr, <WIDTH x MASK> %mask) nounwind alwaysinline {
-  %mask_i8 = call i8 @__cast_mask_to_i8 (<WIDTH x MASK> %mask)
-  %res = call <4 x i32> @llvm.x86.avx512.mask.loadu.d.128(i8* %ptr, <4 x i32> zeroinitializer, i8 %mask_i8)
-  ret <4 x i32> %res
-}
-
-declare <4 x i64> @llvm.x86.avx512.mask.loadu.q.256(i8*, <4 x i64>, i8)
-define <4 x i64> @__masked_load_i64(i8 * %ptr, <WIDTH x MASK> %mask) nounwind alwaysinline {
-  %mask_i8 = call i8 @__cast_mask_to_i8 (<WIDTH x MASK> %mask)
-  %res = call <4 x i64> @llvm.x86.avx512.mask.loadu.q.256(i8* %ptr, <4 x i64> zeroinitializer, i8 %mask_i8)
-  ret <4 x i64> %res
-}
-
-declare <4 x float> @llvm.x86.avx512.mask.loadu.ps.128(i8*, <4 x float>, i8)
-define <4 x float> @__masked_load_float(i8 * %ptr, <WIDTH x MASK> %mask) readonly alwaysinline {
-  %mask_i8 = call i8 @__cast_mask_to_i8 (<WIDTH x MASK> %mask)
-  %res = call <4 x float> @llvm.x86.avx512.mask.loadu.ps.128(i8* %ptr, <4 x float> zeroinitializer, i8 %mask_i8)
-  ret <4 x float> %res
-}
-
-declare <4 x double> @llvm.x86.avx512.mask.loadu.pd.256(i8*, <4 x double>, i8)
-define <4 x double> @__masked_load_double(i8 * %ptr, <WIDTH x MASK> %mask) readonly alwaysinline {
-  %mask_i8 = call i8 @__cast_mask_to_i8 (<WIDTH x MASK> %mask)
-  %res = call <4 x double> @llvm.x86.avx512.mask.loadu.pd.256(i8* %ptr, <4 x double> zeroinitializer, i8 %mask_i8)
-  ret <4 x double> %res
-}
-
 
 gen_masked_store(i8) ; llvm.x86.sse2.storeu.dq
 gen_masked_store(i16)

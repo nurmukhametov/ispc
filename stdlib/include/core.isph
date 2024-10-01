@@ -457,13 +457,13 @@ EXT void __pseudo_prefetch_write_varying_2_native(uniform int8 *uniform, uniform
 EXT void __pseudo_prefetch_write_varying_3(varying int64, UIntMaskType);
 EXT void __pseudo_prefetch_write_varying_3_native(uniform int8 *uniform, uniform int32, varying int32, UIntMaskType);
 
-EXT inline varying int8 __masked_load_i8(uniform int8 *uniform, UIntMaskType);
-EXT inline varying int16 __masked_load_i16(uniform int8 *uniform, UIntMaskType);
-EXT inline varying float16 __masked_load_half(uniform int8 *uniform, UIntMaskType);
-EXT inline varying int32 __masked_load_i32(uniform int8 *uniform, UIntMaskType);
-EXT inline varying float __masked_load_float(uniform int8 *uniform, UIntMaskType);
-EXT inline varying int64 __masked_load_i64(uniform int8 *uniform, UIntMaskType);
-EXT inline varying double __masked_load_double(uniform int8 *uniform, UIntMaskType);
+EXT inline varying int8 __masked_load_i8(varying int8 *uniform, UIntMaskType);
+EXT inline varying int16 __masked_load_i16(varying int16 *uniform, UIntMaskType);
+EXT inline varying float16 __masked_load_half(varying float16 *uniform, UIntMaskType);
+EXT inline varying int32 __masked_load_i32(varying int32 *uniform, UIntMaskType);
+EXT inline varying float __masked_load_float(varying float *uniform, UIntMaskType);
+EXT inline varying int64 __masked_load_i64(varying int64 *uniform, UIntMaskType);
+EXT inline varying double __masked_load_double(varying double *uniform, UIntMaskType);
 
 EXT inline void __masked_store_i8(NOESCAPE varying int8 *uniform, varying int8, UIntMaskType);
 EXT inline void __masked_store_i16(NOESCAPE varying int16 *uniform, varying int16, UIntMaskType);

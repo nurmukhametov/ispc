@@ -931,26 +931,35 @@ UNMANGLED CDECL void __delete_varying_64rt(varying int64 addr) {
 }
 #endif // BUILD_OS == WINDOWS && RUNTIME == 64
 
-// // // various bitcasts from one type to another
-// // EXT inline READNONE uniform double __doublebits_uniform_int64(uniform int64);
-// // EXT inline READNONE varying double __doublebits_varying_int64(varying int64);
-// // EXT inline READNONE uniform float __floatbits_uniform_int32(uniform int32);
-// // EXT inline READNONE varying float __floatbits_varying_int32(varying int32);
-// // EXT inline READNONE uniform float16 __halfbits_uniform_int16(uniform int16);
-// // EXT inline READNONE varying float16 __halfbits_varying_int16(varying int16);
-// // EXT inline READNONE uniform int64 __intbits_uniform_double(uniform double);
-// // EXT inline READNONE uniform int32 __intbits_uniform_float(uniform float);
-// // EXT inline READNONE uniform int16 __intbits_uniform_half(uniform float16);
-// // EXT inline READNONE varying int64 __intbits_varying_double(varying double);
-// // EXT inline READNONE varying int32 __intbits_varying_float(varying float);
-// // EXT inline READNONE varying int16 __intbits_varying_half(varying float16);
-// // EXT uniform float __undef_uniform();
-// // EXT varying float __undef_varying();
-// // EXT varying int8 __masked_load_i8(uniform int8 *uniform, UIntMaskType);
-// // EXT varying int16 __masked_load_i16(uniform int8 *uniform, UIntMaskType);
-// // EXT varying int32 __masked_load_i32(uniform int8 *uniform, UIntMaskType);
-// // EXT varying int64 __masked_load_i64(uniform int8 *uniform, UIntMaskType);
-// // 
+EXT varying int8 __masked_load_i8(varying int8 *uniform ptr, UIntMaskType mask) {
+    varying int8 passthru;
+    return @llvm.masked.load((uniform int8 * uniform) ptr, 1, mask, passthru);
+}
+EXT varying int16 __masked_load_i16(varying int16 *uniform ptr, UIntMaskType mask) {
+    varying int16 passthru;
+    return @llvm.masked.load((uniform int8 * uniform) ptr, 1, mask, passthru);
+}
+EXT varying int32 __masked_load_i32(varying int32 *uniform ptr, UIntMaskType mask) {
+    varying int32 passthru;
+    return @llvm.masked.load((uniform int8 * uniform) ptr, 1, mask, passthru);
+}
+EXT varying int64 __masked_load_i64(varying int64 *uniform ptr, UIntMaskType mask) {
+    varying int64 passthru;
+    return @llvm.masked.load((uniform int8 * uniform) ptr, 1, mask, passthru);
+}
+EXT varying float16 __masked_load_half(varying float16 *uniform ptr, UIntMaskType mask) {
+    varying float16 passthru;
+    return @llvm.masked.load((uniform int8 * uniform) ptr, 1, mask, passthru);
+}
+EXT varying float __masked_load_float(varying float *uniform ptr, UIntMaskType mask) {
+    varying float passthru;
+    return @llvm.masked.load((uniform int8 * uniform) ptr, 1, mask, passthru);
+}
+EXT varying double __masked_load_double(varying double *uniform ptr, UIntMaskType mask) {
+    varying double passthru;
+    return @llvm.masked.load((uniform int8 * uniform) ptr, 1, mask, passthru);
+}
+
 // // EXT varying float16 __masked_load_half(uniform int8 *uniform ptr, UIntMaskType mask) {
 // //     return __halfbits_varying_int16(__masked_load_i16(ptr, mask));
 // // }
