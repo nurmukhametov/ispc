@@ -6988,16 +6988,6 @@ define float @__rcp_uniform_float(float %v) nounwind readonly alwaysinline {
 ')
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; sqrt
-
-declare <4 x float> @llvm.x86.sse.sqrt.ss(<4 x float>) nounwind readnone
-
-define float @__sqrt_uniform_float(float) nounwind readonly alwaysinline {
-  sse_unary_scalar(ret, 4, float, @llvm.x86.sse.sqrt.ss, %0)
-  ret float %ret
-}
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; switch macro
 ;; This is required to ensure that gather intrinsics are used with constant scale value.
 ;; This particular implementation of the routine is used by avx512 targets only.
@@ -7290,33 +7280,6 @@ define <4 x double> @__min_varying_double(<4 x double>, <4 x double>) nounwind r
 define <4 x double> @__max_varying_double(<4 x double>, <4 x double>) nounwind readnone alwaysinline {
   %res = call <4 x double> @llvm.x86.avx512.mask.max.pd.128(<4 x double> %0, <4 x double> %1, <4 x double> zeroinitializer, i8 -1)
   ret <4 x double> %res 
-}
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; sqrt
-
-declare <4 x float> @llvm.x86.avx512.mask.sqrt.ps.128(<4 x float>, <4 x float>, i8) nounwind readnone
-
-define <4 x float> @__sqrt_varying_float(<4 x float>) nounwind readonly alwaysinline {
-  %res = call <4 x float> @llvm.x86.avx512.mask.sqrt.ps.128(<4 x float> %0, <4 x float> zeroinitializer, i8 -1)
-  ret <4 x float> %res
-}
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; double precision sqrt
-
-declare <2 x double> @llvm.x86.sse2.sqrt.sd(<2 x double>) nounwind readnone
-
-define double @__sqrt_uniform_double(double) nounwind alwaysinline {
-  sse_unary_scalar(ret, 2, double, @llvm.x86.sse2.sqrt.sd, %0)
-  ret double %ret
-}
-
-declare <4 x double> @llvm.x86.avx512.mask.sqrt.pd.256(<4 x double>, <4 x double>, i8) nounwind readnone
-
-define <4 x double> @__sqrt_varying_double(<4 x double>) nounwind alwaysinline {
-  %res = call <4 x double> @llvm.x86.avx512.mask.sqrt.pd.256(<4 x double> %0,  <4 x double> zeroinitializer, i8 -1)
-  ret <4 x double> %res
 }
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

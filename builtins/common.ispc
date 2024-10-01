@@ -174,10 +174,12 @@ EXT READNONE varying float __round_varying_float(varying float x) { return @llvm
 // EXT READNONE uniform float __rsqrt_fast_uniform_float(uniform float x) { return 1 / @llvm.sqrt(x); }
 // EXT READNONE varying float __rsqrt_varying_float(varying float x) { return 1 / @llvm.sqrt(x);}
 // EXT READNONE uniform float __rsqrt_uniform_float(uniform float x) { return 1 / @llvm.sqrt(x); }
-// EXT READNONE uniform double __sqrt_uniform_double(uniform double x) { return @llvm.sqrt(x); }
-// EXT READNONE uniform float __sqrt_uniform_float(uniform float x) { return @llvm.sqrt(x); }
-// EXT READNONE varying double __sqrt_varying_double(varying double x) { return @llvm.sqrt(x); }
-// EXT READNONE varying float __sqrt_varying_float(varying float x) { return @llvm.sqrt(x); }
+
+// sqrt for floats and doubles
+EXT READNONE uniform double __sqrt_uniform_double(uniform double x) { return @llvm.sqrt(x); }
+EXT READNONE uniform float __sqrt_uniform_float(uniform float x) { return @llvm.sqrt(x); }
+EXT READNONE varying double __sqrt_varying_double(varying double x) { return @llvm.sqrt(x); }
+EXT READNONE varying float __sqrt_varying_float(varying float x) { return @llvm.sqrt(x); }
 
 // Implements uniform and varying trunc() for float and double types.
 EXT READNONE uniform double __trunc_uniform_double(uniform double x) { return @llvm.trunc(x); }
