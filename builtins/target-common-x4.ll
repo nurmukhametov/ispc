@@ -6962,30 +6962,6 @@ define float @__rsqrt_uniform_float(float) nounwind readonly alwaysinline {
 
 ')
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; rcp
-
-define(`rcp14_uniform', `
-declare <4 x float> @llvm.x86.avx512.rcp14.ss(<4 x float>, <4 x float>, <4 x float>, i8) nounwind readnone
-define float @__rcp_fast_uniform_float(float) nounwind readonly alwaysinline {
-  %vecval = insertelement <4 x float> undef, float %0, i32 0
-  %call = call <4 x float> @llvm.x86.avx512.rcp14.ss(<4 x float> %vecval, <4 x float> %vecval, <4 x float> undef, i8 -1)
-  %scall = extractelement <4 x float> %call, i32 0
-  ret float %scall
-}
-
-define float @__rcp_uniform_float(float %v) nounwind readonly alwaysinline {
-  %iv = call float @__rcp_fast_uniform_float(float %v)
-
-  ; do one N-R iteration to improve precision
-  ; iv = rcp(v)
-  ; iv * (2. - v * iv)
-  %v_iv = fmul float %v, %iv
-  %two_minus = fsub float 2., %v_iv
-  %iv_mul = fmul float %iv, %two_minus
-  ret float %iv_mul
-}
-')
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; switch macro
@@ -7888,24 +7864,6 @@ define_prefetches()
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; rcp, rsqrt
-
-rcp14_uniform()
-;; rcp float
-declare <4 x float> @llvm.x86.avx512.rcp14.ps.128(<4 x float>, <4 x float>, i8) nounwind readnone
-define <4 x float> @__rcp_fast_varying_float(<4 x float>) nounwind readonly alwaysinline {
-  %ret = call <4 x float> @llvm.x86.avx512.rcp14.ps.128(<4 x float> %0, <4 x float> undef, i8 -1)
-  ret <4 x float> %ret
-}
-define <4 x float> @__rcp_varying_float(<4 x float>) nounwind readonly alwaysinline {
-  %call = call <4 x float> @__rcp_fast_varying_float(<4 x float> %0)
-  ;; do one Newton-Raphson iteration to improve precision
-  ;;  float iv = __rcp_v(v);
-  ;;  return iv * (2. - v * iv);
-  %v_iv = fmul <4 x float> %0, %call
-  %two_minus = fsub <4 x float> <float 2., float 2., float 2., float 2.>, %v_iv
-  %iv_mul = fmul <4 x float> %call,  %two_minus
-  ret <4 x float> %iv_mul
-}
 
 rsqrt14_uniform()
 ;; rsqrt float
