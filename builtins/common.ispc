@@ -219,15 +219,15 @@ EXT varying int16 __float_to_half_varying(varying float x) { return x; }
 EXT uniform float __half_to_float_uniform(uniform int16 x) { return x; }
 EXT varying float __half_to_float_varying(varying int16 x) { return x; }
 
-// EXT void __prefetch_read_sized_uniform_1(uniform int8 *uniform, uniform int8) { @llvm.trap(); }
-// EXT void __prefetch_read_sized_uniform_2(uniform int8 *uniform, uniform int8) { @llvm.trap(); }
-// EXT void __prefetch_read_sized_uniform_3(uniform int8 *uniform, uniform int8) { @llvm.trap(); }
-// EXT void __prefetch_read_sized_uniform_nt(uniform int8 *uniform, uniform int8) { @llvm.trap(); }
-// EXT void __prefetch_read_sized_varying_1(varying int64, uniform int8, UIntMaskType) { @llvm.trap(); }
-// EXT void __prefetch_read_sized_varying_2(varying int64, uniform int8, UIntMaskType) { @llvm.trap(); }
-// EXT void __prefetch_read_sized_varying_3(varying int64, uniform int8, UIntMaskType) { @llvm.trap(); }
-// EXT void __prefetch_read_sized_varying_nt(varying int64, uniform int8, UIntMaskType) { @llvm.trap(); }
-// 
+EXT void __prefetch_read_sized_uniform_1(uniform int8 *uniform, uniform int8) { __not_supported(); }
+EXT void __prefetch_read_sized_uniform_2(uniform int8 *uniform, uniform int8) { __not_supported(); }
+EXT void __prefetch_read_sized_uniform_3(uniform int8 *uniform, uniform int8) { __not_supported(); }
+EXT void __prefetch_read_sized_uniform_nt(uniform int8 *uniform, uniform int8) { __not_supported(); }
+EXT void __prefetch_read_sized_varying_1(varying int64, uniform int8, UIntMaskType) { __not_supported(); }
+EXT void __prefetch_read_sized_varying_2(varying int64, uniform int8, UIntMaskType) { __not_supported(); }
+EXT void __prefetch_read_sized_varying_3(varying int64, uniform int8, UIntMaskType) { __not_supported(); }
+EXT void __prefetch_read_sized_varying_nt(varying int64, uniform int8, UIntMaskType) { __not_supported(); }
+
 // // EXT void __memcpy32(uniform int8 *uniform dst, uniform int8 *uniform src, uniform int32 len) {
 // //     @llvm.memcpy(dst, src, len, false);
 // // }
