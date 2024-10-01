@@ -4468,24 +4468,6 @@ define float @__undef_uniform() nounwind readnone alwaysinline {
 }
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; sign extension
-
-define i32 @__sext_uniform_bool(i1) nounwind readnone alwaysinline {
-  %r = sext i1 %0 to i32
-  ret i32 %r
-}
-
-define <WIDTH x i32> @__sext_varying_bool(<WIDTH x MASK>) nounwind readnone alwaysinline {
-;;  ifelse(MASK,i32, `ret <WIDTH x i32> %0',
-;; `%se = sext <WIDTH x MASK> %0 to <WIDTH x i32>
-;; ret <WIDTH x i32> %se')
-  ifelse(MASK,i32, `%se = bitcast <WIDTH x i32> %0 to <WIDTH x i32>',
-         MASK,i64, `%se = trunc <WIDTH x MASK> %0 to <WIDTH x i32>',
-                   `%se = sext <WIDTH x MASK> %0 to <WIDTH x i32>')
-  ret <WIDTH x i32> %se
-}
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; read hw clock
 
 declare i64 @llvm.readcyclecounter()

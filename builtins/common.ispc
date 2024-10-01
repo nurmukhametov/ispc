@@ -266,6 +266,10 @@ EXT void __do_assert_varying(uniform int8 *uniform str, UIntMaskType test, UIntM
     }
 }
 
+// sign extension
+EXT READNONE uniform int32 __sext_uniform_bool(uniform bool x) { return x ? -1 : 0; }
+EXT READNONE varying int32 __sext_varying_bool(bool x) { return x ? -1 : 0; }
+
 // // read hw clock
 // // Fix: generation of llvm.intrinsic here
 // // EXT uniform int64 __clock() {
