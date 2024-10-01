@@ -4245,36 +4245,6 @@ define void
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-define(`masked_store_float_double', `
-define void @__masked_store_blend_float(<WIDTH x float> * nocapture, <WIDTH x float>,
-                                        <WIDTH x MASK>) nounwind alwaysinline {
-  %ptr = bitcast <WIDTH x float> * %0 to <WIDTH x i32> *
-  %val = bitcast <WIDTH x float> %1 to <WIDTH x i32>
-  call void @__masked_store_blend_i32(<WIDTH x i32> * %ptr, <WIDTH x i32> %val, <WIDTH x MASK> %2)
-  ret void
-}
-
-
-define void @__masked_store_blend_double(<WIDTH x double> * nocapture, <WIDTH x double>,
-                                         <WIDTH x MASK>) nounwind alwaysinline {
-  %ptr = bitcast <WIDTH x double> * %0 to <WIDTH x i64> *
-  %val = bitcast <WIDTH x double> %1 to <WIDTH x i64>
-  call void @__masked_store_blend_i64(<WIDTH x i64> * %ptr, <WIDTH x i64> %val, <WIDTH x MASK> %2)
-  ret void
-}
-
-
-define void @__masked_store_blend_half(<WIDTH x half> * nocapture, <WIDTH x half>,
-                                        <WIDTH x MASK>) nounwind alwaysinline {
-  %ptr = bitcast <WIDTH x half> * %0 to <WIDTH x i16> *
-  %val = bitcast <WIDTH x half> %1 to <WIDTH x i16>
-  call void @__masked_store_blend_i16(<WIDTH x i16> * %ptr, <WIDTH x i16> %val, <WIDTH x MASK> %2)
-  ret void
-}
-')
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
 
 define(`stdlib_core', `
 
@@ -4690,119 +4660,6 @@ define(`gen_streaming_loads', `
 ')
 
 gen_streaming_loads()
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; masked store
-;; emit code to do masked store as a set of per-lane scalar stores
-;; parameters:
-;; $1: llvm type of elements (and suffix for function name)
-
-define(`gen_masked_store', `
-define void @__masked_store_$1(<WIDTH x $1>* nocapture, <WIDTH x $1>, <WIDTH x MASK>) nounwind alwaysinline {
-  per_lane(WIDTH, <WIDTH x MASK> %2, `
-      %ptr_LANE_ID = getelementptr PTR_OP_ARGS(`<WIDTH x $1>') %0, i32 0, i32 LANE
-      %storeval_LANE_ID = extractelement <WIDTH x $1> %1, i32 LANE
-      store $1 %storeval_LANE_ID, $1 * %ptr_LANE_ID')
-  ret void
-}
-')
-
-define(`masked_store_blend_8_16_by_4', `
-define void @__masked_store_blend_i8(<4 x i8>* nocapture, <4 x i8>,
-                                     <4 x i32>) nounwind alwaysinline {
-  %old = load PTR_OP_ARGS(`<4 x i8> ')  %0, align 1
-
-  %m = trunc <4 x i32> %2 to <4 x i1>
-  %resultvec = select <4 x i1> %m, <4 x i8> %1, <4 x i8> %old
-
-  store <4 x i8> %resultvec, <4 x i8> * %0, align 1
-  ret void
-}
-
-define void @__masked_store_blend_i16(<4 x i16>* nocapture, <4 x i16>,
-                                      <4 x i32>) nounwind alwaysinline {
-  %old = load PTR_OP_ARGS(`<4 x i16> ')  %0, align 2
-
-  %m = trunc <4 x i32> %2 to <4 x i1>
-  %resultvec = select <4 x i1> %m, <4 x i16> %1, <4 x i16> %old
-
-  store <4 x i16> %resultvec, <4 x i16> * %0, align 2
-  ret void
-}
-')
-
-define(`masked_store_blend_8_16_by_4_mask64', `
-define void @__masked_store_blend_i8(<4 x i8>* nocapture, <4 x i8>,
-                                     <4 x i64>) nounwind alwaysinline {
-  %old = load PTR_OP_ARGS(`<4 x i8> ')  %0, align 1
-
-  %m = trunc <4 x i64> %2 to <4 x i1>
-  %resultvec = select <4 x i1> %m, <4 x i8> %1, <4 x i8> %old
-
-  store <4 x i8> %resultvec, <4 x i8> * %0, align 1
-  ret void
-}
-
-define void @__masked_store_blend_i16(<4 x i16>* nocapture, <4 x i16>,
-                                      <4 x i64>) nounwind alwaysinline {
-  %old = load PTR_OP_ARGS(`<4 x i16> ')  %0, align 2
-
-  %m = trunc <4 x i64> %2 to <4 x i1>
-  %resultvec = select <4 x i1> %m, <4 x i16> %1, <4 x i16> %old
-
-  store <4 x i16> %resultvec, <4 x i16> * %0, align 2
-  ret void
-}
-')
-
-define(`masked_store_blend_8_16_by_8', `
-define void @__masked_store_blend_i8(<8 x i8>* nocapture, <8 x i8>,
-                                     <8 x i32>) nounwind alwaysinline {
-  %old = load PTR_OP_ARGS(`<8 x i8> ')  %0, align 1
-
-  %m = trunc <8 x i32> %2 to <8 x i1>
-  %resultvec = select <8 x i1> %m, <8 x i8> %1, <8 x i8> %old
-
-  store <8 x i8> %resultvec, <8 x i8> * %0, align 1
-  ret void
-}
-
-define void @__masked_store_blend_i16(<8 x i16>* nocapture, <8 x i16>,
-                                      <8 x i32>) nounwind alwaysinline {
-  %old = load PTR_OP_ARGS(`<8 x i16> ')  %0, align 2
-
-  %m = trunc <8 x i32> %2 to <8 x i1>
-  %resultvec = select <8 x i1> %m, <8 x i16> %1, <8 x i16> %old
-
-  store <8 x i16> %resultvec, <8 x i16> * %0, align 2
-  ret void
-}
-')
-
-
-define(`masked_store_blend_8_16_by_16', `
-define void @__masked_store_blend_i8(<16 x i8>* nocapture, <16 x i8>,
-                                     <16 x i32>) nounwind alwaysinline {
-  %old = load PTR_OP_ARGS(`<16 x i8> ')  %0, align 1
-
-  %m = trunc <16 x i32> %2 to <16 x i1>
-  %resultvec = select <16 x i1> %m, <16 x i8> %1, <16 x i8> %old
-
-  store <16 x i8> %resultvec, <16 x i8> * %0, align 1
-  ret void
-}
-
-define void @__masked_store_blend_i16(<16 x i16>* nocapture, <16 x i16>,
-                                      <16 x i32>) nounwind alwaysinline {
-  %old = load PTR_OP_ARGS(`<16 x i16> ')  %0, align 2
-
-  %m = trunc <16 x i32> %2 to <16 x i1>
-  %resultvec = select <16 x i1> %m, <16 x i16> %1, <16 x i16> %old
-
-  store <16 x i16> %resultvec, <16 x i16> * %0, align 2
-  ret void
-}
-')
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; packed load and store helper functions
@@ -5850,61 +5707,13 @@ define i1 @__none(<WIDTH x MASK> %mask) nounwind readnone alwaysinline {
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; unaligned loads/loads+broadcasts
 
-define void @__masked_store_blend_i8(<4 x i8>* nocapture, <4 x i8>,
-                                     <WIDTH x MASK>) nounwind alwaysinline {
-  %v = load PTR_OP_ARGS(`<4 x i8> ')  %0
-  %v1 = select <WIDTH x i1> %2, <4 x i8> %1, <4 x i8> %v
-  store <4 x i8> %v1, <4 x i8> * %0
-  ret void
-}
-
-define void @__masked_store_blend_i16(<4 x i16>* nocapture, <4 x i16>,
-                                      <WIDTH x MASK>) nounwind alwaysinline {
-  %v = load PTR_OP_ARGS(`<4 x i16> ')  %0
-  %v1 = select <WIDTH x i1> %2, <4 x i16> %1, <4 x i16> %v
-  store <4 x i16> %v1, <4 x i16> * %0
-  ret void
-}
-
-define void @__masked_store_blend_half(<4 x half>* nocapture, <4 x half>,
-                                        <WIDTH x MASK>) nounwind alwaysinline {
-  %v = load PTR_OP_ARGS(`<4 x half> ')  %0
-  %v1 = select <WIDTH x i1> %2, <4 x half> %1, <4 x half> %v
-  store <4 x half> %v1, <4 x half> * %0
-  ret void
-}
-
-define void @__masked_store_blend_i32(<4 x i32>* nocapture, <4 x i32>,
-                                      <WIDTH x MASK>) nounwind alwaysinline {
-  %v = load PTR_OP_ARGS(`<4 x i32> ')  %0
-  %v1 = select <WIDTH x i1> %2, <4 x i32> %1, <4 x i32> %v
-  store <4 x i32> %v1, <4 x i32> * %0
-  ret void
-}
-
-define void @__masked_store_blend_float(<4 x float>* nocapture, <4 x float>, 
-                                        <WIDTH x MASK>) nounwind alwaysinline {
-  %v = load PTR_OP_ARGS(`<4 x float> ')  %0
-  %v1 = select <WIDTH x i1> %2, <4 x float> %1, <4 x float> %v
-  store <4 x float> %v1, <4 x float> * %0
-  ret void
-}
-
-define void @__masked_store_blend_i64(<4 x i64>* nocapture,
-                            <4 x i64>, <WIDTH x MASK>) nounwind alwaysinline {
-  %v = load PTR_OP_ARGS(`<4 x i64> ')  %0
-  %v1 = select <WIDTH x i1> %2, <4 x i64> %1, <4 x i64> %v
-  store <4 x i64> %v1, <4 x i64> * %0
-  ret void
-}
-
-define void @__masked_store_blend_double(<4 x double>* nocapture,
-                            <4 x double>, <WIDTH x MASK>) nounwind alwaysinline {
-  %v = load PTR_OP_ARGS(`<4 x double> ')  %0
-  %v1 = select <WIDTH x i1> %2, <4 x double> %1, <4 x double> %v
-  store <4 x double> %v1, <4 x double> * %0
-  ret void
-}
+declare void @__masked_store_blend_i8(<4 x i8>* nocapture, <4 x i8>, <WIDTH x MASK>) nounwind alwaysinline
+declare void @__masked_store_blend_i16(<4 x i16>* nocapture, <4 x i16>, <WIDTH x MASK>) nounwind alwaysinline
+declare void @__masked_store_blend_half(<4 x half>* nocapture, <4 x half>, <WIDTH x MASK>) nounwind alwaysinline
+declare void @__masked_store_blend_i32(<4 x i32>* nocapture, <4 x i32>, <WIDTH x MASK>) nounwind alwaysinline
+declare void @__masked_store_blend_float(<4 x float>* nocapture, <4 x float>, <WIDTH x MASK>) nounwind alwaysinline
+declare void @__masked_store_blend_i64(<4 x i64>* nocapture, <4 x i64>, <WIDTH x MASK>) nounwind alwaysinline
+declare void @__masked_store_blend_double(<4 x double>* nocapture, <4 x double>, <WIDTH x MASK>) nounwind alwaysinline
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; gather/scatter
