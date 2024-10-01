@@ -5709,21 +5709,6 @@ aossoa()
 fastMathFTZDAZ_x86()
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; double precision min/max
-
-define double @__min_uniform_double(double, double) nounwind readnone alwaysinline {
-  %cmp = fcmp ogt double %1, %0
-  %ret = select i1 %cmp, double %0, double %1
-  ret double %ret
-}
-
-define double @__max_uniform_double(double, double) nounwind readnone alwaysinline {
-  %cmp = fcmp ogt double %1, %0
-  %ret = select i1 %cmp, double %1, double %0
-  ret double %ret
-}
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; switch macro
 ;; This is required to ensure that gather intrinsics are used with constant scale value.
 ;; This particular implementation of the routine is used by avx512 targets only.
@@ -5924,22 +5909,6 @@ define i8 @__cast_mask_to_i8 (<WIDTH x MASK> %mask) alwaysinline {
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; min/max
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; double precision min/max
-
-declare <4 x double> @llvm.x86.avx512.mask.min.pd.128(<4 x double>, <4 x double>, <4 x double>, i8)
-declare <4 x double> @llvm.x86.avx512.mask.max.pd.128(<4 x double>, <4 x double>, <4 x double>, i8)
-
-define <4 x double> @__min_varying_double(<4 x double>, <4 x double>) nounwind readnone alwaysinline {
-  %res = call <4 x double> @llvm.x86.avx512.mask.min.pd.128(<4 x double> %0, <4 x double> %1, <4 x double> zeroinitializer, i8 -1)
-  ret <4 x double> %res                       
-}
-
-define <4 x double> @__max_varying_double(<4 x double>, <4 x double>) nounwind readnone alwaysinline {
-  %res = call <4 x double> @llvm.x86.avx512.mask.max.pd.128(<4 x double> %0, <4 x double> %1, <4 x double> zeroinitializer, i8 -1)
-  ret <4 x double> %res 
-}
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; svml
