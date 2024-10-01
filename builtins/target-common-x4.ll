@@ -4599,51 +4599,8 @@ define double @__atomic_compare_exchange_uniform_double_global(i8 * %ptr, double
 
 ')
 
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; 64-bit integer min and max functions
-
-;; utility function used by int64minmax below.  This shouldn't be called by
-;; target .ll files directly.
-;; $1: target vector width
-;; $2: {min,max} (used in constructing function names)
-;; $3: {int64,uint64} (used in constructing function names)
-;; $4: {slt,sgt} comparison operator to used
-
-define(`i64minmax', `
-define i64 @__$2_uniform_$3(i64, i64) nounwind alwaysinline readnone {
-  %c = icmp $4 i64 %0, %1
-  %r = select i1 %c, i64 %0, i64 %1
-  ret i64 %r
-}
-
-define <$1 x i64> @__$2_varying_$3(<$1 x i64>, <$1 x i64>) nounwind alwaysinline readnone {
-  %rptr = alloca <$1 x i64>
-  %r64ptr = bitcast <$1 x i64> * %rptr to i64 *
-
-  forloop(i, 0, eval($1-1), `
-  %v0_`'i = extractelement <$1 x i64> %0, i32 i
-  %v1_`'i = extractelement <$1 x i64> %1, i32 i
-  %c_`'i = icmp $4 i64 %v0_`'i, %v1_`'i
-  %v_`'i = select i1 %c_`'i, i64 %v0_`'i, i64 %v1_`'i
-  %ptr_`'i = getelementptr PTR_OP_ARGS(`i64') %r64ptr, i32 i
-  store i64 %v_`'i, i64 * %ptr_`'i
-')
-
-  %ret = load PTR_OP_ARGS(`<$1 x i64> ')  %rptr
-  ret <$1 x i64> %ret
-}
-')
-
 ;; this is the function that target .ll files should call; it just takes the target
 ;; vector width as a parameter
-
-define(`int64minmax', `
-i64minmax(WIDTH,min,int64,slt)
-i64minmax(WIDTH,max,int64,sgt)
-i64minmax(WIDTH,min,uint64,ult)
-i64minmax(WIDTH,max,uint64,ugt)
-')
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; fast math, FTZ/DAZ functions
@@ -5752,35 +5709,6 @@ aossoa()
 fastMathFTZDAZ_x86()
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; min/max
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; int64/uint64 min/max
-define i64 @__max_uniform_int64(i64, i64) nounwind readonly alwaysinline {
-  %c = icmp sgt i64 %0, %1
-  %r = select i1 %c, i64 %0, i64 %1
-  ret i64 %r
-}
-
-define i64 @__max_uniform_uint64(i64, i64) nounwind readonly alwaysinline {
-  %c = icmp ugt i64 %0, %1
-  %r = select i1 %c, i64 %0, i64 %1
-  ret i64 %r
-}
-
-define i64 @__min_uniform_int64(i64, i64) nounwind readonly alwaysinline {
-  %c = icmp slt i64 %0, %1
-  %r = select i1 %c, i64 %0, i64 %1
-  ret i64 %r
-}
-
-define i64 @__min_uniform_uint64(i64, i64) nounwind readonly alwaysinline {
-  %c = icmp ult i64 %0, %1
-  %r = select i1 %c, i64 %0, i64 %1
-  ret i64 %r
-}
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; float min/max
 
 define float @__max_uniform_float(float, float) nounwind readonly alwaysinline {
@@ -6041,34 +5969,6 @@ define i8 @__cast_mask_to_i8 (<WIDTH x MASK> %mask) alwaysinline {
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; min/max
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; int64/uint64 min/max
-
-declare <4 x i64> @llvm.x86.avx512.mask.pmaxs.q.256(<4 x i64>, <4 x i64>, <4 x i64>, i8)
-declare <4 x i64> @llvm.x86.avx512.mask.pmaxu.q.256(<4 x i64>, <4 x i64>, <4 x i64>, i8)
-declare <4 x i64> @llvm.x86.avx512.mask.pmins.q.256(<4 x i64>, <4 x i64>, <4 x i64>, i8)
-declare <4 x i64> @llvm.x86.avx512.mask.pminu.q.256(<4 x i64>, <4 x i64>, <4 x i64>, i8)
-
-define <4 x i64> @__max_varying_int64(<4 x i64>, <4 x i64>) nounwind readonly alwaysinline {
-  %res = call <4 x i64> @llvm.x86.avx512.mask.pmaxs.q.256(<4 x i64> %0, <4 x i64> %1, <4 x i64>zeroinitializer, i8 -1)
-  ret <4 x i64> %res
-}
-
-define <4 x i64> @__max_varying_uint64(<4 x i64>, <4 x i64>) nounwind readonly alwaysinline {
-  %res = call <4 x i64> @llvm.x86.avx512.mask.pmaxu.q.256(<4 x i64> %0, <4 x i64> %1, <4 x i64>zeroinitializer, i8 -1)
-  ret <4 x i64> %res
-}
-
-define <4 x i64> @__min_varying_int64(<4 x i64>, <4 x i64>) nounwind readonly alwaysinline {
-  %res = call <4 x i64> @llvm.x86.avx512.mask.pmins.q.256(<4 x i64> %0, <4 x i64> %1, <4 x i64>zeroinitializer, i8 -1)
-  ret <4 x i64> %res
-}
-
-define <4 x i64> @__min_varying_uint64(<4 x i64>, <4 x i64>) nounwind readonly alwaysinline {
-  %res = call <4 x i64> @llvm.x86.avx512.mask.pminu.q.256(<4 x i64> %0, <4 x i64> %1, <4 x i64>zeroinitializer, i8 -1)
-  ret <4 x i64> %res
-}
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; float min/max

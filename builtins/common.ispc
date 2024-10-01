@@ -559,6 +559,16 @@ EXT READNONE uniform uint64 __reduce_max_uint64(varying uint64 x) {
     return max;
 }
 
+// 64-bit integer min and max functions
+EXT READNONE uniform int64 __min_uniform_int64(uniform int64 x, uniform int64 y) { return x < y ? x : y; }
+EXT READNONE uniform int64 __max_uniform_int64(uniform int64 x, uniform int64 y) { return x > y ? x : y; }
+EXT READNONE varying int64 __min_varying_int64(varying int64 x, varying int64 y) { return x < y ? x : y; }
+EXT READNONE varying int64 __max_varying_int64(varying int64 x, varying int64 y) { return x > y ? x : y; }
+EXT READNONE uniform uint64 __min_uniform_uint64(uniform uint64 x, uniform uint64 y) { return x < y ? x : y; }
+EXT READNONE uniform uint64 __max_uniform_uint64(uniform uint64 x, uniform uint64 y) { return x > y ? x : y; }
+EXT READNONE varying uint64 __min_varying_uint64(varying uint64 x, varying uint64 y) { return x < y ? x : y; }
+EXT READNONE varying uint64 __max_varying_uint64(varying uint64 x, varying uint64 y) { return x > y ? x : y; }
+
 // // #if TARGET_WIDTH == 2
 // // #define ONE_INITIALIZER 1, 1
 // // #elif TARGET_WIDTH == 4

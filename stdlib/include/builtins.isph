@@ -527,29 +527,29 @@ EXT inline READNONE uniform float __max_uniform_float(uniform float, uniform flo
 EXT inline READNONE uniform float16 __max_uniform_half(uniform float16, uniform float16);
 EXT inline READNONE uniform int32 __max_uniform_int32(uniform int32, uniform int32);
 EXT inline READNONE uniform int64 __max_uniform_int64(uniform int64, uniform int64);
-EXT inline READNONE uniform int32 __max_uniform_uint32(uniform int32, uniform int32);
-EXT inline READNONE uniform int64 __max_uniform_uint64(uniform int64, uniform int64);
+EXT inline READNONE uniform uint32 __max_uniform_uint32(uniform uint32, uniform uint32);
+EXT inline READNONE uniform uint64 __max_uniform_uint64(uniform uint64, uniform uint64);
 EXT inline READNONE varying double __max_varying_double(varying double, varying double);
 EXT inline READNONE varying float __max_varying_float(varying float, varying float);
 EXT inline READNONE varying float16 __max_varying_half(varying float16, varying float16);
 EXT inline READNONE varying int32 __max_varying_int32(varying int32, varying int32);
 EXT inline READNONE varying int64 __max_varying_int64(varying int64, varying int64);
-EXT inline READNONE varying int32 __max_varying_uint32(varying int32, varying int32);
-EXT inline READNONE varying int64 __max_varying_uint64(varying int64, varying int64);
+EXT inline READNONE varying uint32 __max_varying_uint32(varying uint32, varying uint32);
+EXT inline READNONE varying uint64 __max_varying_uint64(varying uint64, varying uint64);
 EXT inline READNONE uniform double __min_uniform_double(uniform double, uniform double);
 EXT inline READNONE uniform float __min_uniform_float(uniform float, uniform float);
 EXT inline READNONE uniform float16 __min_uniform_half(uniform float16, uniform float16);
 EXT inline READNONE uniform int32 __min_uniform_int32(uniform int32, uniform int32);
 EXT inline READNONE uniform int64 __min_uniform_int64(uniform int64, uniform int64);
-EXT inline READNONE uniform int32 __min_uniform_uint32(uniform int32, uniform int32);
-EXT inline READNONE uniform int64 __min_uniform_uint64(uniform int64, uniform int64);
+EXT inline READNONE uniform uint32 __min_uniform_uint32(uniform uint32, uniform uint32);
+EXT inline READNONE uniform uint64 __min_uniform_uint64(uniform uint64, uniform uint64);
 EXT inline READNONE varying double __min_varying_double(varying double, varying double);
 EXT inline READNONE varying float __min_varying_float(varying float, varying float);
 EXT inline READNONE varying float16 __min_varying_half(varying float16, varying float16);
 EXT inline READNONE varying int32 __min_varying_int32(varying int32, varying int32);
 EXT inline READNONE varying int64 __min_varying_int64(varying int64, varying int64);
-EXT inline READNONE varying int32 __min_varying_uint32(varying int32, varying int32);
-EXT inline READNONE varying int64 __min_varying_uint64(varying int64, varying int64);
+EXT inline READNONE varying uint32 __min_varying_uint32(varying uint32, varying uint32);
+EXT inline READNONE varying uint64 __min_varying_uint64(varying uint64, varying uint64);
 
 // TODO: rewrite using --enable-llvm-intrinsics in stdlib.ispc
 // memcpy/memmove/memset
