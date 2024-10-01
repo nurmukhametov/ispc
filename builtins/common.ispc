@@ -82,75 +82,59 @@ extern "C" void __not_supported();
 // EXT READNONE varying double __tan_varying_double(varying double) { @llvm.trap(); }
 // EXT READNONE varying float __tan_varying_float(varying float) { @llvm.trap(); }
 // EXT READNONE varying float16 __tan_varying_half(varying float16) { @llvm.trap(); }
-// 
-// // saturating math functions
-// // m_hasSaturatingArithmetic
-// // EXT uniform int64 __abs_ui64(uniform int64) { @llvm.trap(); }
-// // EXT varying int64 __abs_vi64(varying int64) { @llvm.trap(); }
-// EXT uniform int8 __padds_ui8(uniform int8, uniform int8) { @llvm.trap(); }
-// EXT uniform int16 __padds_ui16(uniform int16, uniform int16) { @llvm.trap(); }
-// EXT uniform int32 __padds_ui32(uniform int32, uniform int32) { @llvm.trap(); }
-// EXT uniform int64 __padds_ui64(uniform int64, uniform int64) { @llvm.trap(); }
-// EXT varying int8 __padds_vi8(varying int8, varying int8) { @llvm.trap(); }
-// EXT varying int16 __padds_vi16(varying int16, varying int16) { @llvm.trap(); }
-// EXT varying int32 __padds_vi32(varying int32, varying int32) { @llvm.trap(); }
-// EXT varying int64 __padds_vi64(varying int64, varying int64) { @llvm.trap(); }
-// EXT uniform int16 __paddus_ui16(uniform int16, uniform int16) { @llvm.trap(); }
-// EXT uniform int32 __paddus_ui32(uniform int32, uniform int32) { @llvm.trap(); }
-// EXT uniform int64 __paddus_ui64(uniform int64, uniform int64) { @llvm.trap(); }
-// EXT uniform int8 __paddus_ui8(uniform int8, uniform int8) { @llvm.trap(); }
-// EXT varying int16 __paddus_vi16(varying int16, varying int16) { @llvm.trap(); }
-// EXT varying int32 __paddus_vi32(varying int32, varying int32) { @llvm.trap(); }
-// EXT varying int64 __paddus_vi64(varying int64, varying int64) { @llvm.trap(); }
-// EXT varying int8 __paddus_vi8(varying int8, varying int8) { @llvm.trap(); }
-// // EXT uniform int16 __pdivs_ui16(uniform int16, uniform int16) { @llvm.trap(); }
-// // EXT uniform int32 __pdivs_ui32(uniform int32, uniform int32) { @llvm.trap(); }
-// // EXT uniform int64 __pdivs_ui64(uniform int64, uniform int64) { @llvm.trap(); }
-// // EXT uniform int8 __pdivs_ui8(uniform int8, uniform int8) { @llvm.trap(); }
-// // EXT varying int16 __pdivs_vi16(varying int16, varying int16) { @llvm.trap(); }
-// // EXT varying int32 __pdivs_vi32(varying int32, varying int32) { @llvm.trap(); }
-// // EXT varying int64 __pdivs_vi64(varying int64, varying int64) { @llvm.trap(); }
-// // EXT varying int8 __pdivs_vi8(varying int8, varying int8) { @llvm.trap(); }
-// // EXT uniform int16 __pdivus_ui16(uniform int16, uniform int16) { @llvm.trap(); }
-// // EXT uniform int32 __pdivus_ui32(uniform int32, uniform int32) { @llvm.trap(); }
-// // EXT uniform int64 __pdivus_ui64(uniform int64, uniform int64) { @llvm.trap(); }
-// // EXT uniform int8 __pdivus_ui8(uniform int8, uniform int8) { @llvm.trap(); }
-// // EXT varying int16 __pdivus_vi16(varying int16, varying int16) { @llvm.trap(); }
-// // EXT varying int32 __pdivus_vi32(varying int32, varying int32) { @llvm.trap(); }
-// // EXT varying int64 __pdivus_vi64(varying int64, varying int64) { @llvm.trap(); }
-// // EXT varying int8 __pdivus_vi8(varying int8, varying int8) { @llvm.trap(); }
-// EXT uniform int16 __pmuls_ui16(uniform int16, uniform int16) { @llvm.trap(); }
-// EXT uniform int32 __pmuls_ui32(uniform int32, uniform int32) { @llvm.trap(); }
-// EXT uniform int64 __pmuls_ui64(uniform int64, uniform int64) { @llvm.trap(); }
-// EXT uniform int8 __pmuls_ui8(uniform int8, uniform int8) { @llvm.trap(); }
-// EXT varying int16 __pmuls_vi16(varying int16, varying int16) { @llvm.trap(); }
-// EXT varying int32 __pmuls_vi32(varying int32, varying int32) { @llvm.trap(); }
-// EXT varying int64 __pmuls_vi64(varying int64, varying int64) { @llvm.trap(); }
-// EXT varying int8 __pmuls_vi8(varying int8, varying int8) { @llvm.trap(); }
-// EXT uniform int16 __pmulus_ui16(uniform int16, uniform int16) { @llvm.trap(); }
-// EXT uniform int32 __pmulus_ui32(uniform int32, uniform int32) { @llvm.trap(); }
-// EXT uniform int64 __pmulus_ui64(uniform int64, uniform int64) { @llvm.trap(); }
-// EXT uniform int8 __pmulus_ui8(uniform int8, uniform int8) { @llvm.trap(); }
-// EXT varying int16 __pmulus_vi16(varying int16, varying int16) { @llvm.trap(); }
-// EXT varying int32 __pmulus_vi32(varying int32, varying int32) { @llvm.trap(); }
-// EXT varying int64 __pmulus_vi64(varying int64, varying int64) { @llvm.trap(); }
-// EXT varying int8 __pmulus_vi8(varying int8, varying int8) { @llvm.trap(); }
-// EXT uniform int16 __psubs_ui16(uniform int16, uniform int16) { @llvm.trap(); }
-// EXT uniform int32 __psubs_ui32(uniform int32, uniform int32) { @llvm.trap(); }
-// EXT uniform int64 __psubs_ui64(uniform int64, uniform int64) { @llvm.trap(); }
-// EXT uniform int8 __psubs_ui8(uniform int8, uniform int8) { @llvm.trap(); }
-// EXT varying int16 __psubs_vi16(varying int16, varying int16) { @llvm.trap(); }
-// EXT varying int32 __psubs_vi32(varying int32, varying int32) { @llvm.trap(); }
-// EXT varying int64 __psubs_vi64(varying int64, varying int64) { @llvm.trap(); }
-// EXT varying int8 __psubs_vi8(varying int8, varying int8) { @llvm.trap(); }
-// EXT uniform int16 __psubus_ui16(uniform int16, uniform int16) { @llvm.trap(); }
-// EXT uniform int32 __psubus_ui32(uniform int32, uniform int32) { @llvm.trap(); }
-// EXT uniform int64 __psubus_ui64(uniform int64, uniform int64) { @llvm.trap(); }
-// EXT uniform int8 __psubus_ui8(uniform int8, uniform int8) { @llvm.trap(); }
-// EXT varying int16 __psubus_vi16(varying int16, varying int16) { @llvm.trap(); }
-// EXT varying int32 __psubus_vi32(varying int32, varying int32) { @llvm.trap(); }
-// EXT varying int64 __psubus_vi64(varying int64, varying int64) { @llvm.trap(); }
-// EXT varying int8 __psubus_vi8(varying int8, varying int8) { @llvm.trap(); }
+
+// saturating math functions
+// m_hasSaturatingArithmetic
+EXT uniform int64 __abs_ui64(uniform int64) { __not_supported(); }
+EXT varying int64 __abs_vi64(varying int64) { __not_supported(); }
+EXT uniform int8 __padds_ui8(uniform int8 x, uniform int8 y) { return @llvm.sadd.sat(x, y); }
+EXT uniform int16 __padds_ui16(uniform int16 x, uniform int16 y) { return @llvm.sadd.sat(x, y); }
+EXT uniform int32 __padds_ui32(uniform int32 x, uniform int32 y) { return @llvm.sadd.sat(x, y); }
+EXT uniform int64 __padds_ui64(uniform int64 x, uniform int64 y) { return @llvm.sadd.sat(x, y); }
+EXT varying int8 __padds_vi8(varying int8 x, varying int8 y) { return @llvm.sadd.sat(x, y); }
+EXT varying int16 __padds_vi16(varying int16 x, varying int16 y) { return @llvm.sadd.sat(x, y); }
+EXT varying int32 __padds_vi32(varying int32 x, varying int32 y) { return @llvm.sadd.sat(x, y); }
+EXT varying int64 __padds_vi64(varying int64 x, varying int64 y) { return @llvm.sadd.sat(x, y); }
+EXT uniform uint8 __paddus_ui8(uniform uint8 x, uniform uint8 y) { return @llvm.uadd.sat(x, y); }
+EXT uniform uint16 __paddus_ui16(uniform uint16 x, uniform uint16 y) { return @llvm.uadd.sat(x, y); }
+EXT uniform uint32 __paddus_ui32(uniform uint32 x, uniform uint32 y) { return @llvm.uadd.sat(x, y); }
+EXT uniform uint64 __paddus_ui64(uniform uint64 x, uniform uint64 y) { return @llvm.uadd.sat(x, y); }
+EXT varying uint8 __paddus_vi8(varying uint8 x, varying uint8 y) { return @llvm.uadd.sat(x, y); }
+EXT varying uint16 __paddus_vi16(varying uint16 x, varying uint16 y) { return @llvm.uadd.sat(x, y); }
+EXT varying uint32 __paddus_vi32(varying uint32 x, varying uint32 y) { return @llvm.uadd.sat(x, y); }
+EXT varying uint64 __paddus_vi64(varying uint64 x, varying uint64 y) { return @llvm.uadd.sat(x, y); }
+EXT uniform int8 __psubs_ui8(uniform int8 x, uniform int8 y) { return @llvm.ssub.sat(x, y); }
+EXT uniform int16 __psubs_ui16(uniform int16 x, uniform int16 y) { return @llvm.ssub.sat(x, y); }
+EXT uniform int32 __psubs_ui32(uniform int32 x, uniform int32 y) { return @llvm.ssub.sat(x, y); }
+EXT uniform int64 __psubs_ui64(uniform int64 x, uniform int64 y) { return @llvm.ssub.sat(x, y); }
+EXT varying int8 __psubs_vi8(varying int8 x, varying int8 y) { return @llvm.ssub.sat(x, y); }
+EXT varying int16 __psubs_vi16(varying int16 x, varying int16 y) { return @llvm.ssub.sat(x, y); }
+EXT varying int32 __psubs_vi32(varying int32 x, varying int32 y) { return @llvm.ssub.sat(x, y); }
+EXT varying int64 __psubs_vi64(varying int64 x, varying int64 y) { return @llvm.ssub.sat(x, y); }
+EXT uniform uint16 __psubus_ui16(uniform uint16 x, uniform uint16 y) { return @llvm.usub.sat(x, y); }
+EXT uniform uint32 __psubus_ui32(uniform uint32 x, uniform uint32 y) { return @llvm.usub.sat(x, y); }
+EXT uniform uint64 __psubus_ui64(uniform uint64 x, uniform uint64 y) { return @llvm.usub.sat(x, y); }
+EXT uniform uint8 __psubus_ui8(uniform uint8 x, uniform uint8 y) { return @llvm.usub.sat(x, y); }
+EXT varying uint16 __psubus_vi16(varying uint16 x, varying uint16 y) { return @llvm.usub.sat(x, y); }
+EXT varying uint32 __psubus_vi32(varying uint32 x, varying uint32 y) { return @llvm.usub.sat(x, y); }
+EXT varying uint64 __psubus_vi64(varying uint64 x, varying uint64 y) { return @llvm.usub.sat(x, y); }
+EXT varying uint8 __psubus_vi8(varying uint8 x, varying uint8 y) { return @llvm.usub.sat(x, y); }
+EXT uniform int8 __pmuls_ui8(uniform int8 x, uniform int8 y) { __not_supported(); }
+EXT uniform int16 __pmuls_ui16(uniform int16 x, uniform int16 y) { __not_supported(); }
+EXT uniform int32 __pmuls_ui32(uniform int32 x, uniform int32 y) { __not_supported(); }
+EXT uniform int64 __pmuls_ui64(uniform int64 x, uniform int64 y) { __not_supported(); }
+EXT varying int8 __pmuls_vi8(varying int8 x, varying int8 y) { __not_supported(); }
+EXT varying int16 __pmuls_vi16(varying int16 x, varying int16 y) { __not_supported(); }
+EXT varying int32 __pmuls_vi32(varying int32 x, varying int32 y) { __not_supported(); }
+EXT varying int64 __pmuls_vi64(varying int64 x, varying int64 y) { __not_supported(); }
+EXT uniform int8 __pmulus_ui8(uniform int8 x, uniform int8 y) { __not_supported(); }
+EXT uniform int16 __pmulus_ui16(uniform int16 x, uniform int16 y) { __not_supported(); }
+EXT uniform int32 __pmulus_ui32(uniform int32 x, uniform int32 y) { __not_supported(); }
+EXT uniform int64 __pmulus_ui64(uniform int64 x, uniform int64 y) { __not_supported(); }
+EXT varying int8 __pmulus_vi8(varying int8 x, varying int8 y) { __not_supported(); }
+EXT varying int16 __pmulus_vi16(varying int16 x, varying int16 y) { __not_supported(); }
+EXT varying int32 __pmulus_vi32(varying int32 x, varying int32 y) { __not_supported(); }
+EXT varying int64 __pmulus_vi64(varying int64 x, varying int64 y) { __not_supported(); }
 
 // rounding floats and doubles
 EXT READNONE uniform double __ceil_uniform_double(uniform double x) { return @llvm.ceil(x); }
