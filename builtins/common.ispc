@@ -413,6 +413,34 @@ EXT READNONE uniform int32 __reduce_add_int16(varying int16 x) {
     return sum;
 }
 
+// horizontal float ops
+EXT READNONE uniform float __reduce_add_float(varying float x) {
+    uniform float sum = 0;
+    int32 v = __intbits_varying_float(x);
+    for (uniform int32 i = 0; i < TARGET_WIDTH; i++) {
+        sum += __floatbits_uniform_int32(__extract_int32(v, i));
+    }
+    return sum;
+}
+EXT READNONE uniform float __reduce_max_float(varying float x) {
+    uniform float max = -FLT_MAX;
+    int32 v = __intbits_varying_float(x);
+    for (uniform int32 i = 0; i < TARGET_WIDTH; i++) {
+        uniform float l = __floatbits_uniform_int32(__extract_int32(v, i));
+        max = max > l ? max : l;
+    }
+    return max;
+}
+EXT READNONE uniform float __reduce_min_float(varying float x) {
+    uniform float min = FLT_MAX;
+    int32 v = __intbits_varying_float(x);
+    for (uniform int32 i = 0; i < TARGET_WIDTH; i++) {
+        uniform float l = __floatbits_uniform_int32(__extract_int32(v, i));
+        min = min < l ? min : l;
+    }
+    return min;
+}
+
 // // #if TARGET_WIDTH == 2
 // // #define ONE_INITIALIZER 1, 1
 // // #elif TARGET_WIDTH == 4
