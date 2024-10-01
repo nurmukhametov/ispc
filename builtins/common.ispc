@@ -397,6 +397,22 @@ EXT READNONE varying float16 __min_varying_half(varying float16 x, varying float
 EXT READNONE uniform float16 __max_uniform_half(uniform float16 x, uniform float16 y) { return x > y ? x : y; }
 EXT READNONE varying float16 __max_varying_half(varying float16 x, varying float16 y) { return x > y ? x : y; }
 
+// horizontal int8/16 ops
+EXT READNONE uniform int16 __reduce_add_int8(varying int8 x) {
+    uniform int16 sum = 0;
+    for (uniform int32 i = 0; i < TARGET_WIDTH; i++) {
+        sum += __extract_int8(x, i);
+    }
+    return sum;
+}
+EXT READNONE uniform int32 __reduce_add_int16(varying int16 x) {
+    uniform int32 sum = 0;
+    for (uniform int32 i = 0; i < TARGET_WIDTH; i++) {
+        sum += __extract_int16(x, i);
+    }
+    return sum;
+}
+
 // // #if TARGET_WIDTH == 2
 // // #define ONE_INITIALIZER 1, 1
 // // #elif TARGET_WIDTH == 4

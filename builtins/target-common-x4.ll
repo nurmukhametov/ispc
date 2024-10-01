@@ -6380,37 +6380,6 @@ define i1 @__none(<WIDTH x MASK> %mask) nounwind readnone alwaysinline {
 }
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; horizontal int8/16 ops
-
-declare <2 x i64> @llvm.x86.sse2.psad.bw(<16 x i8>, <16 x i8>) nounwind readnone
-
-define i16 @__reduce_add_int8(<4 x i8>) nounwind readnone alwaysinline {
-  %ri = shufflevector <4 x i8> %0, <4 x i8> zeroinitializer,
-                         <16 x i32> <i32 0, i32 1, i32 2, i32 3, i32 4, i32 5, i32 6, i32 7,
-                         i32 7, i32 7, i32 7, i32 7, i32 7, i32 7, i32 7, i32 7>
-  %rv = call <2 x i64> @llvm.x86.sse2.psad.bw(<16 x i8> %ri,
-                                              <16 x i8> zeroinitializer)
-  %r = extractelement <2 x i64> %rv, i32 0
-  %r16 = trunc i64 %r to i16
-  ret i16 %r16
-}
-
-define internal <4 x i16> @__add_varying_i16(<4 x i16>,
-                                  <4 x i16>) nounwind readnone alwaysinline {
-  %r = add <4 x i16> %0, %1
-  ret <4 x i16> %r
-}
-
-define internal i16 @__add_uniform_i16(i16, i16) nounwind readnone alwaysinline {
-  %r = add i16 %0, %1
-  ret i16 %r
-}
-
-define i16 @__reduce_add_int16(<4 x i16>) nounwind readnone alwaysinline {
-  reduce4(i16, @__add_varying_i16, @__add_uniform_i16)
-}
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; horizontal float ops
 
 declare <4 x float> @llvm.x86.sse3.hadd.ps(<4 x float>, <4 x float>) nounwind readnone
