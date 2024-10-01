@@ -575,6 +575,16 @@ EXT READNONE uniform float __max_uniform_float(uniform float x, uniform float y)
 EXT READNONE varying float __min_varying_float(varying float x, varying float y) { return x < y ? x : y; }
 EXT READNONE varying float __max_varying_float(varying float x, varying float y) { return x > y ? x : y; }
 
+// unsigned int min/max
+EXT READNONE uniform int32 __min_uniform_int32(uniform int32 x, uniform int32 y) { return x < y ? x : y; }
+EXT READNONE uniform int32 __max_uniform_int32(uniform int32 x, uniform int32 y) { return x > y ? x : y; }
+EXT READNONE uniform uint32 __min_uniform_uint32(uniform uint32 x, uniform uint32 y) { return x < y ? x : y; }
+EXT READNONE uniform uint32 __max_uniform_uint32(uniform uint32 x, uniform uint32 y) { return x > y ? x : y; }
+EXT READNONE varying int32 __min_varying_int32(varying int32 x, varying int32 y) { return x < y ? x : y; }
+EXT READNONE varying int32 __max_varying_int32(varying int32 x, varying int32 y) { return x > y ? x : y; }
+EXT READNONE varying uint32 __min_varying_uint32(varying uint32 x, varying uint32 y) { return x < y ? x : y; }
+EXT READNONE varying uint32 __max_varying_uint32(varying uint32 x, varying uint32 y) { return x > y ? x : y; }
+
 // // #if TARGET_WIDTH == 2
 // // #define ONE_INITIALIZER 1, 1
 // // #elif TARGET_WIDTH == 4
