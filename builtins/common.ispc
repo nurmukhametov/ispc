@@ -569,6 +569,12 @@ EXT READNONE uniform uint64 __max_uniform_uint64(uniform uint64 x, uniform uint6
 EXT READNONE varying uint64 __min_varying_uint64(varying uint64 x, varying uint64 y) { return x < y ? x : y; }
 EXT READNONE varying uint64 __max_varying_uint64(varying uint64 x, varying uint64 y) { return x > y ? x : y; }
 
+// float min/max
+EXT READNONE uniform float __min_uniform_float(uniform float x, uniform float y) { return x < y ? x : y; }
+EXT READNONE uniform float __max_uniform_float(uniform float x, uniform float y) { return x > y ? x : y; }
+EXT READNONE varying float __min_varying_float(varying float x, varying float y) { return x < y ? x : y; }
+EXT READNONE varying float __max_varying_float(varying float x, varying float y) { return x > y ? x : y; }
+
 // // #if TARGET_WIDTH == 2
 // // #define ONE_INITIALIZER 1, 1
 // // #elif TARGET_WIDTH == 4
