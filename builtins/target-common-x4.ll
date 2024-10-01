@@ -4678,52 +4678,6 @@ define <WIDTH x i32> @__sext_varying_bool(<WIDTH x MASK>) nounwind readnone alwa
 }
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; assume
-declare void @llvm.assume(i1)
-
-define void @__do_assume_uniform(i1 %test) alwaysinline {
-  call void @llvm.assume(i1 %test)
-  ret void
-}
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; assert
-
-declare i32 @puts(i8*)
-declare void @abort() noreturn
-
-define void @__do_assert_uniform(i8 *%str, i1 %test, <WIDTH x MASK> %mask) {
-  br i1 %test, label %ok, label %fail
-
-fail:
-  %call = call i32 @puts(i8* %str)
-  call void @abort() noreturn
-  unreachable
-
-ok:
-  ret void
-}
-
-
-define void @__do_assert_varying(i8 *%str, <WIDTH x MASK> %test,
-                                 <WIDTH x MASK> %mask) {
-  %nottest = xor <WIDTH x MASK> %test,
-                 < forloop(i, 1, eval(WIDTH-1), `MASK -1, ') MASK -1 >
-  %nottest_and_mask = and <WIDTH x MASK> %nottest, %mask
-  %mm = call i64 @__movmsk(<WIDTH x MASK> %nottest_and_mask)
-  %all_ok = icmp eq i64 %mm, 0
-  br i1 %all_ok, label %ok, label %fail
-
-fail:
-  %call = call i32 @puts(i8* %str)
-  call void @abort() noreturn
-  unreachable
-
-ok:
-  ret void
-}
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; read hw clock
 
 declare i64 @llvm.readcyclecounter()

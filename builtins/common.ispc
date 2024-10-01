@@ -248,23 +248,24 @@ EXT void __memset64(uniform int8 *uniform dst, uniform int8 val, uniform int64 l
     @llvm.memset(dst, val, len, false);
 }
 
-// // EXT uniform int32 puts(uniform int8 *uniform str);
-// // EXT void abort();
-// // EXT void __do_assume_uniform(uniform bool test) { @llvm.assume(test); }
-// // 
-// // EXT void __do_assert_uniform(uniform int8 *uniform str, uniform bool test, UIntMaskType) {
-// //     if (!test) {
-// //         puts(str);
-// //         abort();
-// //     }
-// // }
-// // EXT void __do_assert_varying(uniform int8 *uniform str, UIntMaskType test, UIntMaskType mask) {
-// //     if (__any((test ^ 1) & mask)) {
-// //         puts(str);
-// //         abort();
-// //     }
-// // }
-// 
+// assume and assert
+EXT uniform int32 puts(uniform int8 *uniform str);
+EXT void abort();
+EXT void __do_assume_uniform(uniform bool test) { @llvm.assume(test); }
+
+EXT void __do_assert_uniform(uniform int8 *uniform str, uniform bool test, UIntMaskType) {
+    if (!test) {
+        puts(str);
+        abort();
+    }
+}
+EXT void __do_assert_varying(uniform int8 *uniform str, UIntMaskType test, UIntMaskType mask) {
+    if (__any((test ^ 1) & mask)) {
+        puts(str);
+        abort();
+    }
+}
+
 // // read hw clock
 // // Fix: generation of llvm.intrinsic here
 // // EXT uniform int64 __clock() {
