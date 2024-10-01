@@ -6380,31 +6380,6 @@ define i1 @__none(<WIDTH x MASK> %mask) nounwind readnone alwaysinline {
 }
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; horizontal int64 ops
-
-define internal <4 x i64> @__add_varying_int64(<4 x i64>, <4 x i64>) nounwind readnone alwaysinline {
-  %s = add <4 x i64> %0, %1
-  ret <4 x i64> %s
-}
-
-define internal i64 @__add_uniform_int64(i64, i64) nounwind readnone alwaysinline {
-  %s = add i64 %0, %1
-  ret i64 %s
-}
-
-define i64 @__reduce_add_int64(<4 x i64>) nounwind readnone alwaysinline {
-  reduce4(i64, @__add_varying_int64, @__add_uniform_int64)
-}
-
-define i64 @__reduce_min_int64(<4 x i64>) nounwind readnone alwaysinline {
-  reduce4(i64, @__min_varying_int64, @__min_uniform_int64)
-}
-
-define i64 @__reduce_max_int64(<4 x i64>) nounwind readnone alwaysinline {
-  reduce4(i64, @__max_varying_int64, @__max_uniform_int64)
-}
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; horizontal uint64 ops
 
 define i64 @__reduce_min_uint64(<4 x i64>) nounwind readnone alwaysinline {
