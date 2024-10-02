@@ -5050,71 +5050,10 @@ pl_done:
 
 define(`gen_gather_general', `
 ; fully general 32-bit gather, takes array of pointers encoded as vector of i32s
-define <WIDTH x $1> @__gather32_$1(<WIDTH x i32> %ptrs,
-                                   <WIDTH x MASK> %vecmask) nounwind readonly alwaysinline {
-  %ret_ptr = alloca <WIDTH x $1>
-  per_lane(WIDTH, <WIDTH x MASK> %vecmask, `
-  %iptr_LANE_ID = extractelement <WIDTH x i32> %ptrs, i32 LANE
-  %ptr_LANE_ID = inttoptr i32 %iptr_LANE_ID to $1 *
-  %val_LANE_ID = load PTR_OP_ARGS(`$1 ')  %ptr_LANE_ID
-  %store_ptr_LANE_ID = getelementptr PTR_OP_ARGS(`<WIDTH x $1>') %ret_ptr, i32 0, i32 LANE
-  store $1 %val_LANE_ID, $1 * %store_ptr_LANE_ID
- ')
-
-  %ret = load PTR_OP_ARGS(`<WIDTH x $1> ')  %ret_ptr
-  ret <WIDTH x $1> %ret
-}
-
-; fully general 64-bit gather, takes array of pointers encoded as vector of i64s
-define <WIDTH x $1> @__gather64_$1(<WIDTH x i64> %ptrs,
-                                   <WIDTH x MASK> %vecmask) nounwind readonly alwaysinline {
-  %ret_ptr = alloca <WIDTH x $1>
-  per_lane(WIDTH, <WIDTH x MASK> %vecmask, `
-  %iptr_LANE_ID = extractelement <WIDTH x i64> %ptrs, i32 LANE
-  %ptr_LANE_ID = inttoptr i64 %iptr_LANE_ID to $1 *
-  %val_LANE_ID = load PTR_OP_ARGS(`$1 ')  %ptr_LANE_ID
-  %store_ptr_LANE_ID = getelementptr PTR_OP_ARGS(`<WIDTH x $1>') %ret_ptr, i32 0, i32 LANE
-  store $1 %val_LANE_ID, $1 * %store_ptr_LANE_ID
- ')
-
-  %ret = load PTR_OP_ARGS(`<WIDTH x $1> ')  %ret_ptr
-  ret <WIDTH x $1> %ret
-}
 ')
 
 ; For the targets which have gathers but --disable-gather is requested
 define(`gen_gather_generic', `
-; fully general 32-bit gather, takes array of pointers encoded as vector of i32s
-define <WIDTH x $1> @__gather32_generic_$1(<WIDTH x i32> %ptrs,
-                                   <WIDTH x MASK> %vecmask) nounwind readonly alwaysinline {
-  %ret_ptr = alloca <WIDTH x $1>
-  per_lane(WIDTH, <WIDTH x MASK> %vecmask, `
-  %iptr_LANE_ID = extractelement <WIDTH x i32> %ptrs, i32 LANE
-  %ptr_LANE_ID = inttoptr i32 %iptr_LANE_ID to $1 *
-  %val_LANE_ID = load PTR_OP_ARGS(`$1 ')  %ptr_LANE_ID
-  %store_ptr_LANE_ID = getelementptr PTR_OP_ARGS(`<WIDTH x $1>') %ret_ptr, i32 0, i32 LANE
-  store $1 %val_LANE_ID, $1 * %store_ptr_LANE_ID
- ')
-
-  %ret = load PTR_OP_ARGS(`<WIDTH x $1> ')  %ret_ptr
-  ret <WIDTH x $1> %ret
-}
-
-; fully general 64-bit gather, takes array of pointers encoded as vector of i64s
-define <WIDTH x $1> @__gather64_generic_$1(<WIDTH x i64> %ptrs,
-                                   <WIDTH x MASK> %vecmask) nounwind readonly alwaysinline {
-  %ret_ptr = alloca <WIDTH x $1>
-  per_lane(WIDTH, <WIDTH x MASK> %vecmask, `
-  %iptr_LANE_ID = extractelement <WIDTH x i64> %ptrs, i32 LANE
-  %ptr_LANE_ID = inttoptr i64 %iptr_LANE_ID to $1 *
-  %val_LANE_ID = load PTR_OP_ARGS(`$1 ')  %ptr_LANE_ID
-  %store_ptr_LANE_ID = getelementptr PTR_OP_ARGS(`<WIDTH x $1>') %ret_ptr, i32 0, i32 LANE
-  store $1 %val_LANE_ID, $1 * %store_ptr_LANE_ID
- ')
-
-  %ret = load PTR_OP_ARGS(`<WIDTH x $1> ')  %ret_ptr
-  ret <WIDTH x $1> %ret
-}
 ')
 
 ; vec width, type
