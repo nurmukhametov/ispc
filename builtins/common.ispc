@@ -860,6 +860,56 @@ EXT uniform bool __any(UIntMaskType mask) { return __cast_mask_to_i64(mask) != 0
 EXT uniform bool __all(UIntMaskType mask) { return __cast_mask_to_i64(mask) == (1U << TARGET_WIDTH) - 1; }
 EXT uniform bool __none(UIntMaskType mask) { return __cast_mask_to_i64(mask) == 0; }
 
+// general gather functions
+EXT READONLY varying int8 __gather32_i8(varying uint32 addrs, UIntMaskType mask) {
+    varying int8 passthru;
+    return @llvm.masked.gather((varying uint64)addrs, 1, mask, passthru);
+}
+EXT READONLY varying int8 __gather64_i8(varying uint64 addrs, UIntMaskType mask) {
+    varying int8 passthru;
+    return @llvm.masked.gather(addrs, 1, mask, passthru);
+}
+EXT READONLY varying int8 __gather32_generic_i8(varying uint32 addrs, UIntMaskType mask) {
+    varying int8 passthru;
+    return @llvm.masked.gather((varying uint64)addrs, 1, mask, passthru);
+}
+EXT READONLY varying int8 __gather64_generic_i8(varying uint64 addrs, UIntMaskType mask) {
+    varying int8 passthru;
+    return @llvm.masked.gather(addrs, 1, mask, passthru);
+}
+EXT READONLY varying int16 __gather32_i16(varying uint32 addrs, UIntMaskType mask) {
+    varying int16 passthru;
+    return @llvm.masked.gather((varying uint64)addrs, 1, mask, passthru);
+}
+EXT READONLY varying int16 __gather64_i16(varying uint64 addrs, UIntMaskType mask) {
+    varying int16 passthru;
+    return @llvm.masked.gather(addrs, 1, mask, passthru);
+}
+EXT READONLY varying int16 __gather32_generic_i16(varying uint32 addrs, UIntMaskType mask) {
+    varying int16 passthru;
+    return @llvm.masked.gather((varying uint64)addrs, 1, mask, passthru);
+}
+EXT READONLY varying int16 __gather64_generic_i16(varying uint64 addrs, UIntMaskType mask) {
+    varying int16 passthru;
+    return @llvm.masked.gather(addrs, 1, mask, passthru);
+}
+EXT READONLY varying float16 __gather32_half(varying uint32 addrs, UIntMaskType mask) {
+    varying float16 passthru;
+    return @llvm.masked.gather((varying uint64)addrs, 1, mask, passthru);
+}
+EXT READONLY varying float16 __gather64_half(varying uint64 addrs, UIntMaskType mask) {
+    varying float16 passthru;
+    return @llvm.masked.gather(addrs, 1, mask, passthru);
+}
+EXT READONLY varying float16 __gather32_generic_half(varying uint32 addrs, UIntMaskType mask) {
+    varying float16 passthru;
+    return @llvm.masked.gather((varying uint64)addrs, 1, mask, passthru);
+}
+EXT READONLY varying float16 __gather64_generic_half(varying uint64 addrs, UIntMaskType mask) {
+    varying float16 passthru;
+    return @llvm.masked.gather(addrs, 1, mask, passthru);
+}
+
 #undef NOESCAPE
 #undef ADDRSPACE
 #undef READONLY
