@@ -4141,6 +4141,10 @@ llvm::Value *FunctionCallExpr::GetValue(FunctionEmitContext *ctx) const {
         if (isInvoke) {
             return ctx->InvokeSyclInst(callee, ft, argVals);
         } else {
+            // if callee is llvm.masked.gather then cast with inttoptr the first arg to PtrVectorType
+            if (callee->getName().startswith("llvm.masked.gather")) {
+                argVals[0] = ctx->IntToPtrInst(argVals[0], LLVMTypes::PtrVectorType);
+            }
             retVal = ctx->CallInst(callee, ft, argVals, isVoidFunc ? "" : "calltmp");
         }
     }

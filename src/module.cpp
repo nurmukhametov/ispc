@@ -537,10 +537,18 @@ Symbol *Module::AddLLVMIntrinsicDecl(const std::string &name, ExprList *args, So
             if (ID == llvm::Intrinsic::vector_reduce_fadd) {
                 nInits = { 1 };
             }
+            if (ID == llvm::Intrinsic::masked_gather) {
+                nInits = { 3, 0 };
+            }
             for (const int i : nInits) {
                 const Type *argType = (args->exprs[i])->GetType();
                 Assert(argType);
-                exprType.push_back(argType->LLVMType(g->ctx));
+                if (ID == llvm::Intrinsic::masked_gather && i == 0) {
+                    // type with <TARGET_WIDTH x ptr> is expected
+                    exprType.push_back(LLVMTypes::PtrVectorType);
+                } else {
+                    exprType.push_back(argType->LLVMType(g->ctx));
+                }
             }
         }
         llvm::ArrayRef<llvm::Type *> argArr(exprType);
