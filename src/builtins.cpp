@@ -147,6 +147,11 @@ static const Type *lLLVMTypeToISPCType(const llvm::Type *t, bool intAsUnsigned) 
         return PointerType::GetUniform(AtomicType::VaryingDouble);
     }
 
+    // vector of pointers
+    else if (t == LLVMTypes::PtrVectorType) {
+        return AtomicType::VaryingUInt64;
+    }
+
     return nullptr;
 }
 
