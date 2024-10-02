@@ -367,33 +367,9 @@ EXT READNONE uniform float16 __sqrt_uniform_half(uniform float16 x) { return @ll
 EXT READNONE varying float16 __sqrt_varying_half(varying float16 x) { return @llvm.sqrt(x); }
 
 // 16-bit float reduction
-EXT READNONE uniform float16 __reduce_add_half(varying float16 x) {
-    uniform float16 sum = 0;
-    int16 v = (int16)__intbits_varying_half(x);
-    for (uniform int32 i = 0; i < TARGET_WIDTH; i++) {
-        uniform float16 l = __halfbits_uniform_int16(__extract_int16(v, i));
-        sum += l;
-    }
-    return sum;
-}
-EXT READNONE uniform float16 __reduce_max_half(varying float16 x) {
-    uniform float16 max = -F16_MAX;
-    int16 v = (int16)__intbits_varying_half(x);
-    for (uniform int32 i = 0; i < TARGET_WIDTH; i++) {
-        uniform float16 l = __halfbits_uniform_int16(__extract_int16(v, i));
-        max = max > l ? max : l;
-    }
-    return max;
-}
-EXT READNONE uniform float16 __reduce_min_half(varying float16 x) {
-    uniform float16 min = F16_MAX;
-    int16 v = (int16)__intbits_varying_half(x);
-    for (uniform int32 i = 0; i < TARGET_WIDTH; i++) {
-        uniform float16 l = __halfbits_uniform_int16(__extract_int16(v, i));
-        min = min < l ? min : l;
-    }
-    return min;
-}
+EXT READNONE uniform float16 __reduce_add_half(varying float16 x) { return @llvm.vector.reduce.fadd(-0.0f16, x); }
+EXT READNONE uniform float16 __reduce_max_half(varying float16 x) { return @llvm.vector.reduce.fmax(x); }
+EXT READNONE uniform float16 __reduce_min_half(varying float16 x) { return @llvm.vector.reduce.fmin(x); }
 
 // 16-bit float min and max functions
 EXT READNONE uniform float16 __min_uniform_half(uniform float16 x, uniform float16 y) { return x < y ? x : y; }
@@ -402,162 +378,36 @@ EXT READNONE uniform float16 __max_uniform_half(uniform float16 x, uniform float
 EXT READNONE varying float16 __max_varying_half(varying float16 x, varying float16 y) { return x > y ? x : y; }
 
 // horizontal int8/16 ops
-EXT READNONE uniform int16 __reduce_add_int8(varying int8 x) {
-    uniform int16 sum = 0;
-    for (uniform int32 i = 0; i < TARGET_WIDTH; i++) {
-        sum += __extract_int8(x, i);
-    }
-    return sum;
-}
-EXT READNONE uniform int32 __reduce_add_int16(varying int16 x) {
-    uniform int32 sum = 0;
-    for (uniform int32 i = 0; i < TARGET_WIDTH; i++) {
-        sum += __extract_int16(x, i);
-    }
-    return sum;
-}
+EXT READNONE uniform int16 __reduce_add_int8(varying int8 x) { return @llvm.vector.reduce.add((int16)x); }
+EXT READNONE uniform int32 __reduce_add_int16(varying int16 x) { return @llvm.vector.reduce.add((int32)x); }
 
 // horizontal float ops
-EXT READNONE uniform float __reduce_add_float(varying float x) {
-    uniform float sum = 0;
-    int32 v = __intbits_varying_float(x);
-    for (uniform int32 i = 0; i < TARGET_WIDTH; i++) {
-        sum += __floatbits_uniform_int32(__extract_int32(v, i));
-    }
-    return sum;
-}
-EXT READNONE uniform float __reduce_max_float(varying float x) {
-    uniform float max = -FLT_MAX;
-    int32 v = __intbits_varying_float(x);
-    for (uniform int32 i = 0; i < TARGET_WIDTH; i++) {
-        uniform float l = __floatbits_uniform_int32(__extract_int32(v, i));
-        max = max > l ? max : l;
-    }
-    return max;
-}
-EXT READNONE uniform float __reduce_min_float(varying float x) {
-    uniform float min = FLT_MAX;
-    int32 v = __intbits_varying_float(x);
-    for (uniform int32 i = 0; i < TARGET_WIDTH; i++) {
-        uniform float l = __floatbits_uniform_int32(__extract_int32(v, i));
-        min = min < l ? min : l;
-    }
-    return min;
-}
+EXT READNONE uniform float __reduce_add_float(varying float x) { return @llvm.vector.reduce.fadd(-0.0f, x); }
+EXT READNONE uniform float __reduce_max_float(varying float x) { return @llvm.vector.reduce.fmax(x); }
+EXT READNONE uniform float __reduce_min_float(varying float x) { return @llvm.vector.reduce.fmin(x); }
 
 // horizontal int32 ops
-EXT READNONE uniform int64 __reduce_add_int32(varying int32 x) {
-    uniform int64 sum = 0;
-    for (uniform int32 i = 0; i < TARGET_WIDTH; i++) {
-        sum += __extract_int32(x, i);
-    }
-    return sum;
-}
-EXT READNONE uniform int32 __reduce_min_int32(varying int32 x) {
-    uniform int32 min = INT32_MAX;
-    for (uniform int32 i = 0; i < TARGET_WIDTH; i++) {
-        uniform int32 l = __extract_int32(x, i);
-        min = min < l ? min : l;
-    }
-    return min;
-}
-EXT READNONE uniform int32 __reduce_max_int32(varying int32 x) {
-    uniform int32 max = INT32_MIN;
-    for (uniform int32 i = 0; i < TARGET_WIDTH; i++) {
-        uniform int32 l = __extract_int32(x, i);
-        max = max > l ? max : l;
-    }
-    return max;
-}
+EXT READNONE uniform int64 __reduce_add_int32(varying int32 x) { return @llvm.vector.reduce.add((int64)x); }
+EXT READNONE uniform int32 __reduce_min_int32(varying int32 x) { return @llvm.vector.reduce.smin(x); }
+EXT READNONE uniform int32 __reduce_max_int32(varying int32 x) { return @llvm.vector.reduce.smax(x); }
 
 // horizontal uint32 ops
-EXT READNONE uniform uint32 __reduce_min_uint32(varying uint32 x) {
-    uniform uint32 min = UINT32_MAX;
-    for (uniform int32 i = 0; i < TARGET_WIDTH; i++) {
-        uniform uint32 l = __extract_int32(x, i);
-        min = min < l ? min : l;
-    }
-    return min;
-}
-EXT READNONE uniform uint32 __reduce_max_uint32(varying uint32 x) {
-    uniform uint32 max = 0;
-    for (uniform int32 i = 0; i < TARGET_WIDTH; i++) {
-        uniform uint32 l = __extract_int32(x, i);
-        max = max > l ? max : l;
-    }
-    return max;
-}
+EXT READNONE uniform uint32 __reduce_min_uint32(varying uint32 x) { return @llvm.vector.reduce.umin(x); }
+EXT READNONE uniform uint32 __reduce_max_uint32(varying uint32 x) { return @llvm.vector.reduce.umax(x); }
 
 // horizontal double ops
-EXT READNONE uniform double __reduce_add_double(varying double x) {
-    uniform double sum = 0;
-    int64 v = __intbits_varying_double(x);
-    for (uniform int32 i = 0; i < TARGET_WIDTH; i++) {
-        sum += __doublebits_uniform_int64(__extract_int64(v, i));
-    }
-    return sum;
-}
-EXT READNONE uniform double __reduce_min_double(varying double x) {
-    uniform double min = DBL_MAX;
-    int64 v = __intbits_varying_double(x);
-    for (uniform int32 i = 0; i < TARGET_WIDTH; i++) {
-        uniform double l = __doublebits_uniform_int64(__extract_int64(v, i));
-        min = min < l ? min : l;
-    }
-    return min;
-}
-EXT READNONE uniform double __reduce_max_double(varying double x) {
-    uniform double max = -DBL_MAX;
-    int64 v = __intbits_varying_double(x);
-    for (uniform int32 i = 0; i < TARGET_WIDTH; i++) {
-        uniform double l = __doublebits_uniform_int64(__extract_int64(v, i));
-        max = max > l ? max : l;
-    }
-    return max;
-}
+EXT READNONE uniform double __reduce_add_double(varying double x) { return @llvm.vector.reduce.fadd(-0.0d, x); }
+EXT READNONE uniform double __reduce_min_double(varying double x) { return @llvm.vector.reduce.fmin(x); }
+EXT READNONE uniform double __reduce_max_double(varying double x) { return @llvm.vector.reduce.fmax(x); }
 
 // horizontal int64 ops
-EXT READNONE uniform int64 __reduce_add_int64(varying int64 x) {
-    uniform int64 sum = 0;
-    for (uniform int32 i = 0; i < TARGET_WIDTH; i++) {
-        sum += __extract_int64(x, i);
-    }
-    return sum;
-}
-EXT READNONE uniform int64 __reduce_min_int64(varying int64 x) {
-    uniform int64 min = INT64_MAX;
-    for (uniform int32 i = 0; i < TARGET_WIDTH; i++) {
-        uniform int64 l = __extract_int64(x, i);
-        min = min < l ? min : l;
-    }
-    return min;
-}
-EXT READNONE uniform int64 __reduce_max_int64(varying int64 x) {
-    uniform int64 max = INT64_MIN;
-    for (uniform int32 i = 0; i < TARGET_WIDTH; i++) {
-        uniform int64 l = __extract_int64(x, i);
-        max = max > l ? max : l;
-    }
-    return max;
-}
+EXT READNONE uniform int64 __reduce_add_int64(varying int64 x) { return @llvm.vector.reduce.add(x); }
+EXT READNONE uniform int64 __reduce_min_int64(varying int64 x) { return @llvm.vector.reduce.smin(x); }
+EXT READNONE uniform int64 __reduce_max_int64(varying int64 x) { return @llvm.vector.reduce.smax(x); }
 
 // horizontal uint64 ops
-EXT READNONE uniform uint64 __reduce_min_uint64(varying uint64 x) {
-    uniform uint64 min = UINT64_MAX;
-    for (uniform int32 i = 0; i < TARGET_WIDTH; i++) {
-        uniform uint64 l = __extract_int64(x, i);
-        min = min < l ? min : l;
-    }
-    return min;
-}
-EXT READNONE uniform uint64 __reduce_max_uint64(varying uint64 x) {
-    uniform uint64 max = 0;
-    for (uniform int32 i = 0; i < TARGET_WIDTH; i++) {
-        uniform uint64 l = __extract_int64(x, i);
-        max = max > l ? max : l;
-    }
-    return max;
-}
+EXT READNONE uniform uint64 __reduce_min_uint64(varying uint64 x) { return @llvm.vector.reduce.umin(x); }
+EXT READNONE uniform uint64 __reduce_max_uint64(varying uint64 x) { return @llvm.vector.reduce.umax(x); }
 
 // 64-bit integer min and max functions
 EXT READNONE uniform int64 __min_uniform_int64(uniform int64 x, uniform int64 y) { return x < y ? x : y; }
