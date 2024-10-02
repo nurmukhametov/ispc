@@ -534,6 +534,9 @@ Symbol *Module::AddLLVMIntrinsicDecl(const std::string &name, ExprList *args, So
             if (ID == llvm::Intrinsic::masked_store) {
                 nInits = { 0, 1 };
             }
+            if (ID == llvm::Intrinsic::vector_reduce_fadd) {
+                nInits = { 1 };
+            }
             for (const int i : nInits) {
                 const Type *argType = (args->exprs[i])->GetType();
                 Assert(argType);
