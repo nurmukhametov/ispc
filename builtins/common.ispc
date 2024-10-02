@@ -1004,6 +1004,12 @@ EXT void __masked_store_blend_double(NOESCAPE varying double *uniform ptr, varyi
     @llvm.masked.store(val, (uniform int8 * uniform) ptr, 1, mask);
 }
 
+// mask operations
+EXT uniform int64 __movmsk(UIntMaskType mask) { return __cast_mask_to_i64(mask); }
+EXT uniform bool __any(UIntMaskType mask) { return __cast_mask_to_i64(mask) != 0; }
+EXT uniform bool __all(UIntMaskType mask) { return __cast_mask_to_i64(mask) == (1U << TARGET_WIDTH) - 1; }
+EXT uniform bool __none(UIntMaskType mask) { return __cast_mask_to_i64(mask) == 0; }
+
 #undef NOESCAPE
 #undef ADDRSPACE
 #undef READONLY
