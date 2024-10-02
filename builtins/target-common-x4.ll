@@ -5676,33 +5676,22 @@ define i8 @__cast_mask_to_i8 (<WIDTH x MASK> %mask) alwaysinline {
 include(`svml.m4')
 svml(ISA)
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Stub for mask conversion.
+
+define i64 @__cast_mask_to_i64 (<WIDTH x MASK> %mask) alwaysinline {
+  %mask_iWIDTH = bitcast <WIDTH x i1> %mask to i`'WIDTH
+  %mask_i64 = zext i`'WIDTH %mask_iWIDTH to i64
+  ret i64 %mask_i64
+}
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; reductions
 
-define i64 @__movmsk(<WIDTH x MASK> %mask) nounwind readnone alwaysinline {
-  %intmask = call i8 @__cast_mask_to_i8 (<WIDTH x MASK> %mask)
-  %res = zext i8 %intmask to i64
-  ret i64 %res
-}
-
-define i1 @__any(<WIDTH x MASK> %mask) nounwind readnone alwaysinline {
-  %intmask = call i8 @__cast_mask_to_i8 (<WIDTH x MASK> %mask)
-  %res = icmp ne i8 %intmask, 0
-  ret i1 %res
-}
-
-define i1 @__all(<WIDTH x MASK> %mask) nounwind readnone alwaysinline {
-  %intmask = call i8 @__cast_mask_to_i8 (<WIDTH x MASK> %mask)
-  %res = icmp eq i8 %intmask, 15
-  ret i1 %res
-}
-
-define i1 @__none(<WIDTH x MASK> %mask) nounwind readnone alwaysinline {
-  %intmask = call i8 @__cast_mask_to_i8 (<WIDTH x MASK> %mask)
-  %res = icmp eq i8 %intmask, 0
-  ret i1 %res
-}
+declare i64 @__movmsk(<WIDTH x MASK> %mask) nounwind readnone alwaysinline
+declare i1 @__any(<WIDTH x MASK> %mask) nounwind readnone alwaysinline
+declare i1 @__all(<WIDTH x MASK> %mask) nounwind readnone alwaysinline
+declare i1 @__none(<WIDTH x MASK> %mask) nounwind readnone alwaysinline
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; unaligned loads/loads+broadcasts
