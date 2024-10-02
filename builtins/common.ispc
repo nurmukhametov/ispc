@@ -909,6 +909,114 @@ EXT READONLY varying float16 __gather64_generic_half(varying uint64 addrs, UIntM
     varying float16 passthru;
     return @llvm.masked.gather(addrs, 1, mask, passthru);
 }
+EXT READONLY varying int32 __gather32_i32(varying uint32 addrs, UIntMaskType mask) {
+    varying int32 passthru;
+    return @llvm.masked.gather((varying uint64)addrs, 1, mask, passthru);
+}
+EXT READONLY varying int32 __gather64_i32(varying uint64 addrs, UIntMaskType mask) {
+    varying int32 passthru;
+    return @llvm.masked.gather(addrs, 1, mask, passthru);
+}
+// gather[32|64]_generic_32??
+EXT READONLY varying float __gather32_float(varying uint32 addrs, UIntMaskType mask) {
+    varying float passthru;
+    return @llvm.masked.gather((varying uint64)addrs, 1, mask, passthru);
+}
+EXT READONLY varying float __gather64_float(varying uint64 addrs, UIntMaskType mask) {
+    varying float passthru;
+    return @llvm.masked.gather(addrs, 1, mask, passthru);
+}
+// gather[32|64]_generic_float??
+EXT READONLY varying int64 __gather32_i64(varying uint32 addrs, UIntMaskType mask) {
+    varying int64 passthru;
+    return @llvm.masked.gather((varying uint64)addrs, 1, mask, passthru);
+}
+EXT READONLY varying int64 __gather64_i64(varying uint64 addrs, UIntMaskType mask) {
+    varying int64 passthru;
+    return @llvm.masked.gather(addrs, 1, mask, passthru);
+}
+// gather[32|64]_generic_i64??
+EXT READONLY varying double __gather32_double(varying uint32 addrs, UIntMaskType mask) {
+    varying double passthru;
+    return @llvm.masked.gather((varying uint64)addrs, 1, mask, passthru);
+}
+EXT READONLY varying double __gather64_double(varying uint64 addrs, UIntMaskType mask) {
+    varying double passthru;
+    return @llvm.masked.gather(addrs, 1, mask, passthru);
+}
+// gather[32|64]_generic_double??
+
+// gather functions with base offsets
+EXT READONLY varying int8 __gather_base_offsets32_i8(uniform int8 *uniform ptr, uniform int32 scale,
+                                                     varying int32 offsets, UIntMaskType mask) {
+    varying int8 passthru;
+    return @llvm.masked.gather((uniform uint64)ptr + offsets * scale, 1, mask, passthru);
+}
+EXT READONLY varying int8 __gather_base_offsets64_i8(uniform int8 *uniform ptr, uniform int32 scale,
+                                                     varying int64 offsets, UIntMaskType mask) {
+    varying int8 passthru;
+    return @llvm.masked.gather((uniform uint64)ptr + offsets * scale, 1, mask, passthru);
+}
+EXT READONLY varying int16 __gather_base_offsets32_i16(uniform int8 *uniform ptr, uniform int32 scale,
+                                                       varying int32 offsets, UIntMaskType mask) {
+    varying int16 passthru;
+    return @llvm.masked.gather((uniform uint64)ptr + offsets * scale, 1, mask, passthru);
+}
+EXT READONLY varying int16 __gather_base_offsets64_i16(uniform int8 *uniform ptr, uniform int32 scale,
+                                                       varying int64 offsets, UIntMaskType mask) {
+    varying int16 passthru;
+    return @llvm.masked.gather((uniform uint64)ptr + offsets * scale, 1, mask, passthru);
+}
+EXT READONLY varying float16 __gather_base_offsets32_half(uniform int8 *uniform ptr, uniform int32 scale,
+                                                          varying int32 offsets, UIntMaskType mask) {
+    varying float16 passthru;
+    return @llvm.masked.gather((uniform uint64)ptr + offsets * scale, 1, mask, passthru);
+}
+EXT READONLY varying float16 __gather_base_offsets64_half(uniform int8 *uniform ptr, uniform int32 scale,
+                                                          varying int64 offsets, UIntMaskType mask) {
+    varying float16 passthru;
+    return @llvm.masked.gather((uniform uint64)ptr + offsets * scale, 1, mask, passthru);
+}
+EXT READONLY varying int32 __gather_base_offsets32_i32(uniform int8 *uniform ptr, uniform int32 scale,
+                                                       varying int32 offsets, UIntMaskType mask) {
+    varying int32 passthru;
+    return @llvm.masked.gather((uniform uint64)ptr + offsets * scale, 1, mask, passthru);
+}
+EXT READONLY varying int32 __gather_base_offsets64_i32(uniform int8 *uniform ptr, uniform int32 scale,
+                                                       varying int64 offsets, UIntMaskType mask) {
+    varying int32 passthru;
+    return @llvm.masked.gather((uniform uint64)ptr + offsets * scale, 1, mask, passthru);
+}
+EXT READONLY varying float __gather_base_offsets32_float(uniform int8 *uniform ptr, uniform int32 scale,
+                                                         varying int32 offsets, UIntMaskType mask) {
+    varying float passthru;
+    return @llvm.masked.gather((uniform uint64)ptr + offsets * scale, 1, mask, passthru);
+}
+EXT READONLY varying float __gather_base_offsets64_float(uniform int8 *uniform ptr, uniform int32 scale,
+                                                         varying int64 offsets, UIntMaskType mask) {
+    varying float passthru;
+    return @llvm.masked.gather((uniform uint64)ptr + offsets * scale, 1, mask, passthru);
+}
+EXT READONLY varying int64 __gather_base_offsets32_i64(uniform int8 *uniform ptr, uniform int32 scale,
+                                                       varying int32 offsets, UIntMaskType mask) {
+    varying int64 passthru;
+    return @llvm.masked.gather((uniform uint64)ptr + offsets * scale, 1, mask, passthru);
+}
+EXT READONLY varying int64 __gather_base_offsets64_i64(uniform int8 *uniform ptr, uniform int32 scale,
+                                                       varying int64 offsets, UIntMaskType mask) {
+    varying int64 passthru;
+    return @llvm.masked.gather((uniform uint64)ptr + offsets * scale, 1, mask, passthru);
+}
+EXT READONLY varying double __gather_base_offsets32_double(uniform int8 *uniform ptr, uniform int32 scale,
+                                                           varying int32 offsets, UIntMaskType mask) {
+    varying double passthru;
+    return @llvm.masked.gather((uniform uint64)ptr + offsets * scale, 1, mask, passthru);
+}
+EXT READONLY varying double __gather_base_offsets64_double(uniform int8 *uniform ptr, uniform int32 scale,
+                                                           varying int64 offsets, UIntMaskType mask) {
+    varying double passthru;
+    return @llvm.masked.gather((uniform uint64)ptr + offsets * scale, 1, mask, passthru);
+}
 
 #undef NOESCAPE
 #undef ADDRSPACE
