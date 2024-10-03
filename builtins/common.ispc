@@ -869,27 +869,11 @@ EXT READONLY varying int8 __gather64_i8(varying uint64 addrs, UIntMaskType mask)
     varying int8 passthru;
     return @llvm.masked.gather(addrs, 1, mask, passthru);
 }
-EXT READONLY varying int8 __gather32_generic_i8(varying uint32 addrs, UIntMaskType mask) {
-    varying int8 passthru;
-    return @llvm.masked.gather((varying uint64)addrs, 1, mask, passthru);
-}
-EXT READONLY varying int8 __gather64_generic_i8(varying uint64 addrs, UIntMaskType mask) {
-    varying int8 passthru;
-    return @llvm.masked.gather(addrs, 1, mask, passthru);
-}
 EXT READONLY varying int16 __gather32_i16(varying uint32 addrs, UIntMaskType mask) {
     varying int16 passthru;
     return @llvm.masked.gather((varying uint64)addrs, 1, mask, passthru);
 }
 EXT READONLY varying int16 __gather64_i16(varying uint64 addrs, UIntMaskType mask) {
-    varying int16 passthru;
-    return @llvm.masked.gather(addrs, 1, mask, passthru);
-}
-EXT READONLY varying int16 __gather32_generic_i16(varying uint32 addrs, UIntMaskType mask) {
-    varying int16 passthru;
-    return @llvm.masked.gather((varying uint64)addrs, 1, mask, passthru);
-}
-EXT READONLY varying int16 __gather64_generic_i16(varying uint64 addrs, UIntMaskType mask) {
     varying int16 passthru;
     return @llvm.masked.gather(addrs, 1, mask, passthru);
 }
@@ -901,14 +885,6 @@ EXT READONLY varying float16 __gather64_half(varying uint64 addrs, UIntMaskType 
     varying float16 passthru;
     return @llvm.masked.gather(addrs, 1, mask, passthru);
 }
-EXT READONLY varying float16 __gather32_generic_half(varying uint32 addrs, UIntMaskType mask) {
-    varying float16 passthru;
-    return @llvm.masked.gather((varying uint64)addrs, 1, mask, passthru);
-}
-EXT READONLY varying float16 __gather64_generic_half(varying uint64 addrs, UIntMaskType mask) {
-    varying float16 passthru;
-    return @llvm.masked.gather(addrs, 1, mask, passthru);
-}
 EXT READONLY varying int32 __gather32_i32(varying uint32 addrs, UIntMaskType mask) {
     varying int32 passthru;
     return @llvm.masked.gather((varying uint64)addrs, 1, mask, passthru);
@@ -917,7 +893,6 @@ EXT READONLY varying int32 __gather64_i32(varying uint64 addrs, UIntMaskType mas
     varying int32 passthru;
     return @llvm.masked.gather(addrs, 1, mask, passthru);
 }
-// gather[32|64]_generic_32??
 EXT READONLY varying float __gather32_float(varying uint32 addrs, UIntMaskType mask) {
     varying float passthru;
     return @llvm.masked.gather((varying uint64)addrs, 1, mask, passthru);
@@ -926,7 +901,6 @@ EXT READONLY varying float __gather64_float(varying uint64 addrs, UIntMaskType m
     varying float passthru;
     return @llvm.masked.gather(addrs, 1, mask, passthru);
 }
-// gather[32|64]_generic_float??
 EXT READONLY varying int64 __gather32_i64(varying uint32 addrs, UIntMaskType mask) {
     varying int64 passthru;
     return @llvm.masked.gather((varying uint64)addrs, 1, mask, passthru);
@@ -935,7 +909,6 @@ EXT READONLY varying int64 __gather64_i64(varying uint64 addrs, UIntMaskType mas
     varying int64 passthru;
     return @llvm.masked.gather(addrs, 1, mask, passthru);
 }
-// gather[32|64]_generic_i64??
 EXT READONLY varying double __gather32_double(varying uint32 addrs, UIntMaskType mask) {
     varying double passthru;
     return @llvm.masked.gather((varying uint64)addrs, 1, mask, passthru);
@@ -944,7 +917,149 @@ EXT READONLY varying double __gather64_double(varying uint64 addrs, UIntMaskType
     varying double passthru;
     return @llvm.masked.gather(addrs, 1, mask, passthru);
 }
-// gather[32|64]_generic_double??
+
+// generic gather functions
+// for the targets which have gathers but --disable-gathers is requested
+UNMANGLED CDECL READONLY varying int8 __gather32_generic_i8(varying uint32 addrs) {
+    varying int8 res;
+    foreach_active(i) {
+        uniform int32 addr = __extract_int32(addrs, i);
+        uniform int8 *uniform ptr = (uniform int8 *uniform)addr;
+        uniform int8 val = *ptr;
+        res = __insert_int8(res, i, val);
+    }
+    return res;
+}
+UNMANGLED CDECL READONLY varying int8 __gather64_generic_i8(varying uint64 addrs) {
+    varying int8 res;
+    foreach_active(i) {
+        uniform int64 addr = __extract_int64(addrs, i);
+        uniform int8 *uniform ptr = (uniform int8 *uniform)addr;
+        uniform int8 val = *ptr;
+        res = __insert_int8(res, i, val);
+    }
+    return res;
+}
+UNMANGLED CDECL READONLY varying int16 __gather32_generic_i16(varying uint32 addrs) {
+    varying int16 res;
+    foreach_active(i) {
+        uniform int32 addr = __extract_int32(addrs, i);
+        uniform int16 *uniform ptr = (uniform int16 *uniform)addr;
+        uniform int16 val = *ptr;
+        res = __insert_int16(res, i, val);
+    }
+    return res;
+}
+UNMANGLED CDECL READONLY varying int16 __gather64_generic_i16(varying uint64 addrs) {
+    varying int16 res;
+    foreach_active(i) {
+        uniform int64 addr = __extract_int64(addrs, i);
+        uniform int16 *uniform ptr = (uniform int16 *uniform)addr;
+        uniform int16 val = *ptr;
+        res = __insert_int16(res, i, val);
+    }
+    return res;
+}
+UNMANGLED CDECL READONLY varying float16 __gather32_generic_half(varying uint32 addrs) {
+    varying float16 res;
+    foreach_active(i) {
+        uniform int32 addr = __extract_int32(addrs, i);
+        uniform float16 *uniform ptr = (uniform float16 *uniform)addr;
+        uniform float16 val = *ptr;
+        res = __insert_int16(res, i, val);
+    }
+    return res;
+}
+UNMANGLED CDECL READONLY varying float16 __gather64_generic_half(varying uint64 addrs) {
+    varying float16 res;
+    foreach_active(i) {
+        uniform int64 addr = __extract_int64(addrs, i);
+        uniform float16 *uniform ptr = (uniform float16 *uniform)addr;
+        uniform float16 val = *ptr;
+        res = __insert_int16(res, i, val);
+    }
+    return res;
+}
+UNMANGLED CDECL READONLY varying int32 __gather32_generic_i32(varying uint32 addrs) {
+    varying int32 res;
+    foreach_active(i) {
+        uniform int32 addr = __extract_int32(addrs, i);
+        uniform int32 *uniform ptr = (uniform int32 *uniform)addr;
+        uniform int32 val = *ptr;
+        res = __insert_int32(res, i, val);
+    }
+    return res;
+}
+UNMANGLED CDECL READONLY varying int32 __gather64_generic_i32(varying uint64 addrs) {
+    varying int32 res;
+    foreach_active(i) {
+        uniform int64 addr = __extract_int64(addrs, i);
+        uniform int32 *uniform ptr = (uniform int32 *uniform)addr;
+        uniform int32 val = *ptr;
+        res = __insert_int32(res, i, val);
+    }
+    return res;
+}
+UNMANGLED CDECL READONLY varying float __gather32_generic_float(varying uint32 addrs) {
+    varying float res;
+    foreach_active(i) {
+        uniform int32 addr = __extract_int32(addrs, i);
+        uniform float *uniform ptr = (uniform float *uniform)addr;
+        uniform float val = *ptr;
+        res = __insert_int32(res, i, val);
+    }
+    return res;
+}
+UNMANGLED CDECL READONLY varying float __gather64_generic_float(varying uint64 addrs) {
+    varying float res;
+    foreach_active(i) {
+        uniform int64 addr = __extract_int64(addrs, i);
+        uniform float *uniform ptr = (uniform float *uniform)addr;
+        uniform float val = *ptr;
+        res = __insert_int32(res, i, val);
+    }
+    return res;
+}
+UNMANGLED CDECL READONLY varying int64 __gather32_generic_i64(varying uint32 addrs) {
+    varying int64 res;
+    foreach_active(i) {
+        uniform int32 addr = __extract_int32(addrs, i);
+        uniform int64 *uniform ptr = (uniform int64 *uniform)addr;
+        uniform int64 val = *ptr;
+        res = __insert_int64(res, i, val);
+    }
+    return res;
+}
+UNMANGLED CDECL READONLY varying int64 __gather64_generic_i64(varying uint64 addrs) {
+    varying int64 res;
+    foreach_active(i) {
+        uniform int64 addr = __extract_int64(addrs, i);
+        uniform int64 *uniform ptr = (uniform int64 *uniform)addr;
+        uniform int64 val = *ptr;
+        res = __insert_int64(res, i, val);
+    }
+    return res;
+}
+UNMANGLED CDECL READONLY varying double __gather32_generic_double(varying uint32 addrs) {
+    varying double res;
+    foreach_active(i) {
+        uniform int32 addr = __extract_int32(addrs, i);
+        uniform double *uniform ptr = (uniform double *uniform)addr;
+        uniform double val = *ptr;
+        res = __insert_int64(res, i, val);
+    }
+    return res;
+}
+UNMANGLED CDECL READONLY varying double __gather64_generic_double(varying uint64 addrs) {
+    varying double res;
+    foreach_active(i) {
+        uniform int64 addr = __extract_int64(addrs, i);
+        uniform double *uniform ptr = (uniform double *uniform)addr;
+        uniform double val = *ptr;
+        res = __insert_int64(res, i, val);
+    }
+    return res;
+}
 
 // gather functions with base offsets
 EXT READONLY varying int8 __gather_base_offsets32_i8(uniform int8 *uniform ptr, uniform int32 scale,
