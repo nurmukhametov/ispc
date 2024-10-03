@@ -5132,28 +5132,8 @@ ifelse(HAVE_SCATTER, `1',
 define(`gen_scatter', `
 gen_scatter_factored($1)
 ; fully general 32-bit scatter, takes array of pointers encoded as vector of i32s
-define void @__scatter32_$1(<WIDTH x i32> %ptrs, <WIDTH x $1> %values,
-                            <WIDTH x MASK> %mask) nounwind alwaysinline {
-  per_lane(WIDTH, <WIDTH x MASK> %mask, `
-  %iptr_LANE_ID = extractelement <WIDTH x i32> %ptrs, i32 LANE
-  %ptr_LANE_ID = inttoptr i32 %iptr_LANE_ID to $1 *
-  %val_LANE_ID = extractelement <WIDTH x $1> %values, i32 LANE
-  store $1 %val_LANE_ID, $1 * %ptr_LANE_ID
- ')
-  ret void
-}
 
 ; fully general 64-bit scatter, takes array of pointers encoded as vector of i64s
-define void @__scatter64_$1(<WIDTH x i64> %ptrs, <WIDTH x $1> %values,
-                            <WIDTH x MASK> %mask) nounwind alwaysinline {
-  per_lane(WIDTH, <WIDTH x MASK> %mask, `
-  %iptr_LANE_ID = extractelement <WIDTH x i64> %ptrs, i32 LANE
-  %ptr_LANE_ID = inttoptr i64 %iptr_LANE_ID to $1 *
-  %val_LANE_ID = extractelement <WIDTH x $1> %values, i32 LANE
-  store $1 %val_LANE_ID, $1 * %ptr_LANE_ID
- ')
-  ret void
-}
 
 '
 )
@@ -5510,18 +5490,6 @@ define void
   ret void
 } 
 
-define void
-@__scatter32_i32(<4 x i32> %ptrs, <4 x i32> %values, <WIDTH x MASK> %vecmask) nounwind alwaysinline {
-  call void @__scatter_base_offsets32_i32(i8 * zeroinitializer, i32 1, <4 x i32> %ptrs, <4 x i32> %values, <WIDTH x MASK> %vecmask)
-  ret void
-}
-
-define void
-@__scatter64_i32(<4 x i64> %ptrs, <4 x i32> %values, <WIDTH x MASK> %vecmask) nounwind alwaysinline {
-  call void @__scatter_base_offsets64_i32(i8 * zeroinitializer, i32 1, <4 x i64> %ptrs, <4 x i32> %values, <WIDTH x MASK> %vecmask)
-  ret void
-}
-
 ;; scatter - i64
 declare void @llvm.x86.avx512.mask.scattersiv4.di(i8*, <4 x i1>, <4 x i32>, <4 x i64>, i32)
 define void
@@ -5534,18 +5502,6 @@ declare void @llvm.x86.avx512.mask.scatterdiv4.di(i8*, <4 x i1>, <4 x i64>, <4 x
 define void
 @__scatter_base_offsets64_i64(i8* %ptr, i32 %offset_scale, <4 x i64> %offsets, <4 x i64> %vals, <4 x i1> %vecmask) nounwind {
   convert_scale_to_const_scatter(llvm.x86.avx512.mask.scatterdiv4.di, 4, vals, i64, ptr, offsets, i64, vecmask, <4 x i1>, offset_scale);
-  ret void
-}
-
-define void
-@__scatter32_i64(<4 x i32> %ptrs, <4 x i64> %values, <4 x i1> %vecmask) nounwind alwaysinline {
-  call void @__scatter_base_offsets32_i64(i8 * zeroinitializer, i32 1, <4 x i32> %ptrs, <4 x i64> %values, <4 x i1> %vecmask)
-  ret void
-}
-
-define void
-@__scatter64_i64(<4 x i64> %ptrs, <4 x i64> %values, <4 x i1> %vecmask) nounwind alwaysinline {
-  call void @__scatter_base_offsets64_i64(i8 * zeroinitializer, i32 1, <4 x i64> %ptrs, <4 x i64> %values, <4 x i1> %vecmask)
   ret void
 }
 
@@ -5566,18 +5522,6 @@ define void
   ret void
 } 
 
-define void 
-@__scatter32_float(<4 x i32> %ptrs, <4 x float> %values, <WIDTH x MASK> %vecmask) nounwind alwaysinline {
-  call void @__scatter_base_offsets32_float(i8 * zeroinitializer, i32 1, <4 x i32> %ptrs, <4 x float> %values, <WIDTH x MASK> %vecmask)
-  ret void
-}
-
-define void 
-@__scatter64_float(<4 x i64> %ptrs, <4 x float> %values, <WIDTH x MASK> %vecmask) nounwind alwaysinline {
-  call void @__scatter_base_offsets64_float(i8 * zeroinitializer, i32 1, <4 x i64> %ptrs, <4 x float> %values, <WIDTH x MASK> %vecmask)
-  ret void
-}
-
 ;; scatter - double
 declare void @llvm.x86.avx512.mask.scattersiv4.df(i8*, <4 x i1>, <4 x i32>, <4 x double>, i32)
 define void
@@ -5590,18 +5534,6 @@ declare void @llvm.x86.avx512.mask.scatterdiv4.df(i8*, <4 x i1>, <4 x i64>, <4 x
 define void
 @__scatter_base_offsets64_double(i8* %ptr, i32 %offset_scale, <4 x i64> %offsets, <4 x double> %vals, <4 x i1> %vecmask) nounwind {
   convert_scale_to_const_scatter(llvm.x86.avx512.mask.scatterdiv4.df, 4, vals, double, ptr, offsets, i64, vecmask, <4 x i1>, offset_scale);
-  ret void
-}
-
-define void
-@__scatter32_double(<4 x i32> %ptrs, <4 x double> %values, <4 x i1> %vecmask) nounwind alwaysinline {
-  call void @__scatter_base_offsets32_double(i8 * zeroinitializer, i32 1, <4 x i32> %ptrs, <4 x double> %values, <4 x i1> %vecmask)
-  ret void
-}
-
-define void
-@__scatter64_double(<4 x i64> %ptrs, <4 x double> %values, <4 x i1> %vecmask) nounwind alwaysinline {
-  call void @__scatter_base_offsets64_double(i8 * zeroinitializer, i32 1, <4 x i64> %ptrs, <4 x double> %values, <4 x i1> %vecmask)
   ret void
 }
 

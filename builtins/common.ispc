@@ -1362,6 +1362,50 @@ UNMANGLED CDECL void __scatter64_generic_double(varying uint64 addr, varying dou
     }
 }
 
+// general scatters
+EXT void __scatter32_i8(varying uint32 addr, varying int8 val, UIntMaskType mask) {
+    @llvm.masked.scatter(val, (varying uint64)addr, 1, mask);
+}
+EXT void __scatter64_i8(varying uint64 addr, varying int8 val, UIntMaskType mask) {
+    @llvm.masked.scatter(val, addr, 1, mask);
+}
+EXT void __scatter32_i16(varying uint32 addr, varying int16 val, UIntMaskType mask) {
+    @llvm.masked.scatter(val, (varying uint64)addr, 1, mask);
+}
+EXT void __scatter64_i16(varying uint64 addr, varying int16 val, UIntMaskType mask) {
+    @llvm.masked.scatter(val, addr, 1, mask);
+}
+EXT void __scatter32_half(varying uint32 addr, varying float16 val, UIntMaskType mask) {
+    @llvm.masked.scatter(val, (varying uint64)addr, 1, mask);
+}
+EXT void __scatter64_half(varying uint64 addr, varying float16 val, UIntMaskType mask) {
+    @llvm.masked.scatter(val, addr, 1, mask);
+}
+EXT void __scatter32_i32(varying uint32 addr, varying int32 val, UIntMaskType mask) {
+    @llvm.masked.scatter(val, (varying uint64)addr, 1, mask);
+}
+EXT void __scatter64_i32(varying uint64 addr, varying int32 val, UIntMaskType mask) {
+    @llvm.masked.scatter(val, addr, 1, mask);
+}
+EXT void __scatter32_float(varying uint32 addr, varying float val, UIntMaskType mask) {
+    @llvm.masked.scatter(val, (varying uint64)addr, 1, mask);
+}
+EXT void __scatter64_float(varying uint64 addr, varying float val, UIntMaskType mask) {
+    @llvm.masked.scatter(val, addr, 1, mask);
+}
+EXT void __scatter32_i64(varying uint32 addr, varying int64 val, UIntMaskType mask) {
+    @llvm.masked.scatter(val, (varying uint64)addr, 1, mask);
+}
+EXT void __scatter64_i64(varying uint64 addr, varying int64 val, UIntMaskType mask) {
+    @llvm.masked.scatter(val, addr, 1, mask);
+}
+EXT void __scatter32_double(varying uint32 addr, varying double val, UIntMaskType mask) {
+    @llvm.masked.scatter(val, (varying uint64)addr, 1, mask);
+}
+EXT void __scatter64_double(varying uint64 addr, varying double val, UIntMaskType mask) {
+    @llvm.masked.scatter(val, addr, 1, mask);
+}
+
 #undef NOESCAPE
 #undef ADDRSPACE
 #undef READONLY
