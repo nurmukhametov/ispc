@@ -5437,19 +5437,7 @@ declare void @__masked_store_blend_double(<4 x double>* nocapture, <4 x double>,
 ;; so use factored ones here explicitely for remaining types only.
 
 define(`scatterbo32_64', `
-define void @__scatter_base_offsets32_$1(i8* %ptr, i32 %scale, <WIDTH x i32> %offsets,
-                                         <WIDTH x $1> %vals, <WIDTH x MASK> %mask) nounwind {
-  call void @__scatter_factored_base_offsets32_$1(i8* %ptr, <WIDTH x i32> %offsets,
-      i32 %scale, <WIDTH x i32> zeroinitializer, <WIDTH x $1> %vals, <WIDTH x MASK> %mask)
-  ret void
-}
 
-define void @__scatter_base_offsets64_$1(i8* %ptr, i32 %scale, <WIDTH x i64> %offsets,
-                                         <WIDTH x $1> %vals, <WIDTH x MASK> %mask) nounwind {
-  call void @__scatter_factored_base_offsets64_$1(i8* %ptr, <WIDTH x i64> %offsets,
-      i32 %scale, <WIDTH x i64> zeroinitializer, <WIDTH x $1> %vals, <WIDTH x MASK> %mask)
-  ret void
-}
 ')
 
 ;; We need factored generic implementations when --opt=disable-scatters is used.
@@ -5473,69 +5461,6 @@ gen_scatter_factored(float)
 gen_scatter_factored(i64)
 gen_scatter_factored(double)
 
-;; scatter - i32
-declare void @llvm.x86.avx512.scattersiv4.si(i8*, i8, <4 x i32>, <4 x i32>, i32)
-define void
-@__scatter_base_offsets32_i32(i8* %ptr, i32 %offset_scale, <4 x i32> %offsets, <4 x i32> %vals, <WIDTH x MASK> %vecmask) nounwind {
-  %mask = call i8 @__cast_mask_to_i8 (<WIDTH x MASK> %vecmask)
-  convert_scale_to_const_scatter(llvm.x86.avx512.scattersiv4.si, 4, vals, i32, ptr, offsets, i32, mask, i8, offset_scale);
-  ret void
-}
-
-declare void @llvm.x86.avx512.scatterdiv8.si(i8*, i8, <4 x i64>, <4 x i32>, i32)
-define void
-@__scatter_base_offsets64_i32(i8* %ptr, i32 %offset_scale, <4 x i64> %offsets, <4 x i32> %vals, <WIDTH x MASK> %vecmask) nounwind {
-  %mask = call i8 @__cast_mask_to_i8 (<WIDTH x MASK> %vecmask)
-  convert_scale_to_const_scatter(llvm.x86.avx512.scatterdiv8.si, 4, vals, i32, ptr, offsets, i64, mask, i8, offset_scale);
-  ret void
-} 
-
-;; scatter - i64
-declare void @llvm.x86.avx512.mask.scattersiv4.di(i8*, <4 x i1>, <4 x i32>, <4 x i64>, i32)
-define void
-@__scatter_base_offsets32_i64(i8* %ptr, i32 %offset_scale, <4 x i32> %offsets, <4 x i64> %vals, <4 x i1> %vecmask) nounwind {
-  convert_scale_to_const_scatter(llvm.x86.avx512.mask.scattersiv4.di, 4, vals, i64, ptr, offsets, i32, vecmask, <4 x i1>, offset_scale);
-  ret void
-}
-
-declare void @llvm.x86.avx512.mask.scatterdiv4.di(i8*, <4 x i1>, <4 x i64>, <4 x i64>, i32)
-define void
-@__scatter_base_offsets64_i64(i8* %ptr, i32 %offset_scale, <4 x i64> %offsets, <4 x i64> %vals, <4 x i1> %vecmask) nounwind {
-  convert_scale_to_const_scatter(llvm.x86.avx512.mask.scatterdiv4.di, 4, vals, i64, ptr, offsets, i64, vecmask, <4 x i1>, offset_scale);
-  ret void
-}
-
-;; scatter - float
-declare void @llvm.x86.avx512.scattersiv4.sf(i8*, i8, <4 x i32>, <4 x float>, i32)
-define void
-@__scatter_base_offsets32_float(i8* %ptr, i32 %offset_scale, <4 x i32> %offsets, <4 x float> %vals, <WIDTH x MASK> %vecmask) nounwind {
-  %mask = call i8 @__cast_mask_to_i8 (<WIDTH x MASK> %vecmask)
-  convert_scale_to_const_scatter(llvm.x86.avx512.scattersiv4.sf, 4, vals, float, ptr, offsets, i32, mask, i8, offset_scale);
-  ret void
-}
-
-declare void @llvm.x86.avx512.scatterdiv8.sf(i8*, i8, <4 x i64>, <4 x float>, i32)
-define void
-@__scatter_base_offsets64_float(i8* %ptr, i32 %offset_scale, <4 x i64> %offsets, <4 x float> %vals, <WIDTH x MASK> %vecmask) nounwind {
-  %mask = call i8 @__cast_mask_to_i8 (<WIDTH x MASK> %vecmask)
-  convert_scale_to_const_scatter(llvm.x86.avx512.scatterdiv8.sf, 4, vals, float, ptr, offsets, i64, mask, i8, offset_scale);
-  ret void
-} 
-
-;; scatter - double
-declare void @llvm.x86.avx512.mask.scattersiv4.df(i8*, <4 x i1>, <4 x i32>, <4 x double>, i32)
-define void
-@__scatter_base_offsets32_double(i8* %ptr, i32 %offset_scale, <4 x i32> %offsets, <4 x double> %vals, <4 x i1> %vecmask) nounwind {
-  convert_scale_to_const_scatter(llvm.x86.avx512.mask.scattersiv4.df, 4, vals, double, ptr, offsets, i32, vecmask, <4 x i1>, offset_scale);
-  ret void
-}
-
-declare void @llvm.x86.avx512.mask.scatterdiv4.df(i8*, <4 x i1>, <4 x i64>, <4 x double>, i32)
-define void
-@__scatter_base_offsets64_double(i8* %ptr, i32 %offset_scale, <4 x i64> %offsets, <4 x double> %vals, <4 x i1> %vecmask) nounwind {
-  convert_scale_to_const_scatter(llvm.x86.avx512.mask.scatterdiv4.df, 4, vals, double, ptr, offsets, i64, vecmask, <4 x i1>, offset_scale);
-  ret void
-}
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; packed_load/store
