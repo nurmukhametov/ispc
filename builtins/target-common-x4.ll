@@ -5061,65 +5061,6 @@ define(`gen_scatter_generic', `
 define(`gen_scatter_factored', `
 ;; Define the function that descripes the work to do to scatter a single
 ;; value
-define void @__scatter_elt32_$1(i8 * %ptr, <WIDTH x i32> %offsets, i32 %offset_scale,
-                                <WIDTH x i32> %offset_delta, <WIDTH x $1> %values,
-                                i32 %lane) nounwind alwaysinline {
-  %offset32 = extractelement <WIDTH x i32> %offsets, i32 %lane
-  ; the order and details of the next 4 lines are important--they match LLVMs
-  ; patterns that apply the free x86 2x/4x/8x scaling in addressing calculations
-  %offset64 = sext i32 %offset32 to i64
-  %scale64 = sext i32 %offset_scale to i64
-  %offset = mul i64 %offset64, %scale64
-  %ptroffset = getelementptr PTR_OP_ARGS(`i8') %ptr, i64 %offset
-
-  %delta = extractelement <WIDTH x i32> %offset_delta, i32 %lane
-  %delta64 = sext i32 %delta to i64
-  %finalptr = getelementptr PTR_OP_ARGS(`i8') %ptroffset, i64 %delta64
-
-  %ptrcast = bitcast i8 * %finalptr to $1 *
-  %storeval = extractelement <WIDTH x $1> %values, i32 %lane
-  store $1 %storeval, $1 * %ptrcast
-  ret void
-}
-
-define void @__scatter_elt64_$1(i8 * %ptr, <WIDTH x i64> %offsets, i32 %offset_scale,
-                                <WIDTH x i64> %offset_delta, <WIDTH x $1> %values,
-                                i32 %lane) nounwind alwaysinline {
-  %offset64 = extractelement <WIDTH x i64> %offsets, i32 %lane
-  ; the order and details of the next 4 lines are important--they match LLVMs
-  ; patterns that apply the free x86 2x/4x/8x scaling in addressing calculations
-  %scale64 = sext i32 %offset_scale to i64
-  %offset = mul i64 %offset64, %scale64
-  %ptroffset = getelementptr PTR_OP_ARGS(`i8') %ptr, i64 %offset
-
-  %delta64 = extractelement <WIDTH x i64> %offset_delta, i32 %lane
-  %finalptr = getelementptr PTR_OP_ARGS(`i8') %ptroffset, i64 %delta64
-
-  %ptrcast = bitcast i8 * %finalptr to $1 *
-  %storeval = extractelement <WIDTH x $1> %values, i32 %lane
-  store $1 %storeval, $1 * %ptrcast
-  ret void
-}
-
-define void @__scatter_factored_base_offsets32_$1(i8* %base, <WIDTH x i32> %offsets, i32 %offset_scale,
-                                         <WIDTH x i32> %offset_delta, <WIDTH x $1> %values,
-                                         <WIDTH x MASK> %mask) nounwind alwaysinline {
-  ;; And use the `per_lane' macro to do all of the per-lane work for scatter...
-  per_lane(WIDTH, <WIDTH x MASK> %mask, `
-      call void @__scatter_elt32_$1(i8 * %base, <WIDTH x i32> %offsets, i32 %offset_scale,
-                                    <WIDTH x i32> %offset_delta, <WIDTH x $1> %values, i32 LANE)')
-  ret void
-}
-
-define void @__scatter_factored_base_offsets64_$1(i8* %base, <WIDTH x i64> %offsets, i32 %offset_scale,
-                                         <WIDTH x i64> %offset_delta, <WIDTH x $1> %values,
-                                         <WIDTH x MASK> %mask) nounwind alwaysinline {
-  ;; And use the `per_lane' macro to do all of the per-lane work for scatter...
-  per_lane(WIDTH, <WIDTH x MASK> %mask, `
-      call void @__scatter_elt64_$1(i8 * %base, <WIDTH x i64> %offsets, i32 %offset_scale,
-                                    <WIDTH x i64> %offset_delta, <WIDTH x $1> %values, i32 LANE)')
-  ret void
-}
 
 ifelse(HAVE_SCATTER, `1',
 `

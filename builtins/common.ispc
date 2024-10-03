@@ -1464,6 +1464,64 @@ EXT void __scatter_base_offsets64_double(uniform int8 *uniform base, uniform int
     @llvm.masked.scatter(val, (uniform uint64)base + offset * scale, 1, mask);
 }
 
+// scatters with factored base offsets
+EXT void __scatter_factored_base_offsets32_i8(uniform int8 *uniform base, varying int32 offset, uniform int32 scale,
+                                              varying int32 delta, varying int8 val, UIntMaskType mask) {
+    @llvm.masked.scatter(val, (uniform uint64)base + (offset * scale + delta), 1, mask);
+}
+EXT void __scatter_factored_base_offsets64_i8(uniform int8 *uniform base, varying int64 offset, uniform int32 scale,
+                                              varying int64 delta, varying int8 val, UIntMaskType mask) {
+    @llvm.masked.scatter(val, (uniform uint64)base + (offset * scale + delta), 1, mask);
+}
+EXT void __scatter_factored_base_offsets32_i16(uniform int8 *uniform base, varying int32 offset, uniform int32 scale,
+                                               varying int32 delta, varying int16 val, UIntMaskType mask) {
+    @llvm.masked.scatter(val, (uniform uint64)base + (offset * scale + delta), 1, mask);
+}
+EXT void __scatter_factored_base_offsets64_i16(uniform int8 *uniform base, varying int64 offset, uniform int32 scale,
+                                               varying int64 delta, varying int16 val, UIntMaskType mask) {
+    @llvm.masked.scatter(val, (uniform uint64)base + (offset * scale + delta), 1, mask);
+}
+EXT void __scatter_factored_base_offsets32_half(uniform int8 *uniform base, varying int32 offset, uniform int32 scale,
+                                                varying int32 delta, varying float16 val, UIntMaskType mask) {
+    @llvm.masked.scatter(val, (uniform uint64)base + (offset * scale + delta), 1, mask);
+}
+EXT void __scatter_factored_base_offsets64_half(uniform int8 *uniform base, varying int64 offset, uniform int32 scale,
+                                                varying int64 delta, varying float16 val, UIntMaskType mask) {
+    @llvm.masked.scatter(val, (uniform uint64)base + (offset * scale + delta), 1, mask);
+}
+EXT void __scatter_factored_base_offsets32_i32(uniform int8 *uniform base, varying int32 offset, uniform int32 scale,
+                                               varying int32 delta, varying int32 val, UIntMaskType mask) {
+    @llvm.masked.scatter(val, (uniform uint64)base + (offset * scale + delta), 1, mask);
+}
+EXT void __scatter_factored_base_offsets64_i32(uniform int8 *uniform base, varying int64 offset, uniform int32 scale,
+                                               varying int64 delta, varying int32 val, UIntMaskType mask) {
+    @llvm.masked.scatter(val, (uniform uint64)base + (offset * scale + delta), 1, mask);
+}
+EXT void __scatter_factored_base_offsets32_float(uniform int8 *uniform base, varying int32 offset, uniform int32 scale,
+                                                 varying int32 delta, varying float val, UIntMaskType mask) {
+    @llvm.masked.scatter(val, (uniform uint64)base + (offset * scale + delta), 1, mask);
+}
+EXT void __scatter_factored_base_offsets64_float(uniform int8 *uniform base, varying int64 offset, uniform int32 scale,
+                                                 varying int64 delta, varying float val, UIntMaskType mask) {
+    @llvm.masked.scatter(val, (uniform uint64)base + (offset * scale + delta), 1, mask);
+}
+EXT void __scatter_factored_base_offsets32_i64(uniform int8 *uniform base, varying int32 offset, uniform int32 scale,
+                                               varying int32 delta, varying int64 val, UIntMaskType mask) {
+    @llvm.masked.scatter(val, (uniform uint64)base + (offset * scale + delta), 1, mask);
+}
+EXT void __scatter_factored_base_offsets64_i64(uniform int8 *uniform base, varying int64 offset, uniform int32 scale,
+                                               varying int64 delta, varying int64 val, UIntMaskType mask) {
+    @llvm.masked.scatter(val, (uniform uint64)base + (offset * scale + delta), 1, mask);
+}
+EXT void __scatter_factored_base_offsets32_double(uniform int8 *uniform base, varying int32 offset, uniform int32 scale,
+                                                  varying int32 delta, varying double val, UIntMaskType mask) {
+    @llvm.masked.scatter(val, (uniform uint64)base + (offset * scale + delta), 1, mask);
+}
+EXT void __scatter_factored_base_offsets64_double(uniform int8 *uniform base, varying int64 offset, uniform int32 scale,
+                                                  varying int64 delta, varying double val, UIntMaskType mask) {
+    @llvm.masked.scatter(val, (uniform uint64)base + (offset * scale + delta), 1, mask);
+}
+
 #undef NOESCAPE
 #undef ADDRSPACE
 #undef READONLY
