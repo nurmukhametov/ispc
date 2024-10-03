@@ -1018,6 +1018,92 @@ EXT READONLY varying double __gather_base_offsets64_double(uniform int8 *uniform
     return @llvm.masked.gather((uniform uint64)ptr + offsets * scale, 1, mask, passthru);
 }
 
+// gather functions with factored base offsets
+EXT READONLY varying int8 __gather_factored_base_offsets32_i8(uniform int8 *uniform base, varying int32 offsets,
+                                                              uniform int32 scale, varying int32 delta,
+                                                              UIntMaskType mask) {
+    varying int8 passthru;
+    return @llvm.masked.gather((uniform uint64)base + (offsets * scale + delta), 1, mask, passthru);
+}
+EXT READONLY varying int8 __gather_factored_base_offsets64_i8(uniform int8 *uniform base, varying int64 offsets,
+                                                              uniform int32 scale, varying int64 delta,
+                                                              UIntMaskType mask) {
+    varying int8 passthru;
+    return @llvm.masked.gather((uniform uint64)base + (offsets * scale + delta), 1, mask, passthru);
+}
+EXT READONLY varying int16 __gather_factored_base_offsets32_i16(uniform int8 *uniform base, varying int32 offsets,
+                                                                uniform int32 scale, varying int32 delta,
+                                                                UIntMaskType mask) {
+    varying int16 passthru;
+    return @llvm.masked.gather((uniform uint64)base + (offsets * scale + delta), 1, mask, passthru);
+}
+EXT READONLY varying int16 __gather_factored_base_offsets64_i16(uniform int8 *uniform base, varying int64 offsets,
+                                                                uniform int32 scale, varying int64 delta,
+                                                                UIntMaskType mask) {
+    varying int16 passthru;
+    return @llvm.masked.gather((uniform uint64)base + (offsets * scale + delta), 1, mask, passthru);
+}
+EXT READONLY varying float16 __gather_factored_base_offsets32_half(uniform int8 *uniform base, varying int32 offsets,
+                                                                   uniform int32 scale, varying int32 delta,
+                                                                   UIntMaskType mask) {
+    varying float16 passthru;
+    return @llvm.masked.gather((uniform uint64)base + (offsets * scale + delta), 1, mask, passthru);
+}
+EXT READONLY varying float16 __gather_factored_base_offsets64_half(uniform int8 *uniform base, varying int64 offsets,
+                                                                   uniform int32 scale, varying int64 delta,
+                                                                   UIntMaskType mask) {
+    varying float16 passthru;
+    return @llvm.masked.gather((uniform uint64)base + (offsets * scale + delta), 1, mask, passthru);
+}
+EXT READONLY varying int32 __gather_factored_base_offsets32_i32(uniform int8 *uniform base, varying int32 offsets,
+                                                                uniform int32 scale, varying int32 delta,
+                                                                UIntMaskType mask) {
+    varying int32 passthru;
+    return @llvm.masked.gather((uniform uint64)base + (offsets * scale + delta), 1, mask, passthru);
+}
+EXT READONLY varying int32 __gather_factored_base_offsets64_i32(uniform int8 *uniform base, varying int64 offsets,
+                                                                uniform int32 scale, varying int64 delta,
+                                                                UIntMaskType mask) {
+    varying int32 passthru;
+    return @llvm.masked.gather((uniform uint64)base + (offsets * scale + delta), 1, mask, passthru);
+}
+EXT READONLY varying float __gather_factored_base_offsets32_float(uniform int8 *uniform base, varying int32 offsets,
+                                                                  uniform int32 scale, varying int32 delta,
+                                                                  UIntMaskType mask) {
+    varying float passthru;
+    return @llvm.masked.gather((uniform uint64)base + (offsets * scale + delta), 1, mask, passthru);
+}
+EXT READONLY varying float __gather_factored_base_offsets64_float(uniform int8 *uniform base, varying int64 offsets,
+                                                                  uniform int32 scale, varying int64 delta,
+                                                                  UIntMaskType mask) {
+    varying float passthru;
+    return @llvm.masked.gather((uniform uint64)base + (offsets * scale + delta), 1, mask, passthru);
+}
+EXT READONLY varying int64 __gather_factored_base_offsets32_i64(uniform int8 *uniform base, varying int32 offsets,
+                                                                uniform int32 scale, varying int32 delta,
+                                                                UIntMaskType mask) {
+    varying int64 passthru;
+    return @llvm.masked.gather((uniform uint64)base + (offsets * scale + delta), 1, mask, passthru);
+}
+EXT READONLY varying int64 __gather_factored_base_offsets64_i64(uniform int8 *uniform base, varying int64 offsets,
+                                                                uniform int32 scale, varying int64 delta,
+                                                                UIntMaskType mask) {
+    varying int64 passthru;
+    return @llvm.masked.gather((uniform uint64)base + (offsets * scale + delta), 1, mask, passthru);
+}
+EXT READONLY varying double __gather_factored_base_offsets32_double(uniform int8 *uniform base, varying int32 offsets,
+                                                                    uniform int32 scale, varying int32 delta,
+                                                                    UIntMaskType mask) {
+    varying double passthru;
+    return @llvm.masked.gather((uniform uint64)base + (offsets * scale + delta), 1, mask, passthru);
+}
+EXT READONLY varying double __gather_factored_base_offsets64_double(uniform int8 *uniform base, varying int64 offsets,
+                                                                    uniform int32 scale, varying int64 delta,
+                                                                    UIntMaskType mask) {
+    varying double passthru;
+    return @llvm.masked.gather((uniform uint64)base + (offsets * scale + delta), 1, mask, passthru);
+}
+
 #undef NOESCAPE
 #undef ADDRSPACE
 #undef READONLY
