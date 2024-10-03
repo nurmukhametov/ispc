@@ -1104,6 +1104,48 @@ EXT READONLY varying double __gather_factored_base_offsets64_double(uniform int8
     return @llvm.masked.gather((uniform uint64)base + (offsets * scale + delta), 1, mask, passthru);
 }
 
+// pseudo masked stores defined here to preserver dependant functions
+// no correct program should inline them or use them directly after
+// optimization pipeline correctly processed
+EXT noinline void __pseudo_masked_store_i8(NOESCAPE varying int8 *uniform ptr, varying int8 val, UIntMaskType mask) {
+    __not_supported();
+    __masked_store_i8(ptr, val, mask);
+    __masked_store_blend_i8(ptr, val, mask);
+}
+EXT noinline void __pseudo_masked_store_i16(NOESCAPE varying int16 *uniform ptr, varying int16 val, UIntMaskType mask) {
+    __not_supported();
+    __masked_store_i16(ptr, val, mask);
+    __masked_store_blend_i16(ptr, val, mask);
+}
+EXT noinline void __pseudo_masked_store_half(NOESCAPE varying float16 *uniform ptr, varying float16 val,
+                                             UIntMaskType mask) {
+    __not_supported();
+    __masked_store_half(ptr, val, mask);
+    __masked_store_blend_half(ptr, val, mask);
+}
+EXT noinline void __pseudo_masked_store_i32(NOESCAPE varying int32 *uniform ptr, varying int32 val, UIntMaskType mask) {
+    __not_supported();
+    __masked_store_i32(ptr, val, mask);
+    __masked_store_blend_i32(ptr, val, mask);
+}
+EXT noinline void __pseudo_masked_store_float(NOESCAPE varying float *uniform ptr, varying float val,
+                                              UIntMaskType mask) {
+    __not_supported();
+    __masked_store_float(ptr, val, mask);
+    __masked_store_blend_float(ptr, val, mask);
+}
+EXT noinline void __pseudo_masked_store_i64(NOESCAPE varying int64 *uniform ptr, varying int64 val, UIntMaskType mask) {
+    __not_supported();
+    __masked_store_i64(ptr, val, mask);
+    __masked_store_blend_i64(ptr, val, mask);
+}
+EXT noinline void __pseudo_masked_store_double(NOESCAPE varying double *uniform ptr, varying double val,
+                                               UIntMaskType mask) {
+    __not_supported();
+    __masked_store_double(ptr, val, mask);
+    __masked_store_blend_double(ptr, val, mask);
+}
+
 #undef NOESCAPE
 #undef ADDRSPACE
 #undef READONLY

@@ -1592,11 +1592,15 @@ void lLinkTargetBuiltins(llvm::Module *module, int &debug_num) {
         debugDumpModule(module, "Parent", debug_num++);
     }
 
+    llvm::GlobalVariable *llvmUsed = module->getNamedGlobal("llvm.compiler.used");
+    if (llvmUsed) {
+        llvmUsed->eraseFromParent();
+    }
     // new/delete use __pseudo_masked_store functions which we need to add in persistent and link again
     // TODO: redo to avoid duplication
     lAddPersistentToLLVMUsed(*module);
-    lRemoveUnused(module);
-    lRemoveUnusedPersistentFunctions(module);
+    // lRemoveUnused(module);
+    // lRemoveUnusedPersistentFunctions(module);
     while (lHasUnresolvedSymbols(module)) {
         target = GetParentTarget(target);
         printf("Parent target: %s\n", ISPCTargetToString(target).c_str());
