@@ -1682,6 +1682,22 @@ EXT PackedStoreResultType __packed_store_active2i64(uniform int8 *uniform ptr, v
     return __popcnt_int64(__cast_mask_to_i64(mask));
 }
 
+// packed active loads
+EXT uniform int32 __packed_load_activei32(uniform int8 *uniform from, uniform int8 *uniform to, UIntMaskType mask) {
+    varying int32 *uniform ptr = (varying int32 * uniform) to;
+    varying int32 passthru = *ptr;
+    varying int32 vec = @llvm.masked.expandload(from, mask, passthru);
+    *ptr = vec;
+    return __popcnt_int64(__cast_mask_to_i64(mask));
+}
+EXT uniform int32 __packed_load_activei64(uniform int8 *uniform from, uniform int8 *uniform to, UIntMaskType mask) {
+    varying int64 *uniform ptr = (varying int64 * uniform) to;
+    varying int64 passthru = *ptr;
+    varying int64 vec = @llvm.masked.expandload(from, mask, passthru);
+    *ptr = vec;
+    return __popcnt_int64(__cast_mask_to_i64(mask));
+}
+
 #undef NOESCAPE
 #undef ADDRSPACE
 #undef READONLY
