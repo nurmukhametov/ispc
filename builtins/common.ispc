@@ -1261,6 +1261,107 @@ EXT noinline void __pseudo_masked_store_double(NOESCAPE varying double *uniform 
     __masked_store_blend_double(ptr, val, mask);
 }
 
+// scatter generic functions
+// For the targets which have scatters but --disable-scatters is requested
+UNMANGLED CDECL void __scatter32_generic_i8(varying uint32 addr, varying int8 val) {
+    foreach_active(i) {
+        uniform int32 a = __extract_int32(addr, i);
+        uniform int8 *uniform ptr = (uniform int8 *uniform)a;
+        *ptr = __extract_int8(val, i);
+    }
+}
+UNMANGLED CDECL void __scatter64_generic_i8(varying uint64 addr, varying int8 val) {
+    foreach_active(i) {
+        uniform int64 a = __extract_int64(addr, i);
+        uniform int8 *uniform ptr = (uniform int8 *uniform)a;
+        *ptr = __extract_int8(val, i);
+    }
+}
+UNMANGLED CDECL void __scatter32_generic_i16(varying uint32 addr, varying int16 val) {
+    foreach_active(i) {
+        uniform int32 a = __extract_int32(addr, i);
+        uniform int16 *uniform ptr = (uniform int16 *uniform)a;
+        *ptr = __extract_int16(val, i);
+    }
+}
+UNMANGLED CDECL void __scatter64_generic_i16(varying uint64 addr, varying int16 val) {
+    foreach_active(i) {
+        uniform int64 a = __extract_int64(addr, i);
+        uniform int16 *uniform ptr = (uniform int16 *uniform)a;
+        *ptr = __extract_int16(val, i);
+    }
+}
+UNMANGLED CDECL void __scatter32_generic_half(varying uint32 addr, varying float16 val) {
+    foreach_active(i) {
+        uniform int32 a = __extract_int32(addr, i);
+        uniform float16 *uniform ptr = (uniform float16 *uniform)a;
+        *ptr = __extract_int16(val, i);
+    }
+}
+UNMANGLED CDECL void __scatter64_generic_half(varying uint64 addr, varying float16 val) {
+    foreach_active(i) {
+        uniform int64 a = __extract_int64(addr, i);
+        uniform float16 *uniform ptr = (uniform float16 *uniform)a;
+        *ptr = __extract_int16(val, i);
+    }
+}
+UNMANGLED CDECL void __scatter32_generic_i32(varying uint32 addr, varying int32 val) {
+    foreach_active(i) {
+        uniform int32 a = __extract_int32(addr, i);
+        uniform int32 *uniform ptr = (uniform int32 *uniform)a;
+        *ptr = __extract_int32(val, i);
+    }
+}
+UNMANGLED CDECL void __scatter64_generic_i32(varying uint64 addr, varying int32 val) {
+    foreach_active(i) {
+        uniform int64 a = __extract_int64(addr, i);
+        uniform int32 *uniform ptr = (uniform int32 *uniform)a;
+        *ptr = __extract_int32(val, i);
+    }
+}
+UNMANGLED CDECL void __scatter32_generic_float(varying uint32 addr, varying float val) {
+    foreach_active(i) {
+        uniform int32 a = __extract_int32(addr, i);
+        uniform float *uniform ptr = (uniform float *uniform)a;
+        *ptr = __extract_int32(val, i);
+    }
+}
+UNMANGLED CDECL void __scatter64_generic_float(varying uint64 addr, varying float val) {
+    foreach_active(i) {
+        uniform int64 a = __extract_int64(addr, i);
+        uniform float *uniform ptr = (uniform float *uniform)a;
+        *ptr = __extract_int32(val, i);
+    }
+}
+UNMANGLED CDECL void __scatter32_generic_i64(varying uint32 addr, varying int64 val) {
+    foreach_active(i) {
+        uniform int32 a = __extract_int32(addr, i);
+        uniform int64 *uniform ptr = (uniform int64 *uniform)a;
+        *ptr = __extract_int64(val, i);
+    }
+}
+UNMANGLED CDECL void __scatter64_generic_i64(varying uint64 addr, varying int64 val) {
+    foreach_active(i) {
+        uniform int64 a = __extract_int64(addr, i);
+        uniform int64 *uniform ptr = (uniform int64 *uniform)a;
+        *ptr = __extract_int64(val, i);
+    }
+}
+UNMANGLED CDECL void __scatter32_generic_double(varying uint32 addr, varying double val) {
+    foreach_active(i) {
+        uniform int32 a = __extract_int32(addr, i);
+        uniform double *uniform ptr = (uniform double *uniform)a;
+        *ptr = __extract_int64(val, i);
+    }
+}
+UNMANGLED CDECL void __scatter64_generic_double(varying uint64 addr, varying double val) {
+    foreach_active(i) {
+        uniform int64 a = __extract_int64(addr, i);
+        uniform double *uniform ptr = (uniform double *uniform)a;
+        *ptr = __extract_int64(val, i);
+    }
+}
+
 #undef NOESCAPE
 #undef ADDRSPACE
 #undef READONLY

@@ -5052,28 +5052,8 @@ pl_done:
 ; For the targets which have scatters but --disable-scatters is requested
 define(`gen_scatter_generic', `
 ; fully general 32-bit scatter, takes array of pointers encoded as vector of i32s
-define void @__scatter32_generic_$1(<WIDTH x i32> %ptrs, <WIDTH x $1> %values,
-                            <WIDTH x MASK> %mask) nounwind alwaysinline {
-  per_lane(WIDTH, <WIDTH x MASK> %mask, `
-  %iptr_LANE_ID = extractelement <WIDTH x i32> %ptrs, i32 LANE
-  %ptr_LANE_ID = inttoptr i32 %iptr_LANE_ID to $1 *
-  %val_LANE_ID = extractelement <WIDTH x $1> %values, i32 LANE
-  store $1 %val_LANE_ID, $1 * %ptr_LANE_ID
- ')
-  ret void
-}
 
 ; fully general 64-bit scatter, takes array of pointers encoded as vector of i64s
-define void @__scatter64_generic_$1(<WIDTH x i64> %ptrs, <WIDTH x $1> %values,
-                            <WIDTH x MASK> %mask) nounwind alwaysinline {
-  per_lane(WIDTH, <WIDTH x MASK> %mask, `
-  %iptr_LANE_ID = extractelement <WIDTH x i64> %ptrs, i32 LANE
-  %ptr_LANE_ID = inttoptr i64 %iptr_LANE_ID to $1 *
-  %val_LANE_ID = extractelement <WIDTH x $1> %values, i32 LANE
-  store $1 %val_LANE_ID, $1 * %ptr_LANE_ID
- ')
-  ret void
-}
 
 '
 )
