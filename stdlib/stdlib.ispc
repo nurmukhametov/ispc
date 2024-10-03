@@ -1125,19 +1125,19 @@ __declspec(safe) static inline uniform unsigned int64 reduce_max(unsigned int64 
 
 #define REDUCE_EQUAL(TYPE, FUNCTYPE, MASKTYPE)                                                                         \
     __declspec(safe) static inline uniform bool reduce_equal(TYPE v) {                                                 \
-        uniform int8 unusedValue;                                                                                      \
+        uniform TYPE unusedValue;                                                                                      \
         return __reduce_equal_##FUNCTYPE(v, &unusedValue, (MASKTYPE)__mask);                                           \
     }                                                                                                                  \
     __declspec(safe) static inline uniform bool reduce_equal(TYPE v, uniform TYPE *uniform value) {                    \
-        return __reduce_equal_##FUNCTYPE(v, (opaque_ptr_t)value, (MASKTYPE)__mask);                                    \
+        return __reduce_equal_##FUNCTYPE(v, value, (MASKTYPE)__mask);                                                  \
     }
 
 REDUCE_EQUAL(float16, half, IntMaskType)
 REDUCE_EQUAL(int32, int32, IntMaskType)
-REDUCE_EQUAL(unsigned int32, int32, UIntMaskType)
+REDUCE_EQUAL(unsigned int32, uint32, UIntMaskType)
 REDUCE_EQUAL(float, float, IntMaskType)
 REDUCE_EQUAL(int64, int64, IntMaskType)
-REDUCE_EQUAL(unsigned int64, int64, UIntMaskType)
+REDUCE_EQUAL(unsigned int64, uint64, UIntMaskType)
 REDUCE_EQUAL(double, double, IntMaskType)
 
 static float16 exclusive_scan_add(float16 v) { return __exclusive_scan_add_half(v, __mask); }

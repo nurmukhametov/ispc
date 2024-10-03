@@ -409,6 +409,148 @@ EXT READNONE uniform int64 __reduce_max_int64(varying int64 x) { return @llvm.ve
 EXT READNONE uniform uint64 __reduce_min_uint64(varying uint64 x) { return @llvm.vector.reduce.umin(x); }
 EXT READNONE uniform uint64 __reduce_max_uint64(varying uint64 x) { return @llvm.vector.reduce.umax(x); }
 
+// horizontal equality ops
+UNMANGLED CDECL uniform bool __reduce_equal_int32(varying int32 val, uniform int32 *uniform ret) {
+    uniform int32 first;
+    uniform int j = 0;
+    uniform bool res = false;
+    foreach_active(i) {
+        if (j == 0) {
+            first = __extract_int32(val, i);
+            res = true;
+            j++;
+        } else {
+            if (first != __extract_int32(val, i)) {
+                res = false;
+            }
+        }
+    }
+    if (res) {
+        *ret = first;
+    }
+    return res;
+}
+UNMANGLED CDECL uniform bool __reduce_equal_uint32(varying uint32 val, uniform uint32 *uniform ret) {
+    uniform uint32 first;
+    uniform int j = 0;
+    uniform bool res = false;
+    foreach_active(i) {
+        if (j == 0) {
+            first = __extract_int32(val, i);
+            res = true;
+            j++;
+        } else {
+            if (first != __extract_int32(val, i)) {
+                res = false;
+            }
+        }
+    }
+    if (res) {
+        *ret = first;
+    }
+    return res;
+}
+UNMANGLED CDECL uniform bool __reduce_equal_int64(varying int64 val, uniform int64 *uniform ret) {
+    uniform int64 first;
+    uniform int j = 0;
+    uniform bool res = false;
+    foreach_active(i) {
+        if (j == 0) {
+            first = __extract_int64(val, i);
+            res = true;
+            j++;
+        } else {
+            if (first != __extract_int64(val, i)) {
+                res = false;
+            }
+        }
+    }
+    if (res) {
+        *ret = first;
+    }
+    return res;
+}
+UNMANGLED CDECL uniform bool __reduce_equal_uint64(varying uint64 val, uniform uint64 *uniform ret) {
+    uniform uint64 first;
+    uniform int j = 0;
+    uniform bool res = false;
+    foreach_active(i) {
+        if (j == 0) {
+            first = __extract_int64(val, i);
+            res = true;
+            j++;
+        } else {
+            if (first != __extract_int64(val, i)) {
+                res = false;
+            }
+        }
+    }
+    if (res) {
+        *ret = first;
+    }
+    return res;
+}
+UNMANGLED CDECL uniform bool _reduce_equal_half(varying float16 val, uniform float16 *uniform ret) {
+    uniform float16 first;
+    uniform int j = 0;
+    uniform bool res = false;
+    foreach_active(i) {
+        if (j == 0) {
+            first = __extract_int16(val, i);
+            res = true;
+            j++;
+        } else {
+            if (first != __extract_int16(val, i)) {
+                res = false;
+            }
+        }
+    }
+    if (res) {
+        *ret = first;
+    }
+    return res;
+}
+UNMANGLED CDECL uniform bool __reduce_equal_float(varying float val, uniform float *uniform ret) {
+    uniform float first;
+    uniform int j = 0;
+    uniform bool res = false;
+    foreach_active(i) {
+        if (j == 0) {
+            first = __extract_int32(val, i);
+            res = true;
+            j++;
+        } else {
+            if (first != __extract_int32(val, i)) {
+                res = false;
+            }
+        }
+    }
+    if (res) {
+        *ret = first;
+    }
+    return res;
+}
+UNMANGLED CDECL uniform bool __reduce_equal_double(varying double val, uniform double *uniform ret) {
+    uniform double first;
+    uniform int j = 0;
+    uniform bool res = false;
+    foreach_active(i) {
+        if (j == 0) {
+            first = __extract_int64(val, i);
+            res = true;
+            j++;
+        } else {
+            if (first != __extract_int64(val, i)) {
+                res = false;
+            }
+        }
+    }
+    if (res) {
+        *ret = first;
+    }
+    return res;
+}
+
 // 64-bit integer min and max functions
 EXT READNONE uniform int64 __min_uniform_int64(uniform int64 x, uniform int64 y) { return x < y ? x : y; }
 EXT READNONE uniform int64 __max_uniform_int64(uniform int64 x, uniform int64 y) { return x > y ? x : y; }

@@ -3847,92 +3847,6 @@ define(`packed_load_and_store', `
   packed_load_and_store_type(i32, $1, 4)
   packed_load_and_store_type(i64, $1, 8)
 ')
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; reduce_equal
-
-define(`reduce_equal_aux', `
-
-define i1 @__reduce_equal_$3(<$1 x $2> %v, i8 * %samevalue,
-                             <$1 x MASK> %mask) nounwind alwaysinline {
-entry:
-   %mm = call i64 @__movmsk(<$1 x MASK> %mask)
-   %allon = icmp eq i64 %mm, ALL_ON_MASK
-   br i1 %allon, label %check_neighbors, label %domixed
-
-domixed:
-  ; First, figure out which lane is the first active one
-  %first = call i64 @llvm.cttz.i64(i64 %mm)
-  %first32 = trunc i64 %first to i32
-  %baseval = extractelement <$1 x $2> %v, i32 %first32
-  %basev1 = insertelement <$1 x $2> undef, $2 %baseval, i32 0
-  ; get a vector that is that value smeared across all elements
-  %basesmear = shufflevector <$1 x $2> %basev1, <$1 x $2> undef,
-        <$1 x i32> < forloop(i, 0, eval($1-2), `i32 0, ') i32 0 >
-
-  ; now to a blend of that vector with the original vector, such that the
-  ; result will be the original value for the active lanes, and the value
-  ; from the first active lane for the inactive lanes.  Given that, we can
-  ; just unconditionally check if the lanes are all equal in check_neighbors
-  ; below without worrying about inactive lanes...
-  %ptr = alloca <$1 x $2>
-  store <$1 x $2> %basesmear, <$1 x $2> * %ptr
-  %castptr = bitcast <$1 x $2> * %ptr to <$1 x $4> *
-  %castv = bitcast <$1 x $2> %v to <$1 x $4>
-  call void @__masked_store_blend_i$6(<$1 x $4> * %castptr, <$1 x $4> %castv, <$1 x MASK> %mask)
-  %blendvec = load PTR_OP_ARGS(`<$1 x $2> ')  %ptr
-  br label %check_neighbors
-
-check_neighbors:
-  %vec = phi <$1 x $2> [ %blendvec, %domixed ], [ %v, %entry ]
-  ifelse($6, `32', `
-  ; For 32-bit elements, we rotate once and compare with the vector, which ends
-  ; up comparing each element to its neighbor on the right.  Then see if
-  ; all of those values are true; if so, then all of the elements are equal..
-  %castvec = bitcast <$1 x $2> %vec to <$1 x $4>
-  %castvr = call <$1 x $4> @__rotate_i$6(<$1 x $4> %castvec, i32 1)
-  %vr = bitcast <$1 x $4> %castvr to <$1 x $2>
-  %eq = $5 $7 <$1 x $2> %vec, %vr
-  ifelse(MASK,i1, `
-    %eqmm = call i64 @__movmsk(<$1 x MASK> %eq)',
-    `%eqm = sext <$1 x i1> %eq to <$1 x MASK>
-    %eqmm = call i64 @__movmsk(<$1 x MASK> %eqm)')
-  %alleq = icmp eq i64 %eqmm, ALL_ON_MASK
-  br i1 %alleq, label %all_equal, label %not_all_equal
-  ', `
-  ; But for 64-bit elements, it turns out to be more efficient to just
-  ; scalarize and do a individual pairwise comparisons and AND those
-  ; all together..
-  forloop(i, 0, eval($1-1), `
-  %v`'i = extractelement <$1 x $2> %vec, i32 i')
-
-  forloop(i, 0, eval($1-2), `
-  %eq`'i = $5 $7 $2 %v`'i, %v`'eval(i+1)')
-
-  %and0 = and i1 %eq0, %eq1
-  forloop(i, 1, eval($1-3), `
-  %and`'i = and i1 %and`'eval(i-1), %eq`'eval(i+1)')
-
-  br i1 %and`'eval($1-3), label %all_equal, label %not_all_equal
-  ')
-
-all_equal:
-  %the_value = extractelement <$1 x $2> %vec, i32 0
-  %samevalue_typed = bitcast i8* %samevalue to $2*
-  store $2 %the_value, $2 * %samevalue_typed
-  ret i1 true
-
-not_all_equal:
-  ret i1 false
-}
-')
-
-define(`reduce_equal', `
-reduce_equal_aux($1, half, half, i16, fcmp, 16, oeq)
-reduce_equal_aux($1, i32, int32, i32, icmp, 32, eq)
-reduce_equal_aux($1, float, float, i32, fcmp, 32, oeq)
-reduce_equal_aux($1, i64, int64, i64, icmp, 64, eq)
-reduce_equal_aux($1, double, double, i64, fcmp, 64, oeq)
-')
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; prefix sum stuff
@@ -4143,7 +4057,6 @@ define i1 @__rdrand_i64(i8 * %ptr) {
 
 stdlib_core()
 scans()
-reduce_equal(WIDTH)
 rdrand_definition()
 define_vector_permutations()
 
