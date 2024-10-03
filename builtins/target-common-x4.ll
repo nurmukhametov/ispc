@@ -3979,42 +3979,6 @@ pl_loopend:
 pl_done:
 ')
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; gen_scatter
-;; Emit a function declaration for a scalarized scatter.
-;;
-;; $1: scalar type for which we want to generate code to scatter
-
-; For the targets which have scatters but --disable-scatters is requested
-define(`gen_scatter_generic', `
-; fully general 32-bit scatter, takes array of pointers encoded as vector of i32s
-
-; fully general 64-bit scatter, takes array of pointers encoded as vector of i64s
-
-'
-)
-
-define(`gen_scatter_factored', `
-;; Define the function that descripes the work to do to scatter a single
-;; value
-
-ifelse(HAVE_SCATTER, `1',
-`
-  gen_scatter_generic($1)
-')
-
-'
-)
-
-define(`gen_scatter', `
-gen_scatter_factored($1)
-; fully general 32-bit scatter, takes array of pointers encoded as vector of i32s
-
-; fully general 64-bit scatter, takes array of pointers encoded as vector of i64s
-
-'
-)
-
 define(`rdrand_definition', `
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; rdrand
