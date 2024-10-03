@@ -571,56 +571,56 @@ EXT inline void __scatter_factored_base_offsets64_i8(uniform int8 *uniform, vary
                                                      varying int8, UIntMaskType);
 EXT inline void __scatter32_generic_i8(varying uint32, varying int8, UIntMaskType);
 EXT inline void __scatter64_generic_i8(varying uint64, varying int8, UIntMaskType);
-EXT inline void __scatter32_i8(varying int32, varying int8, UIntMaskType);
-EXT inline void __scatter64_i8(varying int64, varying int8, UIntMaskType);
+EXT inline void __scatter32_i8(varying uint32, varying int8, UIntMaskType);
+EXT inline void __scatter64_i8(varying uint64, varying int8, UIntMaskType);
 EXT inline void __scatter_factored_base_offsets32_i16(uniform int8 *uniform, varying int32, uniform int32,
                                                       varying int32, varying int16, UIntMaskType);
 EXT inline void __scatter_factored_base_offsets64_i16(uniform int8 *uniform, varying int64, uniform int32,
                                                       varying int64, varying int16, UIntMaskType);
 EXT inline void __scatter32_generic_i16(varying uint32, varying int16, UIntMaskType);
 EXT inline void __scatter64_generic_i16(varying uint64, varying int16, UIntMaskType);
-EXT inline void __scatter32_i16(varying int32, varying int16, UIntMaskType);
-EXT inline void __scatter64_i16(varying int64, varying int16, UIntMaskType);
+EXT inline void __scatter32_i16(varying uint32, varying int16, UIntMaskType);
+EXT inline void __scatter64_i16(varying uint64, varying int16, UIntMaskType);
 EXT inline void __scatter_factored_base_offsets32_half(uniform int8 *uniform, varying int32, uniform int32,
                                                        varying int32, varying float16, UIntMaskType);
 EXT inline void __scatter_factored_base_offsets64_half(uniform int8 *uniform, varying int64, uniform int32,
                                                        varying int64, varying float16, UIntMaskType);
 EXT inline void __scatter32_generic_half(varying uint32, varying float16, UIntMaskType);
 EXT inline void __scatter64_generic_half(varying uint64, varying float16, UIntMaskType);
-EXT inline void __scatter32_half(varying int32, varying float16, UIntMaskType);
-EXT inline void __scatter64_half(varying int64, varying float16, UIntMaskType);
+EXT inline void __scatter32_half(varying uint32, varying float16, UIntMaskType);
+EXT inline void __scatter64_half(varying uint64, varying float16, UIntMaskType);
 EXT inline void __scatter_factored_base_offsets32_i32(uniform int8 *uniform, varying int32, uniform int32,
                                                       varying int32, varying int32, UIntMaskType);
 EXT inline void __scatter_factored_base_offsets64_i32(uniform int8 *uniform, varying int64, uniform int32,
                                                       varying int64, varying int32, UIntMaskType);
 EXT inline void __scatter32_generic_i32(varying uint32, varying int32, UIntMaskType);
 EXT inline void __scatter64_generic_i32(varying uint64, varying int32, UIntMaskType);
-EXT inline void __scatter32_i32(varying int32, varying int32, UIntMaskType);
-EXT inline void __scatter64_i32(varying int64, varying int32, UIntMaskType);
+EXT inline void __scatter32_i32(varying uint32, varying int32, UIntMaskType);
+EXT inline void __scatter64_i32(varying uint64, varying int32, UIntMaskType);
 EXT inline void __scatter_factored_base_offsets32_float(uniform int8 *uniform, varying int32, uniform int32,
                                                         varying int32, varying float, UIntMaskType);
 EXT inline void __scatter_factored_base_offsets64_float(uniform int8 *uniform, varying int64, uniform int32,
                                                         varying int64, varying float, UIntMaskType);
 EXT inline void __scatter32_generic_float(varying uint32, varying float, UIntMaskType);
 EXT inline void __scatter64_generic_float(varying uint64, varying float, UIntMaskType);
-EXT inline void __scatter32_float(varying int32, varying float, UIntMaskType);
-EXT inline void __scatter64_float(varying int64, varying float, UIntMaskType);
+EXT inline void __scatter32_float(varying uint32, varying float, UIntMaskType);
+EXT inline void __scatter64_float(varying uint64, varying float, UIntMaskType);
 EXT inline void __scatter_factored_base_offsets32_i64(uniform int8 *uniform, varying int32, uniform int32,
                                                       varying int32, varying int64, UIntMaskType);
 EXT inline void __scatter_factored_base_offsets64_i64(uniform int8 *uniform, varying int64, uniform int32,
                                                       varying int64, varying int64, UIntMaskType);
 EXT inline void __scatter32_generic_i64(varying uint32, varying int64, UIntMaskType);
 EXT inline void __scatter64_generic_i64(varying uint64, varying int64, UIntMaskType);
-EXT inline void __scatter32_i64(varying int32, varying int64, UIntMaskType);
-EXT inline void __scatter64_i64(varying int64, varying int64, UIntMaskType);
+EXT inline void __scatter32_i64(varying uint32, varying int64, UIntMaskType);
+EXT inline void __scatter64_i64(varying uint64, varying int64, UIntMaskType);
 EXT inline void __scatter_factored_base_offsets32_double(uniform int8 *uniform, varying int32, uniform int32,
                                                          varying int32, varying double, UIntMaskType);
 EXT inline void __scatter_factored_base_offsets64_double(uniform int8 *uniform, varying int64, uniform int32,
                                                          varying int64, varying double, UIntMaskType);
 EXT inline void __scatter32_generic_double(varying uint32, varying double, UIntMaskType);
 EXT inline void __scatter64_generic_double(varying uint64, varying double, UIntMaskType);
-EXT inline void __scatter32_double(varying int32, varying double, UIntMaskType);
-EXT inline void __scatter64_double(varying int64, varying double, UIntMaskType);
+EXT inline void __scatter32_double(varying uint32, varying double, UIntMaskType);
+EXT inline void __scatter64_double(varying uint64, varying double, UIntMaskType);
 EXT inline void __scatter_base_offsets32_i8(uniform int8 *uniform, uniform int32, varying int32, varying int8,
                                             UIntMaskType);
 EXT inline void __scatter_base_offsets64_i8(uniform int8 *uniform, uniform int32, varying int64, varying int8,
