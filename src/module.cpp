@@ -546,6 +546,9 @@ Symbol *Module::AddLLVMIntrinsicDecl(const std::string &name, ExprList *args, So
             if (ID == llvm::Intrinsic::masked_compressstore) {
                 nInits = { 0 };
             }
+            if (ID == llvm::Intrinsic::masked_expandload) {
+                nInits = { 2 };
+            }
             for (const int i : nInits) {
                 const Type *argType = (args->exprs[i])->GetType();
                 Assert(argType);

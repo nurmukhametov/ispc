@@ -3684,89 +3684,6 @@ define(`gen_streaming_loads', `
 gen_streaming_loads()
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; packed load and store helper functions
-;;
-;; Implementations for different WIDTH.
-;; Cannot have a generic implementation because calculating atcive lanes require WIDTH.
-
-define(`packed_load_store_popcnt', `
-ifelse(WIDTH,  `4', `
-  %i8mask = zext <4 x i1> %i1mask to <4 x i8>
-  %i32mask = bitcast <4 x i8> %i8mask to i32
-  %ret = call i32 @llvm.ctpop.i32(i32 %i32mask)
-  ', WIDTH,  `8', `
-  %i8mask = bitcast <8 x i1> %i1mask to i8
-  %i32mask = zext i8 %i8mask to i32
-  %ret = call i32 @llvm.ctpop.i32(i32 %i32mask)
-  ', WIDTH, `16', `
-  %i16mask = bitcast <16 x i1> %i1mask to i16
-  %i32mask = zext i16 %i16mask to i32
-  %ret = call i32 @llvm.ctpop.i32(i32 %i32mask)
-  ', WIDTH, `32', `
-  %i32mask = bitcast <32 x i1> %i1mask to i32
-  %ret = call i32 @llvm.ctpop.i32(i32 %i32mask)
-  ', WIDTH, `64', `
-  %i64mask = bitcast <64 x i1> %i1mask to i64
-  %ret64 = call i64 @llvm.ctpop.i64(i64 %i64mask)
-  %ret = trunc i64 %ret64 to i32
-  ',
-                     `errprint(`ERROR: packed_load_and_store() macro called with unsupported width = 'WIDTH
-)
-                      m4exit(`1')')
-')
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; packed load and store helper
-;;
-;; Decides definition to be used for calculating active lanes based on WIDTH.
-;; Implement valid version of 'packed_store_active2' based on requirement.
-;;
-;; $1: Integer type for which function is to be created.
-;; $2: 'TRUE' if LLVM compressstore/expandload intrinsics should be used for implementation of '__packed_store_active2'.
-;;     This is the case for the targets with native support of these intrinsics (AVX512).
-;;     For other targets branchless emulation sequence should be used (triggered by 'FALSE').
-;; $3: Alignment for store.
-;;
-;; FIXME: use the per_lane macro, defined below, to implement these!
-
-define(`packed_load_and_store_type', `
-
-declare <WIDTH x $1> @llvm.masked.expandload.vWIDTH$1 ($1*, <WIDTH x i1>, <WIDTH x $1>)
-declare void @llvm.masked.store.vWIDTH$1.p0vWIDTH$1(<WIDTH x $1>, <WIDTH x $1>*, i32, <WIDTH x i1>)
-define i32 @__packed_load_active$1(i8 * %startptr, i8 * %val_ptr,
-                                 <WIDTH x MASK> %full_mask) nounwind alwaysinline {
-  %startptr_typed = bitcast i8* %startptr to $1*
-  %val_ptr_typed = bitcast i8* %val_ptr to <WIDTH x $1>*
-  %i1mask = icmp ne <WIDTH x MASK> %full_mask, zeroinitializer
-  %data = load PTR_OP_ARGS(`<WIDTH x $1> ') %val_ptr_typed
-  %vec_load = call <WIDTH x $1> @llvm.masked.expandload.vWIDTH$1($1* %startptr_typed, <WIDTH x i1> %i1mask, <WIDTH x $1> %data)
-  store <WIDTH x $1> %vec_load, <WIDTH x $1>* %val_ptr_typed, align $3
-packed_load_store_popcnt()
-   ret i32 %ret
-}
-
-')
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; packed load and store functions
-;;
-;; These define functions to emulate those nice packed load and packed store
-;; instructions.  For packed store, given a pointer to destination array and
-;; a varying value, for each lane where the mask is on, the
-;; corresponding value for that lane is stored into packed locations in the
-;; destination array.  For packed load, each lane that has an active mask
-;; loads a sequential value from the array.
-;;
-;; $1: 'TRUE' if LLVM compressstore/expandload intrinsics should be used for implementation of '__packed_store_active2'.
-;;     This is the case for the targets with native support of these intrinsics (AVX512).
-;;     For other targets branchless emulation sequence should be used (triggered by 'FALSE').
-
-define(`packed_load_and_store', `
-  packed_load_and_store_type(i32, $1, 4)
-  packed_load_and_store_type(i64, $1, 8)
-')
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; prefix sum stuff
 
 ; $1: vector width (e.g. 4)
@@ -4086,10 +4003,6 @@ declare void @__masked_store_blend_i32(<4 x i32>* nocapture, <4 x i32>, <WIDTH x
 declare void @__masked_store_blend_float(<4 x float>* nocapture, <4 x float>, <WIDTH x MASK>) nounwind alwaysinline
 declare void @__masked_store_blend_i64(<4 x i64>* nocapture, <4 x i64>, <WIDTH x MASK>) nounwind alwaysinline
 declare void @__masked_store_blend_double(<4 x double>* nocapture, <4 x double>, <WIDTH x MASK>) nounwind alwaysinline
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; packed_load/store
-packed_load_and_store(TRUE)
 
 ;; Trigonometry
 ;; end of included target-avx512-common-4.ll
