@@ -4145,6 +4145,9 @@ llvm::Value *FunctionCallExpr::GetValue(FunctionEmitContext *ctx) const {
             if (callee->getName().startswith("llvm.masked.gather")) {
                 argVals[0] = ctx->IntToPtrInst(argVals[0], LLVMTypes::PtrVectorType);
             }
+            if (callee->getName().startswith("llvm.masked.scatter")) {
+                argVals[1] = ctx->IntToPtrInst(argVals[1], LLVMTypes::PtrVectorType);
+            }
             retVal = ctx->CallInst(callee, ft, argVals, isVoidFunc ? "" : "calltmp");
         }
     }
