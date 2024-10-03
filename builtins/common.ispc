@@ -1664,6 +1664,24 @@ EXT void __scatter_factored_base_offsets64_double(uniform int8 *uniform base, va
     @llvm.masked.scatter(val, (uniform uint64)base + (offset * scale + delta), 1, mask);
 }
 
+// packed active stores
+EXT PackedStoreResultType __packed_store_activei32(uniform int8 *uniform ptr, varying int32 val, UIntMaskType mask) {
+    @llvm.masked.compressstore(val, ptr, mask);
+    return __popcnt_int64(__cast_mask_to_i64(mask));
+}
+EXT PackedStoreResultType __packed_store_activei64(uniform int8 *uniform ptr, varying int64 val, UIntMaskType mask) {
+    @llvm.masked.compressstore(val, ptr, mask);
+    return __popcnt_int64(__cast_mask_to_i64(mask));
+}
+EXT PackedStoreResultType __packed_store_active2i32(uniform int8 *uniform ptr, varying int32 val, UIntMaskType mask) {
+    @llvm.masked.compressstore(val, ptr, mask);
+    return __popcnt_int64(__cast_mask_to_i64(mask));
+}
+EXT PackedStoreResultType __packed_store_active2i64(uniform int8 *uniform ptr, varying int64 val, UIntMaskType mask) {
+    @llvm.masked.compressstore(val, ptr, mask);
+    return __popcnt_int64(__cast_mask_to_i64(mask));
+}
+
 #undef NOESCAPE
 #undef ADDRSPACE
 #undef READONLY
