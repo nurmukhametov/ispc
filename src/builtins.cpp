@@ -152,6 +152,43 @@ static const Type *lLLVMTypeToISPCType(const llvm::Type *t, bool intAsUnsigned) 
         return AtomicType::VaryingUInt64;
     }
 
+    // vector with length different from TARGET_WIDTH can be repsented as uniform TYPE<N>
+    else if (const llvm::VectorType *vt = llvm::dyn_cast<llvm::VectorType>(t)) {
+        // check if vector length is equal to TARGET_WIDTH
+        unsigned int vectorWidth = vt->getElementCount().getKnownMinValue();
+        if (vectorWidth == g->target->getVectorWidth()) {
+            // we should never hit this case, because it should be handled by the cases above
+            return nullptr;
+        } else {
+            const Type *elementType = lLLVMTypeToISPCType(vt->getElementType(), intAsUnsigned);
+            if (elementType == nullptr) {
+                return nullptr;
+            }
+            return new VectorType(elementType, vectorWidth);
+        }
+    }
+
+    // struct of varying
+    else if (const llvm::StructType *st = llvm::dyn_cast<llvm::StructType>(t)) {
+        llvm::SmallVector<const Type *, 8> elementTypes;
+        llvm::SmallVector<std::string, 8> elementNames;
+        llvm::SmallVector<SourcePos, 8> elementPositions;
+        std::string structName = "__ispcstub_";
+        for (unsigned int i = 0; i < st->getNumElements(); ++i) {
+            const Type *elementType = lLLVMTypeToISPCType(st->getElementType(i), intAsUnsigned);
+            if (elementType == nullptr) {
+                return nullptr;
+            }
+            elementTypes.push_back(elementType);
+            elementNames.push_back("element" + std::to_string(i));
+            elementPositions.push_back(SourcePos());
+            structName += elementType->Mangle();
+        }
+        // This struct name has to be same
+        return new StructType(structName, elementTypes, elementNames, elementPositions, false, Variability::Uniform,
+                              true, SourcePos());
+    }
+
     return nullptr;
 }
 
