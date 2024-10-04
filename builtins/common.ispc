@@ -1698,6 +1698,69 @@ EXT uniform int32 __packed_load_activei64(uniform int8 *uniform from, uniform in
     return __popcnt_int64(__cast_mask_to_i64(mask));
 }
 
+#if TARGET_WIDTH == 2
+#define DOUBLE_WIDTH 4
+#elif TARGET_WIDTH == 4
+#define DOUBLE_WIDTH 8
+#elif TARGET_WIDTH == 8
+#define DOUBLE_WIDTH 16
+#elif TARGET_WIDTH == 16
+#define DOUBLE_WIDTH 32
+#elif TARGET_WIDTH == 32
+#define DOUBLE_WIDTH 64
+#elif TARGET_WIDTH == 64
+#define DOUBLE_WIDTH 128
+#else
+#error Unknown value of TARGET_WIDTH
+#endif
+
+typedef struct {
+    varying float odd;
+    varying float even;
+} __ispcstub_vyfvyf; // special mangled name generated in src/builtins.cpp(lLLVMTypeToISPCType)
+
+// AOS/SOA conversion primitives
+EXT void __aos_to_soa2_float(NOALIAS uniform int8 *uniform a, uniform int8 *uniform v0, uniform int8 *uniform v1) {
+    // E.g., given 2 4-vectors. Convert 2-wide AOS values to SOA--specifically
+    // <x0 y0 x1 y1> <x2 y2 x3 y3>, transpose to
+    // <x0 x1 x2 x3> <y0 y1 y2 y3>.
+    uniform float<DOUBLE_WIDTH> *uniform ptr = (uniform float<DOUBLE_WIDTH> *uniform)a;
+    uniform __ispcstub_vyfvyf x = @llvm.experimental.vector.deinterleave2(*ptr);
+    varying float *uniform x0_ptr = (varying float *uniform)v0;
+    varying float *uniform x1_ptr = (varying float *uniform)v1;
+    *x0_ptr = x.odd;
+    *x1_ptr = x.even;
+}
+
+EXT void __soa_to_aos2_float(varying float v0, varying float v1, NOALIAS uniform int8 *uniform a) {
+    // E.g., given 2 4-vectors. The inverse of __aos_to_soa3_float4: convert 2 4-vectors
+    // <x0 x1 x2 x3> <y0 y1 y2 y3>, to
+    // <x0 y0 x1 y1 x2 y2 x3 y3>.
+    uniform float<DOUBLE_WIDTH> x = @llvm.experimental.vector.interleave2(v0, v1);
+    uniform float<DOUBLE_WIDTH> *uniform ptr = (uniform float<DOUBLE_WIDTH> *uniform)a;
+    *ptr = x;
+}
+
+typedef struct {
+    varying double odd;
+    varying double even;
+} __ispcstub_vydvyd; // special mangled name generated in src/builtins.cpp(lLLVMTypeToISPCType)
+
+EXT void __aos_to_soa2_double(NOALIAS uniform int8 *uniform a, uniform int8 *uniform v0, uniform int8 *uniform v1) {
+    uniform double<DOUBLE_WIDTH> *uniform ptr = (uniform double<DOUBLE_WIDTH> *uniform)a;
+    uniform __ispcstub_vydvyd x = @llvm.experimental.vector.deinterleave2(*ptr);
+    varying double *uniform x0_ptr = (varying double *uniform)v0;
+    varying double *uniform x1_ptr = (varying double *uniform)v1;
+    *x0_ptr = x.odd;
+    *x1_ptr = x.even;
+}
+
+EXT void __soa_to_aos2_double(varying double v0, varying double v1, NOALIAS uniform int8 *uniform a) {
+    uniform double<DOUBLE_WIDTH> x = @llvm.experimental.vector.interleave2(v0, v1);
+    uniform double<DOUBLE_WIDTH> *uniform ptr = (uniform double<DOUBLE_WIDTH> *uniform)a;
+    *ptr = x;
+}
+
 #undef NOESCAPE
 #undef ADDRSPACE
 #undef READONLY

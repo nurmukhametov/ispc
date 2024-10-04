@@ -1017,52 +1017,6 @@ define void
   store <4 x float> %t1, <4 x float> * %out1, align 4
   ret void
 }
-
-
-;; The inverse of __aos_to_soa3_float4: convert 3 4-vectors
-;; <x0 x1 x2 x3> <y0 y1 y2 y3>, to
-;; <x0 y0 x1 y1> <x2 y2 x3 y3>.
-
-define void
-@__soa_to_aos2_float4(<4 x float> %v0, <4 x float> %v1,
-        <4 x float> * noalias %out0, <4 x float> * noalias %out1) nounwind alwaysinline {
-  %t0 = shufflevector <4 x float> %v0, <4 x float> %v1, ; x0 y0 x1 y1
-    <4 x i32> <i32 0, i32 4, i32 1, i32 5>
-  %t1 = shufflevector <4 x float> %v0, <4 x float> %v1, ; x2 y2 x3 y3
-    <4 x i32> <i32 2, i32 6, i32 3, i32 7>
-  store <4 x float> %t0, <4 x float> * %out0, align 4
-  store <4 x float> %t1, <4 x float> * %out1, align 4
-  ret void
-}
-
-define void
-@__aos_to_soa2_double4(<4 x double> %v0, <4 x double> %v1,
-        <4 x double> * noalias %out0, <4 x double> * noalias %out1) nounwind alwaysinline {
-  %t0 = shufflevector <4 x double> %v0, <4 x double> %v1, ; x0 x1 x2 x3
-    <4 x i32> <i32 0, i32 2, i32 4, i32 6>
-  %t1 = shufflevector <4 x double> %v0, <4 x double> %v1, ; y0 y1 y2 y3
-    <4 x i32> <i32 1, i32 3, i32 5, i32 7>
-  store <4 x double> %t0, <4 x double> * %out0, align 4
-  store <4 x double> %t1, <4 x double> * %out1, align 4
-  ret void
-}
-
-
-;; The inverse of __aos_to_soa3_float4: convert 3 4-vectors
-;; <x0 x1 x2 x3> <y0 y1 y2 y3>, to
-;; <x0 y0 x1 y1> <x2 y2 x3 y3>.
-
-define void
-@__soa_to_aos2_double4(<4 x double> %v0, <4 x double> %v1,
-        <4 x double> * noalias %out0, <4 x double> * noalias %out1) nounwind alwaysinline {
-  %t0 = shufflevector <4 x double> %v0, <4 x double> %v1, ; x0 y0 x1 y1
-    <4 x i32> <i32 0, i32 4, i32 1, i32 5>
-  %t1 = shufflevector <4 x double> %v0, <4 x double> %v1, ; x2 y2 x3 y3
-    <4 x i32> <i32 2, i32 6, i32 3, i32 7>
-  store <4 x double> %t0, <4 x double> * %out0, align 4
-  store <4 x double> %t1, <4 x double> * %out1, align 4
-  ret void
-}
 ')
 
 ;; 8-wide
@@ -1417,66 +1371,6 @@ define void
 
   store <8 x float> %t0, <8 x float> * %out0, align 4
   store <8 x float> %t1, <8 x float> * %out1, align 4
-  ret void
-}
-
-;; reorder
-;; v0 = <a0 ... a7>
-;; v1 = <b0 ... b7>
-;; to
-;; out0 = <a0 b0 ... a3 b3>
-;; out1 = <a4 b4 ... a7 b7>
-
-define void
-@__soa_to_aos2_float8(<8 x float> %v0, <8 x float> %v1,
-        <8 x float> * noalias %out0, <8 x float> * noalias %out1) nounwind alwaysinline {
-  %t0 = shufflevector <8 x float> %v0, <8 x float> %v1,
-          <8 x i32> <i32 0, i32 8, i32 1, i32 9, i32 2, i32 10, i32 3, i32 11>
-  %t1 = shufflevector <8 x float> %v0, <8 x float> %v1,
-          <8 x i32> <i32 4, i32 12, i32 5, i32 13, i32 6, i32 14, i32 7, i32 15>
-  store <8 x float> %t0, <8 x float> * %out0, align 4
-  store <8 x float> %t1, <8 x float> * %out1, align 4
-  ret void
-}
-
-;; reorder
-;; v0 = <a0 b0 ...    a3 b3>
-;; v1 = <a4 b4 ...  a7 b7>
-;; to
-;; out0 = <a0 ... a7>
-;; out1 = <b0 ... b7>
-
-define void
-@__aos_to_soa2_double8(<8 x double> %v0, <8 x double> %v1,
-        <8 x double> * noalias %out0, <8 x double> * noalias %out1) nounwind alwaysinline {
-  ;; t0 = <a0 ... a7>
-  %t0 = shufflevector <8 x double> %v0, <8 x double> %v1,
-          <8 x i32> <i32 0, i32 2, i32 4, i32 6, i32 8, i32 10, i32 12, i32 14>
-  ;; t1 = <b0 ... b7>
-  %t1 = shufflevector <8 x double> %v0, <8 x double> %v1,
-          <8 x i32> <i32 1, i32 3, i32 5, i32 7, i32 9, i32 11, i32 13, i32 15>
-
-  store <8 x double> %t0, <8 x double> * %out0, align 4
-  store <8 x double> %t1, <8 x double> * %out1, align 4
-  ret void
-}
-
-;; reorder
-;; v0 = <a0 ... a7>
-;; v1 = <b0 ... b7>
-;; to
-;; out0 = <a0 b0 ... a3 b3>
-;; out1 = <a4 b4 ... a7 b7>
-
-define void
-@__soa_to_aos2_double8(<8 x double> %v0, <8 x double> %v1,
-        <8 x double> * noalias %out0, <8 x double> * noalias %out1) nounwind alwaysinline {
-  %t0 = shufflevector <8 x double> %v0, <8 x double> %v1,
-          <8 x i32> <i32 0, i32 8, i32 1, i32 9, i32 2, i32 10, i32 3, i32 11>
-  %t1 = shufflevector <8 x double> %v0, <8 x double> %v1,
-          <8 x i32> <i32 4, i32 12, i32 5, i32 13, i32 6, i32 14, i32 7, i32 15>
-  store <8 x double> %t0, <8 x double> * %out0, align 4
-  store <8 x double> %t1, <8 x double> * %out1, align 4
   ret void
 }
 ')
@@ -1897,66 +1791,6 @@ define void
   store <16 x float> %t1, <16 x float> * %out1, align 4
   ret void
 }
-
-;; reorder
-;; v0 = <a0 ... a15>
-;; v1 = <b0 ... b15>
-;; to
-;; out0 = <a0 b0 ... a7 b7>
-;; out1 = <a8 b8 ... a15 b15>
-
-define void
-@__soa_to_aos2_float16(<16 x float> %v0, <16 x float> %v1,
-        <16 x float> * noalias %out0, <16 x float> * noalias %out1) nounwind alwaysinline {
-  %t0 = shufflevector <16 x float> %v0, <16 x float> %v1,
-          <16 x i32> <i32 0, i32 16, i32 1, i32 17, i32 2, i32 18, i32 3, i32 19, i32 4, i32 20, i32 5, i32 21, i32 6, i32 22, i32 7, i32 23>
-  %t1 = shufflevector <16 x float> %v0, <16 x float> %v1,
-          <16 x i32> <i32 8, i32 24, i32 9, i32 25, i32 10, i32 26, i32 11, i32 27, i32 12, i32 28, i32 13, i32 29, i32 14, i32 30, i32 15, i32 31>
-  store <16 x float> %t0, <16 x float> * %out0, align 4
-  store <16 x float> %t1, <16 x float> * %out1, align 4
-  ret void
-}
-
-
-;; reorder
-;; v0 = <a0 b0 ...    a7 b7>
-;; v1 = <a8 b8 ...  a15 b15>
-;; to
-;; out0 = <a0 ... a15>
-;; out1 = <b0 ... b15>
-
-define void
-@__aos_to_soa2_double16(<16 x double> %v0, <16 x double> %v1,
-        <16 x double> * noalias %out0, <16 x double> * noalias %out1) nounwind alwaysinline {
-  ;; t0 = <a0 ... a15>
-  %t0 = shufflevector <16 x double> %v0, <16 x double> %v1,
-          <16 x i32> <i32 0, i32 2, i32 4, i32 6, i32 8, i32 10, i32 12, i32 14, i32 16, i32 18, i32 20, i32 22, i32 24, i32 26, i32 28, i32 30>
-  ;; t1 = <b0 ... b31>
-  %t1 = shufflevector <16 x double> %v0, <16 x double> %v1,
-          <16 x i32> <i32 1, i32 3, i32 5, i32 7, i32 9, i32 11, i32 13, i32 15, i32 17, i32 19, i32 21, i32 23, i32 25, i32 27, i32 29, i32 31>
-  store <16 x double> %t0, <16 x double> * %out0, align 4
-  store <16 x double> %t1, <16 x double> * %out1, align 4
-  ret void
-}
-
-;; reorder
-;; v0 = <a0 ... a15>
-;; v1 = <b0 ... b15>
-;; to
-;; out0 = <a0 b0 ... a7 b7>
-;; out1 = <a8 b8 ... a15 b15>
-
-define void
-@__soa_to_aos2_double16(<16 x double> %v0, <16 x double> %v1,
-        <16 x double> * noalias %out0, <16 x double> * noalias %out1) nounwind alwaysinline {
-  %t0 = shufflevector <16 x double> %v0, <16 x double> %v1,
-          <16 x i32> <i32 0, i32 16, i32 1, i32 17, i32 2, i32 18, i32 3, i32 19, i32 4, i32 20, i32 5, i32 21, i32 6, i32 22, i32 7, i32 23>
-  %t1 = shufflevector <16 x double> %v0, <16 x double> %v1,
-          <16 x i32> <i32 8, i32 24, i32 9, i32 25, i32 10, i32 26, i32 11, i32 27, i32 12, i32 28, i32 13, i32 29, i32 14, i32 30, i32 15, i32 31>
-  store <16 x double> %t0, <16 x double> * %out0, align 4
-  store <16 x double> %t1, <16 x double> * %out1, align 4
-  ret void
-}
 ')
 
 ;; 32 wide version
@@ -2374,72 +2208,6 @@ define void
 
   store <32 x float> %t0, <32 x float> * %out0, align 4
   store <32 x float> %t1, <32 x float> * %out1, align 4
-  ret void
-}
-
-;; reorder
-;; v0 = <a0 ... a31>
-;; v1 = <b0 ... b31>
-;; to
-;; out0 = <a0 b0 ... a15 b15>
-;; out1 = <a16 b16 ... a31 b31>
-
-define void
-@__soa_to_aos2_float32(<32 x float> %v0, <32 x float> %v1,
-        <32 x float> * noalias %out0, <32 x float> * noalias %out1) nounwind alwaysinline {
-  %t0 = shufflevector <32 x float> %v0, <32 x float> %v1,
-          <32 x i32> <i32 0, i32 32, i32 1, i32 33, i32 2, i32 34, i32 3, i32 35, i32 4, i32 36, i32 5, i32 37, i32 6, i32 38, i32 7, i32 39,
-                      i32 8, i32 40, i32 9, i32 41, i32 10, i32 42, i32 11, i32 43, i32 12, i32 44, i32 13, i32 45, i32 14, i32 46, i32 15, i32 47>
-  %t1 = shufflevector <32 x float> %v0, <32 x float> %v1,
-          <32 x i32> <i32 16, i32 48, i32 17, i32 49, i32 18, i32 50, i32 19, i32 51, i32 20, i32 52, i32 21, i32 53, i32 22, i32 54, i32 23, i32 55,
-                      i32 24, i32 56, i32 25, i32 57, i32 26, i32 58, i32 27, i32 59, i32 28, i32 60, i32 29, i32 61, i32 30, i32 62, i32 31, i32 63>
-  store <32 x float> %t0, <32 x float> * %out0, align 4
-  store <32 x float> %t1, <32 x float> * %out1, align 4
-  ret void
-}
-
-;; reorder
-;; v0 = <a0 b0 ...    a15 b15>
-;; v1 = <a16 b16 ...  a31 b31>
-;; to
-;; out0 = <a0 ... a31>
-;; out1 = <b0 ... b31>
-
-define void
-@__aos_to_soa2_double32(<32 x double> %v0, <32 x double> %v1,
-        <32 x double> * noalias %out0, <32 x double> * noalias %out1) nounwind alwaysinline {
-  ;; t0 = <a0 ... a31>
-  %t0 = shufflevector <32 x double> %v0, <32 x double> %v1,
-          <32 x i32> <i32 0, i32 2, i32 4, i32 6, i32 8, i32 10, i32 12, i32 14, i32 16, i32 18, i32 20, i32 22, i32 24, i32 26, i32 28, i32 30,
-                      i32 32, i32 34, i32 36, i32 38, i32 40, i32 42, i32 44, i32 46, i32 48, i32 50, i32 52, i32 54, i32 56, i32 58, i32 60, i32 62>
-  ;; t1 = <b0 ... b31>
-  %t1 = shufflevector <32 x double> %v0, <32 x double> %v1,
-          <32 x i32> <i32 1, i32 3, i32 5, i32 7, i32 9, i32 11, i32 13, i32 15, i32 17, i32 19, i32 21, i32 23, i32 25, i32 27, i32 29, i32 31,
-                      i32 33, i32 35, i32 37, i32 39, i32 41, i32 43, i32 45, i32 47, i32 49, i32 51, i32 53, i32 55, i32 57, i32 59, i32 61, i32 63>
-
-  store <32 x double> %t0, <32 x double> * %out0, align 4
-  store <32 x double> %t1, <32 x double> * %out1, align 4
-  ret void
-}
-
-;; reorder
-;; v0 = <a0 ... a31>
-;; v1 = <b0 ... b31>
-;; to
-;; out0 = <a0 b0 ... a15 b15>
-;; out1 = <a16 b16 ... a31 b31>
-
-define void
-@__soa_to_aos2_double32(<32 x double> %v0, <32 x double> %v1,
-        <32 x double> * noalias %out0, <32 x double> * noalias %out1) nounwind alwaysinline {
-  %t0 = shufflevector <32 x double> %v0, <32 x double> %v1,
-          <32 x i32> <i32 0, i32 32, i32 1, i32 33, i32 2, i32 34, i32 3, i32 35, i32 4, i32 36, i32 5, i32 37, i32 6, i32 38, i32 7, i32 39,
-                      i32 8, i32 40, i32 9, i32 41, i32 10, i32 42, i32 11, i32 43, i32 12, i32 44, i32 13, i32 45, i32 14, i32 46, i32 15, i32 47>
-  %t1 = shufflevector <32 x double> %v0, <32 x double> %v1,
-          <32 x i32> <i32 16, i32 48, i32 17, i32 49, i32 18, i32 50, i32 19, i32 51, i32 20, i32 52, i32 21, i32 53, i32 22, i32 54, i32 23, i32 55,
-                      i32 24, i32 56, i32 25, i32 57, i32 26, i32 58, i32 27, i32 59, i32 28, i32 60, i32 29, i32 61, i32 30, i32 62, i32 31, i32 63>
-  store <32 x double> %t0, <32 x double> * %out0, align 4
-  store <32 x double> %t1, <32 x double> * %out1, align 4
   ret void
 }
 ')
@@ -2982,84 +2750,6 @@ define void
   store <64 x float> %t1, <64 x float> * %out1, align 4
   ret void
 }
-
-;; reorder
-;; v0 = <a0 ... a63>
-;; v1 = <b0 ... b63>
-;; to
-;; out0 = <a0 b0 ... a31 b31>
-;; out1 = <a32 b32 ... a63 b63>
-
-define void
-@__soa_to_aos2_float64(<64 x float> %v0, <64 x float> %v1,
-        <64 x float> * noalias %out0, <64 x float> * noalias %out1) nounwind alwaysinline {
-  %t0 = shufflevector <64 x float> %v0, <64 x float> %v1,
-          <64 x i32> <i32 0, i32 64, i32 1, i32 65, i32 2, i32 66, i32 3, i32 67, i32 4, i32 68, i32 5, i32 69, i32 6, i32 70, i32 7, i32 71,
-                      i32 8, i32 72, i32 9, i32 73, i32 10, i32 74, i32 11, i32 75, i32 12, i32 76, i32 13, i32 77, i32 14, i32 78, i32 15, i32 79,
-                      i32 16, i32 80, i32 17, i32 81, i32 18, i32 82, i32 19, i32 83, i32 20, i32 84, i32 21, i32 85, i32 22, i32 86, i32 23, i32 87,
-                      i32 24, i32 88, i32 25, i32 89, i32 26, i32 90, i32 27, i32 91, i32 28, i32 92, i32 29, i32 93, i32 30, i32 94, i32 31, i32 95>
-  %t1 = shufflevector <64 x float> %v0, <64 x float> %v1,
-          <64 x i32> <i32 32, i32 96, i32 33, i32 97, i32 34, i32 98, i32 35, i32 99, i32 36, i32 100, i32 37, i32 101, i32 38, i32 102, i32 39, i32 103,
-                      i32 40, i32 104, i32 41, i32 105, i32 42, i32 106, i32 43, i32 107, i32 44, i32 108, i32 45, i32 109, i32 46, i32 110, i32 47, i32 111,
-                      i32 48, i32 112, i32 49, i32 113, i32 50, i32 114, i32 51, i32 115, i32 52, i32 116, i32 53, i32 117, i32 54, i32 118, i32 55, i32 119,
-                      i32 56, i32 120, i32 57, i32 121, i32 58, i32 122, i32 59, i32 123, i32 60, i32 124, i32 61, i32 125, i32 62, i32 126, i32 63, i32 127>
-  store <64 x float> %t0, <64 x float> * %out0, align 4
-  store <64 x float> %t1, <64 x float> * %out1, align 4
-  ret void
-}
-
-;; reorder
-;; v0 = <a0 b0 ...    a31 b31>
-;; v1 = <a32 b32 ...  a63 b63>
-;; to
-;; out0 = <a0 ... a63>
-;; out1 = <b0 ... b63>
-
-define void
-@__aos_to_soa2_double64(<64 x double> %v0, <64 x double> %v1,
-        <64 x double> * noalias %out0, <64 x double> * noalias %out1) nounwind alwaysinline {
-  ;; t0 = <a0 ... a63>
-  %t0 = shufflevector <64 x double> %v0, <64 x double> %v1,
-          <64 x i32> <i32 0, i32 2, i32 4, i32 6, i32 8, i32 10, i32 12, i32 14, i32 16, i32 18, i32 20, i32 22, i32 24, i32 26, i32 28, i32 30,
-                      i32 32, i32 34, i32 36, i32 38, i32 40, i32 42, i32 44, i32 46, i32 48, i32 50, i32 52, i32 54, i32 56, i32 58, i32 60, i32 62,
-                      i32 64, i32 66, i32 68, i32 70, i32 72, i32 74, i32 76, i32 78, i32 80, i32 82, i32 84, i32 86, i32 88, i32 90, i32 92, i32 94,
-                      i32 96, i32 98, i32 100, i32 102, i32 104, i32 106, i32 108, i32 110, i32 112, i32 114, i32 116, i32 118, i32 120, i32 122, i32 124, i32 126>
-  ;; t1 = <b0 ... b63>
-  %t1 = shufflevector <64 x double> %v0, <64 x double> %v1,
-          <64 x i32> <i32 1, i32 3, i32 5, i32 7, i32 9, i32 11, i32 13, i32 15, i32 17, i32 19, i32 21, i32 23, i32 25, i32 27, i32 29, i32 31,
-                      i32 33, i32 35, i32 37, i32 39, i32 41, i32 43, i32 45, i32 47, i32 49, i32 51, i32 53, i32 55, i32 57, i32 59, i32 61, i32 63,
-                      i32 65, i32 67, i32 69, i32 71, i32 73, i32 75, i32 77, i32 79, i32 81, i32 83, i32 85, i32 87, i32 89, i32 91, i32 93, i32 95,
-                      i32 97, i32 99, i32 101, i32 103, i32 105, i32 107, i32 109, i32 111, i32 113, i32 115, i32 117, i32 119, i32 121, i32 123, i32 125, i32 127>
-
-  store <64 x double> %t0, <64 x double> * %out0, align 4
-  store <64 x double> %t1, <64 x double> * %out1, align 4
-  ret void
-}
-
-;; reorder
-;; v0 = <a0 ... a63>
-;; v1 = <b0 ... b63>
-;; to
-;; out0 = <a0 b0 ... a31 b31>
-;; out1 = <a32 b32 ... a63 b63>
-
-define void
-@__soa_to_aos2_double64(<64 x double> %v0, <64 x double> %v1,
-        <64 x double> * noalias %out0, <64 x double> * noalias %out1) nounwind alwaysinline {
-  %t0 = shufflevector <64 x double> %v0, <64 x double> %v1,
-          <64 x i32> <i32 0, i32 64, i32 1, i32 65, i32 2, i32 66, i32 3, i32 67, i32 4, i32 68, i32 5, i32 69, i32 6, i32 70, i32 7, i32 71,
-                      i32 8, i32 72, i32 9, i32 73, i32 10, i32 74, i32 11, i32 75, i32 12, i32 76, i32 13, i32 77, i32 14, i32 78, i32 15, i32 79,
-                      i32 16, i32 80, i32 17, i32 81, i32 18, i32 82, i32 19, i32 83, i32 20, i32 84, i32 21, i32 85, i32 22, i32 86, i32 23, i32 87,
-                      i32 24, i32 88, i32 25, i32 89, i32 26, i32 90, i32 27, i32 91, i32 28, i32 92, i32 29, i32 93, i32 30, i32 94, i32 31, i32 95>
-  %t1 = shufflevector <64 x double> %v0, <64 x double> %v1,
-          <64 x i32> <i32 32, i32 96, i32 33, i32 97, i32 34, i32 98, i32 35, i32 99, i32 36, i32 100, i32 37, i32 101, i32 38, i32 102, i32 39, i32 103,
-                      i32 40, i32 104, i32 41, i32 105, i32 42, i32 106, i32 43, i32 107, i32 44, i32 108, i32 45, i32 109, i32 46, i32 110, i32 47, i32 111,
-                      i32 48, i32 112, i32 49, i32 113, i32 50, i32 114, i32 51, i32 115, i32 52, i32 116, i32 53, i32 117, i32 54, i32 118, i32 55, i32 119,
-                      i32 56, i32 120, i32 57, i32 121, i32 58, i32 122, i32 59, i32 123, i32 60, i32 124, i32 61, i32 125, i32 62, i32 126, i32 63, i32 127>
-  store <64 x double> %t0, <64 x double> * %out0, align 4
-  store <64 x double> %t1, <64 x double> * %out1, align 4
-  ret void
-}
 ')
 
 ;; versions to be called from stdlib
@@ -3212,55 +2902,6 @@ define void
   call void @__soa_to_aos3_double`'WIDTH (<WIDTH x double> %v0, <WIDTH x double> %v1,
          <WIDTH x double> %v2, <WIDTH x double> * %out0, <WIDTH x double> * %out1,
          <WIDTH x double> * %out2)
-  ret void
-}
-
-
-define void
-@__aos_to_soa2_float(i8 * noalias %p,
-        i8 * %out0, i8 * %out1) nounwind alwaysinline {
-  %p0 = bitcast i8 * %p to <WIDTH x float> *
-  %outptr0 = bitcast i8 * %out0 to <WIDTH x float> *
-  %outptr1 = bitcast i8 * %out1 to <WIDTH x float> *
-  %v0 = load PTR_OP_ARGS(`<WIDTH x float> ')  %p0, align 4
-  %p1 = getelementptr PTR_OP_ARGS(`<WIDTH x float>') %p0, i32 1
-  %v1 = load PTR_OP_ARGS(`<WIDTH x float> ')  %p1, align 4
-  call void @__aos_to_soa2_float`'WIDTH (<WIDTH x float> %v0, <WIDTH x float> %v1,
-         <WIDTH x float> * %outptr0, <WIDTH x float> * %outptr1)
-  ret void
-}
-
-define void
-@__soa_to_aos2_float(<WIDTH x float> %v0, <WIDTH x float> %v1,
-                     i8 * noalias %p) nounwind alwaysinline {
-  %out0 = bitcast i8 * %p to <WIDTH x float> *
-  %out1 = getelementptr PTR_OP_ARGS(`<WIDTH x float>') %out0, i32 1
-  call void @__soa_to_aos2_float`'WIDTH (<WIDTH x float> %v0, <WIDTH x float> %v1,
-         <WIDTH x float> * %out0, <WIDTH x float> * %out1)
-  ret void
-}
-
-define void
-@__aos_to_soa2_double(i8 * noalias %p,
-        i8 * %out0, i8 * %out1) nounwind alwaysinline {
-  %p0 = bitcast i8 * %p to <WIDTH x double> *
-  %outptr0 = bitcast i8 * %out0 to <WIDTH x double> *
-  %outptr1 = bitcast i8 * %out1 to <WIDTH x double> *
-  %v0 = load PTR_OP_ARGS(`<WIDTH x double> ')  %p0, align 4
-  %p1 = getelementptr PTR_OP_ARGS(`<WIDTH x double>') %p0, i32 1
-  %v1 = load PTR_OP_ARGS(`<WIDTH x double> ')  %p1, align 4
-  call void @__aos_to_soa2_double`'WIDTH (<WIDTH x double> %v0, <WIDTH x double> %v1,
-         <WIDTH x double> * %outptr0, <WIDTH x double> * %outptr1)
-  ret void
-}
-
-define void
-@__soa_to_aos2_double(<WIDTH x double> %v0, <WIDTH x double> %v1,
-                     i8 * noalias %p) nounwind alwaysinline {
-  %out0 = bitcast i8 * %p to <WIDTH x double> *
-  %out1 = getelementptr PTR_OP_ARGS(`<WIDTH x double>') %out0, i32 1
-  call void @__soa_to_aos2_double`'WIDTH (<WIDTH x double> %v0, <WIDTH x double> %v1,
-         <WIDTH x double> * %out0, <WIDTH x double> * %out1)
   ret void
 }
 ')
