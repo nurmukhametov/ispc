@@ -549,6 +549,9 @@ Symbol *Module::AddLLVMIntrinsicDecl(const std::string &name, ExprList *args, So
             if (ID == llvm::Intrinsic::masked_expandload) {
                 nInits = { 2 };
             }
+            if (ID == llvm::Intrinsic::experimental_vector_interleave2) {
+                nInits = { 0 };
+            }
             for (const int i : nInits) {
                 const Type *argType = (args->exprs[i])->GetType();
                 Assert(argType);
@@ -558,6 +561,13 @@ Symbol *Module::AddLLVMIntrinsicDecl(const std::string &name, ExprList *args, So
                 } else if (ID == llvm::Intrinsic::masked_scatter && i == 1) {
                     // type with <TARGET_WIDTH x ptr> is expected
                     exprType.push_back(LLVMTypes::PtrVectorType);
+                } else if (ID == llvm::Intrinsic::experimental_vector_interleave2) {
+                    // create a vector type twice wider that current one
+                    llvm::VectorType *vt = llvm::dyn_cast<llvm::VectorType>(argType->LLVMType(g->ctx));
+                    Assert(vt);
+                    unsigned int vectorWidth = vt->getElementCount().getKnownMinValue();
+                    llvm::Type *vt2 = llvm::VectorType::get(vt->getElementType(), vectorWidth * 2, false);
+                    exprType.push_back(vt2);
                 } else {
                     exprType.push_back(argType->LLVMType(g->ctx));
                 }
