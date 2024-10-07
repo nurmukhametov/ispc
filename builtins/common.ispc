@@ -712,70 +712,63 @@ UNMANGLED CDECL void __prefetch_write_varying_3_native(uniform int8 *uniform, un
     __not_supported();
 }
 
-// // EXT READNONE varying int8 __shuffle_i8(varying int8 v, varying int32 perm) {
-// //     varying double result = 0;
-// //     for (uniform int32 i = 0; i < TARGET_WIDTH; i++) {
-// //         uniform int8 lane = __extract_int8(v, i);
-// //         uniform int32 new_pos = __extract_int32(perm, i);
-// //         result = __insert_int8(result, new_pos, lane);
-// //     }
-// //     return result;
-// // }
-// // EXT READNONE varying int16 __shuffle_i16(varying int16 v, varying int32 perm) {
-// //     varying double result = 0;
-// //     for (uniform int32 i = 0; i < TARGET_WIDTH; i++) {
-// //         uniform int16 lane = __extract_int16(v, i);
-// //         uniform int32 new_pos = __extract_int32(perm, i);
-// //         result = __insert_int16(result, new_pos, lane);
-// //     }
-// //     return result;
-// // }
-// // EXT READNONE varying int32 __shuffle_i32(varying int32 v, varying int32 perm) {
-// //     varying double result = 0;
-// //     for (uniform int32 i = 0; i < TARGET_WIDTH; i++) {
-// //         uniform int32 lane = __extract_int32(v, i);
-// //         uniform int32 new_pos = __extract_int32(perm, i);
-// //         result = __insert_int32(result, new_pos, lane);
-// //     }
-// //     return result;
-// // }
-// // EXT READNONE varying int64 __shuffle_i64(varying int64 v, varying int32 perm) {
-// //     varying double result = 0;
-// //     for (uniform int32 i = 0; i < TARGET_WIDTH; i++) {
-// //         uniform int64 lane = __extract_int64(v, i);
-// //         uniform int32 new_pos = __extract_int32(perm, i);
-// //         result = __insert_int64(result, new_pos, lane);
-// //     }
-// //     return result;
-// // }
-// // EXT READNONE varying float16 __shuffle_half(varying float16 v, varying int32 perm) {
-// //     varying double result = 0;
-// //     for (uniform int32 i = 0; i < TARGET_WIDTH; i++) {
-// //         uniform float16 lane = __extract_int16(v, i);
-// //         uniform int32 new_pos = __extract_int32(perm, i);
-// //         result = __insert_int16(result, new_pos, lane);
-// //     }
-// //     return result;
-// // }
-// // EXT READNONE varying float __shuffle_float(varying float v, varying int32 perm) {
-// //     varying double result = 0;
-// //     for (uniform int32 i = 0; i < TARGET_WIDTH; i++) {
-// //         uniform float lane = __extract_int32(v, i);
-// //         uniform int32 new_pos = __extract_int32(perm, i);
-// //         result = __insert_int32(result, new_pos, lane);
-// //     }
-// //     return result;
-// // }
-// // EXT READNONE varying double __shuffle_double(varying double v, varying int32 perm) {
-// //     varying double result = 0;
-// //     for (uniform int32 i = 0; i < TARGET_WIDTH; i++) {
-// //         uniform double lane = __extract_int64(v, i);
-// //         uniform int32 new_pos = __extract_int32(perm, i);
-// //         result = __insert_int64(result, new_pos, lane);
-// //     }
-// //     return result;
-// // }
-// 
+EXT READNONE varying int8 __shuffle_i8(varying int8 v, varying int32 perm) {
+    varying double result = 0;
+    for (uniform int32 i = 0; i < TARGET_WIDTH; i++) {
+        uniform int8 lane_v = __extract_int8(v, __extract_int32(perm, i));
+        result = __insert_int8(result, i, lane_v);
+    }
+    return result;
+}
+EXT READNONE varying int16 __shuffle_i16(varying int16 v, varying int32 perm) {
+    varying double result = 0;
+    for (uniform int32 i = 0; i < TARGET_WIDTH; i++) {
+        uniform int16 lane_v = __extract_int16(v, __extract_int32(perm, i));
+        result = __insert_int16(result, i, lane_v);
+    }
+    return result;
+}
+EXT READNONE varying int32 __shuffle_i32(varying int32 v, varying int32 perm) {
+    varying double result = 0;
+    for (uniform int32 i = 0; i < TARGET_WIDTH; i++) {
+        uniform int32 lane_v = __extract_int32(v, __extract_int32(perm, i));
+        result = __insert_int32(result, i, lane_v);
+    }
+    return result;
+}
+EXT READNONE varying int64 __shuffle_i64(varying int64 v, varying int32 perm) {
+    varying double result = 0;
+    for (uniform int32 i = 0; i < TARGET_WIDTH; i++) {
+        uniform int64 lane_v = __extract_int64(v, __extract_int32(perm, i));
+        result = __insert_int64(result, i, lane_v);
+    }
+    return result;
+}
+EXT READNONE varying float16 __shuffle_half(varying float16 v, varying int32 perm) {
+    varying double result = 0;
+    for (uniform int32 i = 0; i < TARGET_WIDTH; i++) {
+        uniform float16 lane_v = __extract_half(v, __extract_int32(perm, i));
+        result = __insert_half(result, i, lane_v);
+    }
+    return result;
+}
+EXT READNONE varying float __shuffle_float(varying float v, varying int32 perm) {
+    varying double result = 0;
+    for (uniform int32 i = 0; i < TARGET_WIDTH; i++) {
+        uniform float lane_v = __extract_float(v, __extract_int32(perm, i));
+        result = __insert_float(result, i, lane_v);
+    }
+    return result;
+}
+EXT READNONE varying double __shuffle_double(varying double v, varying int32 perm) {
+    varying double result = 0;
+    for (uniform int32 i = 0; i < TARGET_WIDTH; i++) {
+        uniform double lane_v = __extract_double(v, __extract_int32(perm, i));
+        result = __insert_double(result, i, lane_v);
+    }
+    return result;
+}
+
 // // EXT READNONE varying double __shuffle2_double(varying double, varying double, varying int32);
 // // EXT READNONE varying float __shuffle2_float(varying float, varying float, varying int32);
 // // EXT READNONE varying float16 __shuffle2_half(varying float16, varying float16, varying int32);

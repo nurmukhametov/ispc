@@ -14,9 +14,6 @@ define(`WIDTH',`4')
 define(`ISA',`AVX512SKX')
 
 ;; start of included(`target-avx512-common-4.ll')
-define(`MASK',`i1')
-define(`HAVE_GATHER',`1')
-define(`HAVE_SCATTER',`1')
 
 ;; start of included(`target-avx512-utils.ll')
 define(`MASK',`i1')
@@ -115,17 +112,6 @@ divert`'dnl
 ;; $1: type
 
 define(`shuffle1', `
-define <WIDTH x $1> @__shuffle_$1(<WIDTH x $1>, <WIDTH x i32>) nounwind readnone alwaysinline {
-forloop(i, 0, eval(WIDTH-1), `
-  %index_`'i = extractelement <WIDTH x i32> %1, i32 i')
-forloop(i, 0, eval(WIDTH-1), `
-  %v_`'i = extractelement <WIDTH x $1> %0, i32 %index_`'i')
-
-  %ret_0 = insertelement <WIDTH x $1> undef, $1 %v_0, i32 0
-forloop(i, 1, eval(WIDTH-1), `  %ret_`'i = insertelement <WIDTH x $1> %ret_`'eval(i-1), $1 %v_`'i, i32 i
-')
-  ret <WIDTH x $1> %ret_`'eval(WIDTH-1)
-}
 ')
 
 ;; Helper internal function for shuffles2 with constant index.
@@ -1193,33 +1179,6 @@ fastMathFTZDAZ_x86()
 shuffle1(i8)
 shuffle1(i16)
 shuffle1(half)
-
-declare <WIDTH x float> @llvm.x86.avx512.mask.vpermilvar.ps.128(<WIDTH x float>, <WIDTH x i32>, <WIDTH x float>, i8)
-define <WIDTH x float> @__shuffle_float(<WIDTH x float>, <WIDTH x i32>) nounwind readnone alwaysinline {
-  %res = call <WIDTH x float> @llvm.x86.avx512.mask.vpermilvar.ps.128(<WIDTH x float> %0, <WIDTH x i32> %1, <WIDTH x float> zeroinitializer, i8 -1)
-  ret <WIDTH x float> %res
-}
-
-define <WIDTH x i32> @__shuffle_i32(<WIDTH x i32>, <WIDTH x i32>) nounwind readnone alwaysinline {
-  %input_fp = bitcast <WIDTH x i32> %0 to <WIDTH x float>
-  %res_fp = call <WIDTH x float> @llvm.x86.avx512.mask.vpermilvar.ps.128(<WIDTH x float> %input_fp, <WIDTH x i32> %1, <WIDTH x float> zeroinitializer, i8 -1)
-  %res = bitcast <WIDTH x float> %res_fp to <WIDTH x i32>
-  ret <WIDTH x i32> %res
-}
-
-declare <WIDTH x i64> @llvm.x86.avx512.mask.permvar.di.256(<WIDTH x i64>, <WIDTH x i64>, <WIDTH x i64>, i8)
-define <WIDTH x i64> @__shuffle_i64(<WIDTH x i64>, <WIDTH x i32>) nounwind readnone alwaysinline {
-  %ind = zext <WIDTH x i32> %1 to <WIDTH x i64>
-  %res = call <WIDTH x i64> @llvm.x86.avx512.mask.permvar.di.256(<WIDTH x i64> %0, <WIDTH x i64> %ind, <WIDTH x i64> zeroinitializer, i8 -1)
-  ret <WIDTH x i64> %res
-}
-
-declare <WIDTH x double> @llvm.x86.avx512.mask.permvar.df.256(<WIDTH x double>, <WIDTH x i64>, <WIDTH x double>, i8)
-define <WIDTH x double> @__shuffle_double(<WIDTH x double>, <WIDTH x i32>) nounwind readnone alwaysinline {
-  %ind = zext <WIDTH x i32> %1 to <WIDTH x i64>
-  %res = call <WIDTH x double> @llvm.x86.avx512.mask.permvar.df.256(<WIDTH x double> %0, <WIDTH x i64> %ind, <WIDTH x double> zeroinitializer, i8 -1)
-  ret <WIDTH x double> %res
-}
 
 define_shuffle2_const()
 
