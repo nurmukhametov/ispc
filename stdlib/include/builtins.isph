@@ -379,11 +379,17 @@ EXT inline READNONE uniform int16 __extract_int16(varying int16, uniform int32);
 EXT inline READNONE uniform int32 __extract_int32(varying int32, uniform int32);
 EXT inline READNONE uniform int64 __extract_int64(varying int64, uniform int32);
 EXT inline READNONE uniform int8 __extract_int8(varying int8, uniform int32);
+EXT inline READNONE uniform float16 __extract_half(varying float16, uniform int32);
+EXT inline READNONE uniform float __extract_float(varying float, uniform int32);
+EXT inline READNONE uniform double __extract_double(varying double, uniform int32);
 EXT inline READNONE IntMaskType __insert_bool(IntMaskType, uniform int32, uniform bool);
 EXT inline READNONE varying int16 __insert_int16(varying int16, uniform int32, uniform int16);
 EXT inline READNONE varying int32 __insert_int32(varying int32, uniform int32, uniform int32);
 EXT inline READNONE varying int64 __insert_int64(varying int64, uniform int32, uniform int64);
 EXT inline READNONE varying int8 __insert_int8(varying int8, uniform int32, uniform int8);
+EXT inline READNONE varying float16 __insert_half(varying float16, uniform int32, uniform float16);
+EXT inline READNONE varying float __insert_float(varying float, uniform int32, uniform float);
+EXT inline READNONE varying double __insert_double(varying double, uniform int32, uniform double);
 
 // dor product
 EXT READNONE varying int32 __dot2add_i16packed_sat(varying uint32, varying uint32, varying int32);
