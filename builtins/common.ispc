@@ -496,11 +496,11 @@ UNMANGLED CDECL uniform bool _reduce_equal_half(varying float16 val, uniform flo
     uniform bool res = false;
     foreach_active(i) {
         if (j == 0) {
-            first = __extract_int16(val, i);
+            first = __extract_half(val, i);
             res = true;
             j++;
         } else {
-            if (first != __extract_int16(val, i)) {
+            if (first != __extract_half(val, i)) {
                 res = false;
             }
         }
@@ -516,11 +516,11 @@ UNMANGLED CDECL uniform bool __reduce_equal_float(varying float val, uniform flo
     uniform bool res = false;
     foreach_active(i) {
         if (j == 0) {
-            first = __extract_int32(val, i);
+            first = __extract_float(val, i);
             res = true;
             j++;
         } else {
-            if (first != __extract_int32(val, i)) {
+            if (first != __extract_float(val, i)) {
                 res = false;
             }
         }
@@ -536,11 +536,11 @@ UNMANGLED CDECL uniform bool __reduce_equal_double(varying double val, uniform d
     uniform bool res = false;
     foreach_active(i) {
         if (j == 0) {
-            first = __extract_int64(val, i);
+            first = __extract_double(val, i);
             res = true;
             j++;
         } else {
-            if (first != __extract_int64(val, i)) {
+            if (first != __extract_double(val, i)) {
                 res = false;
             }
         }
@@ -1108,17 +1108,17 @@ UNMANGLED CDECL READONLY varying float16 __gather32_generic_half(varying uint32 
         uniform int32 addr = __extract_int32(addrs, i);
         uniform float16 *uniform ptr = (uniform float16 *uniform)addr;
         uniform float16 val = *ptr;
-        res = __insert_int16(res, i, val);
+        res = __insert_half(res, i, val);
     }
     return res;
 }
 UNMANGLED CDECL READONLY varying float16 __gather64_generic_half(varying uint64 addrs) {
     varying float16 res;
     foreach_active(i) {
-        uniform int64 addr = __extract_int64(addrs, i);
+        uniform int64 addr = __extract_half(addrs, i);
         uniform float16 *uniform ptr = (uniform float16 *uniform)addr;
         uniform float16 val = *ptr;
-        res = __insert_int16(res, i, val);
+        res = __insert_half(res, i, val);
     }
     return res;
 }
@@ -1145,20 +1145,20 @@ UNMANGLED CDECL READONLY varying int32 __gather64_generic_i32(varying uint64 add
 UNMANGLED CDECL READONLY varying float __gather32_generic_float(varying uint32 addrs) {
     varying float res;
     foreach_active(i) {
-        uniform int32 addr = __extract_int32(addrs, i);
+        uniform int32 addr = __extract_float(addrs, i);
         uniform float *uniform ptr = (uniform float *uniform)addr;
         uniform float val = *ptr;
-        res = __insert_int32(res, i, val);
+        res = __insert_float(res, i, val);
     }
     return res;
 }
 UNMANGLED CDECL READONLY varying float __gather64_generic_float(varying uint64 addrs) {
     varying float res;
     foreach_active(i) {
-        uniform int64 addr = __extract_int64(addrs, i);
+        uniform int64 addr = __extract_float(addrs, i);
         uniform float *uniform ptr = (uniform float *uniform)addr;
         uniform float val = *ptr;
-        res = __insert_int32(res, i, val);
+        res = __insert_float(res, i, val);
     }
     return res;
 }
@@ -1185,20 +1185,20 @@ UNMANGLED CDECL READONLY varying int64 __gather64_generic_i64(varying uint64 add
 UNMANGLED CDECL READONLY varying double __gather32_generic_double(varying uint32 addrs) {
     varying double res;
     foreach_active(i) {
-        uniform int32 addr = __extract_int32(addrs, i);
+        uniform int32 addr = __extract_double(addrs, i);
         uniform double *uniform ptr = (uniform double *uniform)addr;
         uniform double val = *ptr;
-        res = __insert_int64(res, i, val);
+        res = __insert_double(res, i, val);
     }
     return res;
 }
 UNMANGLED CDECL READONLY varying double __gather64_generic_double(varying uint64 addrs) {
     varying double res;
     foreach_active(i) {
-        uniform int64 addr = __extract_int64(addrs, i);
+        uniform int64 addr = __extract_double(addrs, i);
         uniform double *uniform ptr = (uniform double *uniform)addr;
         uniform double val = *ptr;
-        res = __insert_int64(res, i, val);
+        res = __insert_double(res, i, val);
     }
     return res;
 }
