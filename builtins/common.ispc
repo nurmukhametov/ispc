@@ -1846,6 +1846,88 @@ EXT void __soa_to_aos4_double(varying double v0, varying double v1, varying doub
     *ptr = @llvm.experimental.vector.interleave2(rb, ga);
 }
 
+#if TARGET_WIDTH == 2
+#define TRIPLE_WIDTH 6
+#elif TARGET_WIDTH == 4
+#define TRIPLE_WIDTH 12
+#elif TARGET_WIDTH == 8
+#define TRIPLE_WIDTH 24
+#elif TARGET_WIDTH == 16
+#define TRIPLE_WIDTH 48
+#elif TARGET_WIDTH == 32
+#define TRIPLE_WIDTH 96
+#elif TARGET_WIDTH == 64
+#define TRIPLE_WIDTH 192
+#else
+#error Unknown value of TARGET_WIDTH
+#endif
+
+EXT void __aos_to_soa3_float(NOALIAS uniform int8 *uniform a, uniform int8 *uniform v0, uniform int8 *uniform v1,
+                             uniform int8 *uniform v2) {
+    // For example, for 4-wide vectors:
+    // Convert 3-wide AOS values to SOA--specifically, given 3 4-vectors
+    // <x0 y0 z0 x1> <y1 z1 x2 y2> <z2 x3 y3 z3>, transpose to
+    // <x0 x1 x2 x3> <y0 y1 y2 y3> <z0 z1 z2 z3>.
+    uniform float<TRIPLE_WIDTH> *uniform ptr = (uniform float<TRIPLE_WIDTH> *uniform)a;
+    uniform float<TRIPLE_WIDTH> x = *ptr;
+    varying float x0 = 0, x1 = 0, x2 = 0;
+    for (uniform int i = 0; i < TARGET_WIDTH; i++) {
+        x0 = __insert_float(x0, i, x[0 + i * 3]);
+        x1 = __insert_float(x1, i, x[1 + i * 3]);
+        x2 = __insert_float(x2, i, x[2 + i * 3]);
+    }
+    varying float *uniform x0_ptr = (varying float *uniform)v0;
+    varying float *uniform x1_ptr = (varying float *uniform)v1;
+    varying float *uniform x2_ptr = (varying float *uniform)v2;
+    *x0_ptr = x0;
+    *x1_ptr = x1;
+    *x2_ptr = x2;
+}
+
+EXT void __soa_to_aos3_float(varying float v0, varying float v1, varying float v2, NOALIAS uniform int8 *uniform a) {
+    // For example, for 4-wide vectors:
+    // The inverse of __aos_to_soa3_float4: convert 3 4-vectors
+    // <x0 x1 x2 x3> <y0 y1 y2 y3> <z0 z1 z2 z3> to
+    // <x0 y0 z0 x1> <y1 z1 x2 y2> <z2 x3 y3 z3>.
+    uniform float *uniform x = (uniform float *uniform)a;
+    for (uniform int j = 0; j < TARGET_WIDTH; j++) {
+        for (uniform int i = 0; i < 3; i++) {
+            x[3 * j + 0] = __extract_float(v0, j);
+            x[3 * j + 1] = __extract_float(v1, j);
+            x[3 * j + 2] = __extract_float(v2, j);
+        }
+    }
+}
+
+EXT void __aos_to_soa3_double(NOALIAS uniform int8 *uniform a, uniform int8 *uniform v0, uniform int8 *uniform v1,
+                              uniform int8 *uniform v2) {
+    uniform double<TRIPLE_WIDTH> *uniform ptr = (uniform double<TRIPLE_WIDTH> *uniform)a;
+    uniform double<TRIPLE_WIDTH> x = *ptr;
+    varying double x0 = 0, x1 = 0, x2 = 0;
+    for (uniform int i = 0; i < TARGET_WIDTH; i++) {
+        x0 = __insert_double(x0, i, x[0 + i * 3]);
+        x1 = __insert_double(x1, i, x[1 + i * 3]);
+        x2 = __insert_double(x2, i, x[2 + i * 3]);
+    }
+    varying double *uniform x0_ptr = (varying double *uniform)v0;
+    varying double *uniform x1_ptr = (varying double *uniform)v1;
+    varying double *uniform x2_ptr = (varying double *uniform)v2;
+    *x0_ptr = x0;
+    *x1_ptr = x1;
+    *x2_ptr = x2;
+}
+
+EXT void __soa_to_aos3_double(varying double v0, varying double v1, varying double v2, NOALIAS uniform int8 *uniform a) {
+    uniform double *uniform x = (uniform double *uniform)a;
+    for (uniform int j = 0; j < TARGET_WIDTH; j++) {
+        for (uniform int i = 0; i < 3; i++) {
+            x[3 * j + 0] = __extract_double(v0, j);
+            x[3 * j + 1] = __extract_double(v1, j);
+            x[3 * j + 2] = __extract_double(v2, j);
+        }
+    }
+}
+
 #undef NOESCAPE
 #undef ADDRSPACE
 #undef READONLY
