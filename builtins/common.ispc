@@ -1761,6 +1761,91 @@ EXT void __soa_to_aos2_double(varying double v0, varying double v1, NOALIAS unif
     *ptr = x;
 }
 
+#if TARGET_WIDTH == 2
+#define QUAD_WIDTH 8
+#elif TARGET_WIDTH == 4
+#define QUAD_WIDTH 16
+#elif TARGET_WIDTH == 8
+#define QUAD_WIDTH 32
+#elif TARGET_WIDTH == 16
+#define QUAD_WIDTH 64
+#elif TARGET_WIDTH == 32
+#define QUAD_WIDTH 128
+#elif TARGET_WIDTH == 64
+#define QUAD_WIDTH 256
+#else
+#error Unknown value of TARGET_WIDTH
+#endif
+
+typedef struct {
+    uniform float<DOUBLE_WIDTH> rb;
+    uniform float<DOUBLE_WIDTH> ga;
+} __ispcstub_unf_3C_8_3E_unf_3C_8_3E_; // special mangled name generated in src/builtins.cpp(lLLVMTypeToISPCType)
+
+EXT void __aos_to_soa4_float(NOALIAS uniform int8 *uniform a, NOALIAS uniform int8 *uniform v0,
+                             NOALIAS uniform int8 *uniform v1, NOALIAS uniform int8 *uniform v2,
+                             NOALIAS uniform int8 *uniform v3) {
+    // For example, for 4-wide vectors:
+    // take 4 4-wide vectors laid out like <r0 g0 b0 a0> <r1 g1 b1 a1> <r2 g2 b2 a2> <r3 g3 b3 a3>
+    // and reorder them to <r0 r1 r2 r3> <g0 g1 g2 g3> ...
+    uniform float<QUAD_WIDTH> *uniform ptr = (uniform float<QUAD_WIDTH> *uniform)a;
+    // Deinterleave the 4 4-wide vectors into 2 8-wide vectors
+    // { <r0 b0 r1 b1 r2 b2 r3 b3>, <g0 a0 g1 a1 g2 a2 g3 a3> }
+    uniform __ispcstub_unf_3C_8_3E_unf_3C_8_3E_ x = @llvm.experimental.vector.deinterleave2(*ptr);
+    uniform __ispcstub_vyfvyf rb = @llvm.experimental.vector.deinterleave2(x.rb);
+    uniform __ispcstub_vyfvyf ga = @llvm.experimental.vector.deinterleave2(x.ga);
+    varying float *uniform x0_ptr = (varying float *uniform)v0;
+    varying float *uniform x1_ptr = (varying float *uniform)v1;
+    varying float *uniform x2_ptr = (varying float *uniform)v2;
+    varying float *uniform x3_ptr = (varying float *uniform)v3;
+    *x0_ptr = rb.odd;
+    *x1_ptr = ga.odd;
+    *x2_ptr = rb.even;
+    *x3_ptr = ga.even;
+}
+
+EXT void __soa_to_aos4_float(varying float v0, varying float v1, varying float v2, varying float v3,
+                             NOALIAS uniform int8 *uniform a) {
+    // For example, for 4-wide vectors:
+    // take 4 4-wide vectors laid out like <r0 r1 r2 r3> <g0 g1 g2 g3> <b0 b1 b2 b3> <a0 a1 a2 a3>
+    // and reorder them to 4 4-wide vectors laid out like <r0 g0 b0 a0> <r1 g1 b1 a1> <r2 g2 b2 a2> <r3 g3 b3 a3>
+    uniform float<DOUBLE_WIDTH> rb = @llvm.experimental.vector.interleave2(v0, v2);
+    uniform float<DOUBLE_WIDTH> ga = @llvm.experimental.vector.interleave2(v1, v3);
+    // x = <r0 b0 r1 b1 r2 b2 r3 b3>, y = <g0 a0 g1 a1 g2 a2 g3 a3>
+    uniform float<QUAD_WIDTH> *uniform ptr = (uniform float<QUAD_WIDTH> *uniform)a;
+    *ptr = @llvm.experimental.vector.interleave2(rb, ga);
+}
+
+typedef struct {
+    uniform double<DOUBLE_WIDTH> rb;
+    uniform double<DOUBLE_WIDTH> ga;
+} __ispcstub_und_3C_8_3E_und_3C_8_3E_; // special mangled name generated in src/builtins.cpp(lLLVMTypeToISPCType)
+
+EXT void __aos_to_soa4_double(NOALIAS uniform int8 *uniform a, NOALIAS uniform int8 *uniform v0,
+                              NOALIAS uniform int8 *uniform v1, NOALIAS uniform int8 *uniform v2,
+                              NOALIAS uniform int8 *uniform v3) {
+    uniform double<QUAD_WIDTH> *uniform ptr = (uniform double<QUAD_WIDTH> *uniform)a;
+    uniform __ispcstub_und_3C_8_3E_und_3C_8_3E_ x = @llvm.experimental.vector.deinterleave2(*ptr);
+    uniform __ispcstub_vydvyd rb = @llvm.experimental.vector.deinterleave2(x.rb);
+    uniform __ispcstub_vydvyd ga = @llvm.experimental.vector.deinterleave2(x.ga);
+    varying double *uniform x0_ptr = (varying double *uniform)v0;
+    varying double *uniform x1_ptr = (varying double *uniform)v1;
+    varying double *uniform x2_ptr = (varying double *uniform)v2;
+    varying double *uniform x3_ptr = (varying double *uniform)v3;
+    *x0_ptr = rb.odd;
+    *x1_ptr = ga.odd;
+    *x2_ptr = rb.even;
+    *x3_ptr = ga.even;
+}
+
+EXT void __soa_to_aos4_double(varying double v0, varying double v1, varying double v2, varying double v3,
+                              NOALIAS uniform int8 *uniform a) {
+    uniform double<DOUBLE_WIDTH> rb = @llvm.experimental.vector.interleave2(v0, v2);
+    uniform double<DOUBLE_WIDTH> ga = @llvm.experimental.vector.interleave2(v1, v3);
+    uniform double<QUAD_WIDTH> *uniform ptr = (uniform double<QUAD_WIDTH> *uniform)a;
+    *ptr = @llvm.experimental.vector.interleave2(rb, ga);
+}
+
 #undef NOESCAPE
 #undef ADDRSPACE
 #undef READONLY
