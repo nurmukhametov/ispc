@@ -517,6 +517,8 @@ list(APPEND OPT_SOURCES
     src/opt/IntrinsicsOptPass.h
     src/opt/MangleOpenCLBuiltins.cpp
     src/opt/MangleOpenCLBuiltins.h
+    src/opt/LowerISPCIntrinsics.cpp
+    src/opt/LowerISPCIntrinsics.h
     src/opt/PeepholePass.cpp
     src/opt/PeepholePass.h
     src/opt/RemovePersistentFuncs.cpp
