@@ -67,6 +67,15 @@ static llvm::Value *lLowerInserIntrinsic(llvm::CallInst *CI) {
     return builder.CreateInsertElement(V, E, I);
 }
 
+static llvm::Value *lLowerBitcastIntrinsic(llvm::CallInst *CI) {
+    llvm::IRBuilder<> builder(CI);
+
+    llvm::Value *V = CI->getArgOperand(0);
+    llvm::Value *VT = CI->getArgOperand(1);
+
+    return builder.CreateBitCast(V, VT->getType());
+}
+
 static bool lRunOnBasicBlock(llvm::BasicBlock &BB) {
     // TODO: add lit tests
     for (llvm::BasicBlock::iterator iter = BB.begin(), e = BB.end(); iter != e;) {
@@ -80,6 +89,8 @@ static bool lRunOnBasicBlock(llvm::BasicBlock &BB) {
                     D = lLowerExtractIntrinsic(CI);
                 } else if (Callee->getName().startswith("llvm.ispc.insert.")) {
                     D = lLowerInserIntrinsic(CI);
+                } else if (Callee->getName().startswith("llvm.ispc.bitcast.")) {
+                    D = lLowerBitcastIntrinsic(CI);
                 }
 
                 if (D) {

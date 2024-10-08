@@ -541,6 +541,7 @@ static std::string lGetMangledTypeStr(llvm::Type *Ty, bool &HasUnnamedType) {
 
 enum class ISPCIntrinsics : unsigned {
     not_intrinsic = 0,
+    bitcast,
     insert,
     extract,
     concat,
@@ -548,6 +549,7 @@ enum class ISPCIntrinsics : unsigned {
 
 const char *ISPCIntrinsicsNames[] = {
     "not_intrinsic",
+    "llvm.ispc.bitcast",
     "llvm.ispc.insert",
     "llvm.ispc.extract",
     "llvm.ispc.concat",
@@ -583,6 +585,13 @@ static llvm::Function *lGetISPCIntrinsicsFuncDecl(llvm::Module *M, ISPCIntrinsic
     }
     bool hasUnnamedType = false;
     switch (ID) {
+    case ISPCIntrinsics::bitcast: {
+        Assert(TYs[0]->getPrimitiveSizeInBits() == TYs[1]->getPrimitiveSizeInBits());
+        retType = TYs[1];
+        name = "llvm.ispc.bitcast";
+        name += "." + lGetMangledTypeStr(TYs[0], hasUnnamedType) + "." + lGetMangledTypeStr(TYs[1], hasUnnamedType);
+        break;
+    }
     case ISPCIntrinsics::insert: {
         llvm::VectorType *vt = llvm::dyn_cast<llvm::VectorType>(TYs[0]);
         Assert(vt);
