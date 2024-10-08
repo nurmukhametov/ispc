@@ -578,7 +578,7 @@ static llvm::Function *lGetISPCIntrinsicsFuncDecl(llvm::Module *M, ISPCIntrinsic
     llvm::Type *retType = nullptr;
     std::vector<llvm::Type *> TYs;
     for (const Type *type : argTypes) {
-        printf("type: %s\n", type->GetString().c_str());
+        // printf("type: %s\n", type->GetString().c_str());
         TYs.push_back(type->LLVMType(g->ctx));
     }
     bool hasUnnamedType = false;
