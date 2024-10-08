@@ -105,76 +105,6 @@ divert`'dnl
 ;; target's vector width
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Generic macros for shuffle and shuffle2 operations
-
-;; shuffle1 macro matches stdlib shuffle(T, int)
-;; $1: type
-
-define(`shuffle1', `
-')
-
-;; Helper internal function for shuffles2 with constant index.
-;; $1: type
-
-define(`shuffle2_const', `
-define internal <WIDTH x $1> @__shuffle2_const_$1(<WIDTH x $1>, <WIDTH x $1>, <WIDTH x i32>) nounwind readnone alwaysinline {
-  %v2 = shufflevector <WIDTH x $1> %0, <WIDTH x $1> %1, <eval(2*WIDTH) x i32> <
-      forloop(i, 0, eval(2*WIDTH-2), `i32 i, ') i32 eval(2*WIDTH-1)
-  >
-forloop(i, 0, eval(WIDTH-1), `
-  %index_`'i = extractelement <WIDTH x i32> %2, i32 i')
-
-  ; extract from the requested lanes and insert into the result; LLVM turns
-  ; this into simple shufflevector during InstCombine pass.
-forloop(i, 0, eval(WIDTH-1), `
-  %v_`'i = extractelement <eval(2*WIDTH) x $1> %v2, i32 %index_`'i')
-
-  %ret_0 = insertelement <WIDTH x $1> undef, $1 %v_0, i32 0
-forloop(i, 1, eval(WIDTH-1), `  %ret_`'i = insertelement <WIDTH x $1> %ret_`'eval(i-1), $1 %v_`'i, i32 i
-')
-  ret <WIDTH x $1> %ret_`'eval(WIDTH-1)
-  }
-')
-
-;; shuffle2 macro matches stdlib shuffle2(T, T, int)
-;; $1: type
-
-define(`shuffle2', `
-define <WIDTH x $1> @__shuffle2_$1(<WIDTH x $1>, <WIDTH x $1>, <WIDTH x i32>) nounwind readnone alwaysinline {
-  %isc = call i1 @__is_compile_time_constant_varying_int32(<WIDTH x i32> %2)
-  br i1 %isc, label %is_const, label %not_const
-
-is_const:
-  %res = tail call <WIDTH x $1> @__shuffle2_const_$1(<WIDTH x $1> %0, <WIDTH x $1> %1, <WIDTH x i32> %2)
-  ret <WIDTH x $1> %res
-
-not_const:
-  ; otherwise store the two vectors onto the stack and then use the given
-  ; permutation vector to get indices into that array...
-  %v2 = shufflevector <WIDTH x $1> %0, <WIDTH x $1> %1, <eval(2*WIDTH) x i32> <
-      forloop(i, 0, eval(2*WIDTH-2), `i32 i, ') i32 eval(2*WIDTH-1)
-  >
-  forloop(i, 0, eval(WIDTH-1), `
-  %index_`'i = extractelement <WIDTH x i32> %2, i32 i')
-
-  %ptr = alloca <eval(2*WIDTH) x $1>
-  store <eval(2*WIDTH) x $1> %v2, <eval(2*WIDTH) x $1> * %ptr
-  %baseptr = bitcast <eval(2*WIDTH) x $1> * %ptr to $1 *
-
-  %ptr_0 = getelementptr PTR_OP_ARGS(`$1') %baseptr, i32 %index_0
-  %val_0 = load PTR_OP_ARGS(`$1 ')  %ptr_0
-  %result_0 = insertelement <WIDTH x $1> undef, $1 %val_0, i32 0
-
-forloop(i, 1, eval(WIDTH-1), `
-  %ptr_`'i = getelementptr PTR_OP_ARGS(`$1') %baseptr, i32 %index_`'i
-  %val_`'i = load PTR_OP_ARGS(`$1 ')  %ptr_`'i
-  %result_`'i = insertelement <WIDTH x $1> %result_`'eval(i-1), $1 %val_`'i, i32 i
-')
-  ret <WIDTH x $1> %result_`'eval(WIDTH-1)
-}
-')
-
 ;; broadcast/rotate/shift macros
 ;; $1: type
 ;; $1: type size
@@ -238,42 +168,6 @@ define <WIDTH x $1> @__shift_$1(<WIDTH x $1>, i32) nounwind readnone alwaysinlin
 }
 ')
 
-
-define(`define_shuffle1',`
-shuffle1(i8)
-shuffle1(i16)
-shuffle1(half)
-shuffle1(float)
-shuffle1(i32)
-shuffle1(double)
-shuffle1(i64)
-')
-
-define(`define_shuffle2_const',`
-shuffle2_const(i8)
-shuffle2_const(i16)
-shuffle2_const(half)
-shuffle2_const(float)
-shuffle2_const(i32)
-shuffle2_const(double)
-shuffle2_const(i64)
-')
-
-define(`define_shuffle2',`
-shuffle2(i8)
-shuffle2(i16)
-shuffle2(half)
-shuffle2(float)
-shuffle2(i32)
-shuffle2(double)
-shuffle2(i64)
-')
-
-define(`define_shuffles',`
-define_shuffle1()
-define_shuffle2_const()
-define_shuffle2()
-')
 
 define(`define_vector_permutations',`
 vector_permutations(i8, 1)
@@ -1173,79 +1067,6 @@ define_vector_permutations()
 fastMathFTZDAZ_x86()
 
 ;; end of included target-avx512-utils.ll
-
-;; shuffles
-
-shuffle1(i8)
-shuffle1(i16)
-shuffle1(half)
-
-define_shuffle2_const()
-
-shuffle2(i8)
-shuffle2(i16)
-shuffle2(half)
-
-declare <4 x i32> @llvm.x86.avx512.vpermi2var.d.128(<4 x i32>, <4 x i32>, <4 x i32>)
-define <WIDTH x i32> @__shuffle2_i32(<WIDTH x i32>, <WIDTH x i32>, <WIDTH x i32>) nounwind readnone alwaysinline {
-  %isc = call i1 @__is_compile_time_constant_varying_int32(<WIDTH x i32> %2)
-  br i1 %isc, label %is_const, label %not_const
-
-is_const:
-  %res_const = tail call <WIDTH x i32> @__shuffle2_const_i32(<WIDTH x i32> %0, <WIDTH x i32> %1, <WIDTH x i32> %2)
-  ret <WIDTH x i32> %res_const
-
-not_const:
-  %res = call <WIDTH x i32> @llvm.x86.avx512.vpermi2var.d.128(<WIDTH x i32> %0, <WIDTH x i32> %2, <WIDTH x i32> %1)
-  ret <WIDTH x i32> %res
-}
-
-declare <4 x float> @llvm.x86.avx512.vpermi2var.ps.128(<4 x float>, <4 x i32>, <4 x float>)
-define <WIDTH x float> @__shuffle2_float(<WIDTH x float>, <WIDTH x float>, <WIDTH x i32>) nounwind readnone alwaysinline {
-  %isc = call i1 @__is_compile_time_constant_varying_int32(<WIDTH x i32> %2)
-  br i1 %isc, label %is_const, label %not_const
-
-is_const:
-  %res_const = tail call <WIDTH x float> @__shuffle2_const_float(<WIDTH x float> %0, <WIDTH x float> %1, <WIDTH x i32> %2)
-  ret <WIDTH x float> %res_const
-
-not_const:
-  %res = call <WIDTH x float> @llvm.x86.avx512.vpermi2var.ps.128(<WIDTH x float> %0, <WIDTH x i32> %2, <WIDTH x float> %1)
-  ret <WIDTH x float> %res
-}
-
-declare <WIDTH x i64> @llvm.x86.avx512.vpermi2var.q.256(<WIDTH x i64>, <WIDTH x i64>, <WIDTH x i64>)
-define <WIDTH x i64> @__shuffle2_i64(<WIDTH x i64>, <WIDTH x i64>, <WIDTH x i32>) nounwind readnone alwaysinline {
-  %isc = call i1 @__is_compile_time_constant_varying_int32(<WIDTH x i32> %2)
-  br i1 %isc, label %is_const, label %not_const
-
-is_const:
-  %res_const = tail call <WIDTH x i64> @__shuffle2_const_i64(<WIDTH x i64> %0, <WIDTH x i64> %1, <WIDTH x i32> %2)
-  ret <WIDTH x i64> %res_const
-
-not_const:
-  %ind = zext <WIDTH x i32> %2 to <WIDTH x i64>
-  %res = call <WIDTH x i64> @llvm.x86.avx512.vpermi2var.q.256(<WIDTH x i64> %0, <WIDTH x i64> %ind, <WIDTH x i64> %1)
-  ret <WIDTH x i64> %res
-}
-
-declare <WIDTH x double> @llvm.x86.avx512.vpermi2var.pd.256(<WIDTH x double>, <WIDTH x i64>, <WIDTH x double>)
-define <WIDTH x double> @__shuffle2_double(<WIDTH x double>, <WIDTH x double>, <WIDTH x i32>) nounwind readnone alwaysinline {
-  %isc = call i1 @__is_compile_time_constant_varying_int32(<WIDTH x i32> %2)
-  br i1 %isc, label %is_const, label %not_const
-
-is_const:
-  %res_const = tail call <WIDTH x double> @__shuffle2_const_double(<WIDTH x double> %0, <WIDTH x double> %1, <WIDTH x i32> %2)
-  ret <WIDTH x double> %res_const
-
-not_const:
-  %ind = zext <WIDTH x i32> %2 to <WIDTH x i64>
-  %res = call <WIDTH x double> @llvm.x86.avx512.vpermi2var.pd.256(<WIDTH x double> %0, <WIDTH x i64> %ind, <WIDTH x double> %1)
-  ret <WIDTH x double> %res
-}
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; min/max
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; svml

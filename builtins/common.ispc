@@ -7,6 +7,22 @@
 // #include "target.isph"
 #undef ISPC_INTERNAL_STDLIB_COMPILATION
 
+#if TARGET_WIDTH == 2
+#define DOUBLE_WIDTH 4
+#elif TARGET_WIDTH == 4
+#define DOUBLE_WIDTH 8
+#elif TARGET_WIDTH == 8
+#define DOUBLE_WIDTH 16
+#elif TARGET_WIDTH == 16
+#define DOUBLE_WIDTH 32
+#elif TARGET_WIDTH == 32
+#define DOUBLE_WIDTH 64
+#elif TARGET_WIDTH == 64
+#define DOUBLE_WIDTH 128
+#else
+#error Unknown value of TARGET_WIDTH
+#endif
+
 // Macros for attributes
 #define NOESCAPE __attribute__((noescape))
 #define ADDRSPACE(N) __attribute__((address_space(N)))
@@ -769,13 +785,68 @@ EXT READNONE varying double __shuffle_double(varying double v, varying int32 per
     return result;
 }
 
-// // EXT READNONE varying double __shuffle2_double(varying double, varying double, varying int32);
-// // EXT READNONE varying float __shuffle2_float(varying float, varying float, varying int32);
-// // EXT READNONE varying float16 __shuffle2_half(varying float16, varying float16, varying int32);
-// // EXT READNONE varying int16 __shuffle2_i16(varying int16, varying int16, varying int32);
-// // EXT READNONE varying int32 __shuffle2_i32(varying int32, varying int32, varying int32);
-// // EXT READNONE varying int64 __shuffle2_i64(varying int64, varying int64, varying int32);
-// // EXT READNONE varying int8 __shuffle2_i8(varying int8, varying int8, varying int32);
+EXT READNONE varying double __shuffle2_double(varying double v0, varying double v1, varying int32 perm) {
+    uniform double<DOUBLE_WIDTH> v = @llvm.ispc.concat(v0, v1);
+    varying double result = 0;
+    for (uniform int32 i = 0; i < TARGET_WIDTH; i++) {
+        uniform double lane_v = @llvm.ispc.extract(v, @llvm.ispc.extract(perm, i));
+        result = __insert_double(result, i, lane_v);
+    }
+    return result;
+}
+EXT READNONE varying float __shuffle2_float(varying float v0, varying float v1, varying int32 perm) {
+    uniform float<DOUBLE_WIDTH> v = @llvm.ispc.concat(v0, v1);
+    varying float result = 0;
+    for (uniform int32 i = 0; i < TARGET_WIDTH; i++) {
+        uniform float lane_v = @llvm.ispc.extract(v, @llvm.ispc.extract(perm, i));
+        result = __insert_float(result, i, lane_v);
+    }
+    return result;
+}
+EXT READNONE varying float16 __shuffle2_half(varying float16 v0, varying float16 v1, varying int32 perm) {
+    varying float16 result = 0;
+    for (uniform int32 i = 0; i < TARGET_WIDTH; i++) {
+        uniform float16 lane_v = __extract_half(v0, __extract_int32(perm, i));
+        result = __insert_half(result, i, lane_v);
+    }
+    return result;
+}
+EXT READNONE varying int16 __shuffle2_i16(varying int16 v0, varying int16 v1, varying int32 perm) {
+    uniform int16<DOUBLE_WIDTH> v = @llvm.ispc.concat(v0, v1);
+    varying int16 result = 0;
+    for (uniform int32 i = 0; i < TARGET_WIDTH; i++) {
+        uniform int16 lane_v = @llvm.ispc.extract(v, @llvm.ispc.extract(perm, i));
+        result = __insert_int16(result, i, lane_v);
+    }
+    return result;
+}
+EXT READNONE varying int32 __shuffle2_i32(varying int32 v0, varying int32 v1, varying int32 perm) {
+    uniform int32<DOUBLE_WIDTH> v = @llvm.ispc.concat(v0, v1);
+    varying int32 result = 0;
+    for (uniform int32 i = 0; i < TARGET_WIDTH; i++) {
+        uniform int32 lane_v = @llvm.ispc.extract(v, @llvm.ispc.extract(perm, i));
+        result = __insert_int32(result, i, lane_v);
+    }
+    return result;
+}
+EXT READNONE varying int64 __shuffle2_i64(varying int64 v0, varying int64 v1, varying int32 perm) {
+    uniform int64<DOUBLE_WIDTH> v = @llvm.ispc.concat(v0, v1);
+    varying int64 result = 0;
+    for (uniform int32 i = 0; i < TARGET_WIDTH; i++) {
+        uniform int64 lane_v = @llvm.ispc.extract(v, @llvm.ispc.extract(perm, i));
+        result = __insert_int64(result, i, lane_v);
+    }
+    return result;
+}
+EXT READNONE varying int8 __shuffle2_i8(varying int8 v0, varying int8 v1, varying int32 perm) {
+    uniform int8<DOUBLE_WIDTH> v = @llvm.ispc.concat(v0, v1);
+    varying int8 result = 0;
+    for (uniform int32 i = 0; i < TARGET_WIDTH; i++) {
+        uniform int8 lane_v = @llvm.ispc.extract(v, @llvm.ispc.extract(perm, i));
+        result = __insert_int8(result, i, lane_v);
+    }
+    return result;
+}
 
 #define UNIX 1
 #define WINDOWS 2
@@ -1690,22 +1761,6 @@ EXT uniform int32 __packed_load_activei64(uniform int8 *uniform from, uniform in
     *ptr = vec;
     return __popcnt_int64(__cast_mask_to_i64(mask));
 }
-
-#if TARGET_WIDTH == 2
-#define DOUBLE_WIDTH 4
-#elif TARGET_WIDTH == 4
-#define DOUBLE_WIDTH 8
-#elif TARGET_WIDTH == 8
-#define DOUBLE_WIDTH 16
-#elif TARGET_WIDTH == 16
-#define DOUBLE_WIDTH 32
-#elif TARGET_WIDTH == 32
-#define DOUBLE_WIDTH 64
-#elif TARGET_WIDTH == 64
-#define DOUBLE_WIDTH 128
-#else
-#error Unknown value of TARGET_WIDTH
-#endif
 
 typedef struct {
     varying float odd;
