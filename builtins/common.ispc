@@ -432,11 +432,11 @@ UNMANGLED CDECL uniform bool __reduce_equal_int32(varying int32 val, uniform int
     uniform bool res = false;
     foreach_active(i) {
         if (j == 0) {
-            first = __extract_int32(val, i);
+            first = @llvm.ispc.extract(val, i);
             res = true;
             j++;
         } else {
-            if (first != __extract_int32(val, i)) {
+            if (first != @llvm.ispc.extract(val, i)) {
                 res = false;
             }
         }
@@ -452,11 +452,11 @@ UNMANGLED CDECL uniform bool __reduce_equal_uint32(varying uint32 val, uniform u
     uniform bool res = false;
     foreach_active(i) {
         if (j == 0) {
-            first = __extract_int32(val, i);
+            first = @llvm.ispc.extract(val, i);
             res = true;
             j++;
         } else {
-            if (first != __extract_int32(val, i)) {
+            if (first != @llvm.ispc.extract(val, i)) {
                 res = false;
             }
         }
@@ -472,11 +472,11 @@ UNMANGLED CDECL uniform bool __reduce_equal_int64(varying int64 val, uniform int
     uniform bool res = false;
     foreach_active(i) {
         if (j == 0) {
-            first = __extract_int64(val, i);
+            first = @llvm.ispc.extract(val, i);
             res = true;
             j++;
         } else {
-            if (first != __extract_int64(val, i)) {
+            if (first != @llvm.ispc.extract(val, i)) {
                 res = false;
             }
         }
@@ -492,11 +492,11 @@ UNMANGLED CDECL uniform bool __reduce_equal_uint64(varying uint64 val, uniform u
     uniform bool res = false;
     foreach_active(i) {
         if (j == 0) {
-            first = __extract_int64(val, i);
+            first = @llvm.ispc.extract(val, i);
             res = true;
             j++;
         } else {
-            if (first != __extract_int64(val, i)) {
+            if (first != @llvm.ispc.extract(val, i)) {
                 res = false;
             }
         }
@@ -512,11 +512,11 @@ UNMANGLED CDECL uniform bool _reduce_equal_half(varying float16 val, uniform flo
     uniform bool res = false;
     foreach_active(i) {
         if (j == 0) {
-            first = __extract_half(val, i);
+            first = @llvm.ispc.extract(val, i);
             res = true;
             j++;
         } else {
-            if (first != __extract_half(val, i)) {
+            if (first != @llvm.ispc.extract(val, i)) {
                 res = false;
             }
         }
@@ -532,11 +532,11 @@ UNMANGLED CDECL uniform bool __reduce_equal_float(varying float val, uniform flo
     uniform bool res = false;
     foreach_active(i) {
         if (j == 0) {
-            first = __extract_float(val, i);
+            first = @llvm.ispc.extract(val, i);
             res = true;
             j++;
         } else {
-            if (first != __extract_float(val, i)) {
+            if (first != @llvm.ispc.extract(val, i)) {
                 res = false;
             }
         }
@@ -552,11 +552,11 @@ UNMANGLED CDECL uniform bool __reduce_equal_double(varying double val, uniform d
     uniform bool res = false;
     foreach_active(i) {
         if (j == 0) {
-            first = __extract_double(val, i);
+            first = @llvm.ispc.extract(val, i);
             res = true;
             j++;
         } else {
-            if (first != __extract_double(val, i)) {
+            if (first != @llvm.ispc.extract(val, i)) {
                 res = false;
             }
         }
@@ -684,43 +684,43 @@ EXT void __prefetch_write_uniform_2(uniform int8 *uniform ptr) { @llvm.prefetch(
 EXT void __prefetch_write_uniform_3(uniform int8 *uniform ptr) { @llvm.prefetch(ptr, 1, 1, 1); }
 UNMANGLED CDECL void __prefetch_read_varying_1(varying int64 addr) {
     foreach_active(i) {
-        uniform int64 p_lane = __extract_int64(addr, i);
+        uniform int64 p_lane = @llvm.ispc.extract(addr, i);
         __prefetch_read_uniform_1((uniform int8 * uniform) p_lane);
     }
 }
 UNMANGLED CDECL void __prefetch_read_varying_2(varying int64 addr) {
     foreach_active(i) {
-        uniform int64 p_lane = __extract_int64(addr, i);
+        uniform int64 p_lane = @llvm.ispc.extract(addr, i);
         __prefetch_read_uniform_2((uniform int8 * uniform) p_lane);
     }
 }
 UNMANGLED CDECL void __prefetch_read_varying_3(varying int64 addr) {
     foreach_active(i) {
-        uniform int64 p_lane = __extract_int64(addr, i);
+        uniform int64 p_lane = @llvm.ispc.extract(addr, i);
         __prefetch_read_uniform_3((uniform int8 * uniform) p_lane);
     }
 }
 UNMANGLED CDECL void __prefetch_read_varying_nt(varying int64 addr) {
     foreach_active(i) {
-        uniform int64 p_lane = __extract_int64(addr, i);
+        uniform int64 p_lane = @llvm.ispc.extract(addr, i);
         __prefetch_read_uniform_nt((uniform int8 * uniform) p_lane);
     }
 }
 UNMANGLED CDECL void __prefetch_write_varying_1(varying int64 addr) {
     foreach_active(i) {
-        uniform int64 p_lane = __extract_int64(addr, i);
+        uniform int64 p_lane = @llvm.ispc.extract(addr, i);
         __prefetch_write_uniform_1((uniform int8 * uniform) p_lane);
     }
 }
 UNMANGLED CDECL void __prefetch_write_varying_2(varying int64 addr) {
     foreach_active(i) {
-        uniform int64 p_lane = __extract_int64(addr, i);
+        uniform int64 p_lane = @llvm.ispc.extract(addr, i);
         __prefetch_write_uniform_2((uniform int8 * uniform) p_lane);
     }
 }
 UNMANGLED CDECL void __prefetch_write_varying_3(varying int64 addr) {
     foreach_active(i) {
-        uniform int64 p_lane = __extract_int64(addr, i);
+        uniform int64 p_lane = @llvm.ispc.extract(addr, i);
         __prefetch_write_uniform_3((uniform int8 * uniform) p_lane);
     }
 }
@@ -731,56 +731,56 @@ UNMANGLED CDECL void __prefetch_write_varying_3_native(uniform int8 *uniform, un
 EXT READNONE varying int8 __shuffle_i8(varying int8 v, varying int32 perm) {
     varying double result = 0;
     for (uniform int32 i = 0; i < TARGET_WIDTH; i++) {
-        uniform int8 lane_v = __extract_int8(v, __extract_int32(perm, i));
-        result = __insert_int8(result, i, lane_v);
+        uniform int8 lane_v = @llvm.ispc.extract(v, @llvm.ispc.extract(perm, i));
+        result = @llvm.ispc.insert(result, i, lane_v);
     }
     return result;
 }
 EXT READNONE varying int16 __shuffle_i16(varying int16 v, varying int32 perm) {
     varying double result = 0;
     for (uniform int32 i = 0; i < TARGET_WIDTH; i++) {
-        uniform int16 lane_v = __extract_int16(v, __extract_int32(perm, i));
-        result = __insert_int16(result, i, lane_v);
+        uniform int16 lane_v = @llvm.ispc.extract(v, @llvm.ispc.extract(perm, i));
+        result = @llvm.ispc.insert(result, i, lane_v);
     }
     return result;
 }
 EXT READNONE varying int32 __shuffle_i32(varying int32 v, varying int32 perm) {
     varying double result = 0;
     for (uniform int32 i = 0; i < TARGET_WIDTH; i++) {
-        uniform int32 lane_v = __extract_int32(v, __extract_int32(perm, i));
-        result = __insert_int32(result, i, lane_v);
+        uniform int32 lane_v = @llvm.ispc.extract(v, @llvm.ispc.extract(perm, i));
+        result = @llvm.ispc.insert(result, i, lane_v);
     }
     return result;
 }
 EXT READNONE varying int64 __shuffle_i64(varying int64 v, varying int32 perm) {
     varying double result = 0;
     for (uniform int32 i = 0; i < TARGET_WIDTH; i++) {
-        uniform int64 lane_v = __extract_int64(v, __extract_int32(perm, i));
-        result = __insert_int64(result, i, lane_v);
+        uniform int64 lane_v = @llvm.ispc.extract(v, @llvm.ispc.extract(perm, i));
+        result = @llvm.ispc.insert(result, i, lane_v);
     }
     return result;
 }
 EXT READNONE varying float16 __shuffle_half(varying float16 v, varying int32 perm) {
     varying double result = 0;
     for (uniform int32 i = 0; i < TARGET_WIDTH; i++) {
-        uniform float16 lane_v = __extract_half(v, __extract_int32(perm, i));
-        result = __insert_half(result, i, lane_v);
+        uniform float16 lane_v = @llvm.ispc.extract(v, @llvm.ispc.extract(perm, i));
+        result = @llvm.ispc.insert(result, i, lane_v);
     }
     return result;
 }
 EXT READNONE varying float __shuffle_float(varying float v, varying int32 perm) {
     varying double result = 0;
     for (uniform int32 i = 0; i < TARGET_WIDTH; i++) {
-        uniform float lane_v = __extract_float(v, __extract_int32(perm, i));
-        result = __insert_float(result, i, lane_v);
+        uniform float lane_v = @llvm.ispc.extract(v, @llvm.ispc.extract(perm, i));
+        result = @llvm.ispc.insert(result, i, lane_v);
     }
     return result;
 }
 EXT READNONE varying double __shuffle_double(varying double v, varying int32 perm) {
     varying double result = 0;
     for (uniform int32 i = 0; i < TARGET_WIDTH; i++) {
-        uniform double lane_v = __extract_double(v, __extract_int32(perm, i));
-        result = __insert_double(result, i, lane_v);
+        uniform double lane_v = @llvm.ispc.extract(v, @llvm.ispc.extract(perm, i));
+        result = @llvm.ispc.insert(result, i, lane_v);
     }
     return result;
 }
@@ -790,7 +790,7 @@ EXT READNONE varying double __shuffle2_double(varying double v0, varying double 
     varying double result = 0;
     for (uniform int32 i = 0; i < TARGET_WIDTH; i++) {
         uniform double lane_v = @llvm.ispc.extract(v, @llvm.ispc.extract(perm, i));
-        result = __insert_double(result, i, lane_v);
+        result = @llvm.ispc.insert(result, i, lane_v);
     }
     return result;
 }
@@ -799,15 +799,15 @@ EXT READNONE varying float __shuffle2_float(varying float v0, varying float v1, 
     varying float result = 0;
     for (uniform int32 i = 0; i < TARGET_WIDTH; i++) {
         uniform float lane_v = @llvm.ispc.extract(v, @llvm.ispc.extract(perm, i));
-        result = __insert_float(result, i, lane_v);
+        result = @llvm.ispc.insert(result, i, lane_v);
     }
     return result;
 }
 EXT READNONE varying float16 __shuffle2_half(varying float16 v0, varying float16 v1, varying int32 perm) {
     varying float16 result = 0;
     for (uniform int32 i = 0; i < TARGET_WIDTH; i++) {
-        uniform float16 lane_v = __extract_half(v0, __extract_int32(perm, i));
-        result = __insert_half(result, i, lane_v);
+        uniform float16 lane_v = @llvm.ispc.extract(v0, @llvm.ispc.extract(perm, i));
+        result = @llvm.ispc.insert(result, i, lane_v);
     }
     return result;
 }
@@ -816,7 +816,7 @@ EXT READNONE varying int16 __shuffle2_i16(varying int16 v0, varying int16 v1, va
     varying int16 result = 0;
     for (uniform int32 i = 0; i < TARGET_WIDTH; i++) {
         uniform int16 lane_v = @llvm.ispc.extract(v, @llvm.ispc.extract(perm, i));
-        result = __insert_int16(result, i, lane_v);
+        result = @llvm.ispc.insert(result, i, lane_v);
     }
     return result;
 }
@@ -825,7 +825,7 @@ EXT READNONE varying int32 __shuffle2_i32(varying int32 v0, varying int32 v1, va
     varying int32 result = 0;
     for (uniform int32 i = 0; i < TARGET_WIDTH; i++) {
         uniform int32 lane_v = @llvm.ispc.extract(v, @llvm.ispc.extract(perm, i));
-        result = __insert_int32(result, i, lane_v);
+        result = @llvm.ispc.insert(result, i, lane_v);
     }
     return result;
 }
@@ -834,7 +834,7 @@ EXT READNONE varying int64 __shuffle2_i64(varying int64 v0, varying int64 v1, va
     varying int64 result = 0;
     for (uniform int32 i = 0; i < TARGET_WIDTH; i++) {
         uniform int64 lane_v = @llvm.ispc.extract(v, @llvm.ispc.extract(perm, i));
-        result = __insert_int64(result, i, lane_v);
+        result = @llvm.ispc.insert(result, i, lane_v);
     }
     return result;
 }
@@ -843,7 +843,7 @@ EXT READNONE varying int8 __shuffle2_i8(varying int8 v0, varying int8 v1, varyin
     varying int8 result = 0;
     for (uniform int32 i = 0; i < TARGET_WIDTH; i++) {
         uniform int8 lane_v = @llvm.ispc.extract(v, @llvm.ispc.extract(perm, i));
-        result = __insert_int8(result, i, lane_v);
+        result = @llvm.ispc.insert(result, i, lane_v);
     }
     return result;
 }
@@ -886,17 +886,17 @@ EXT uniform int8 *uniform __new_uniform_32rt(uniform int64 size) {
 UNMANGLED CDECL varying int64 __new_varying32_32rt(varying int32 size) {
     varying int64 addr = 0;
     foreach_active(i) {
-        uniform int64 s = __extract_int32(size, i);
+        uniform int64 s = @llvm.ispc.extract(size, i);
         uniform int8 *uniform ptr = 0;
         posix_memalign(&ptr, __memory_alignment, s);
-        addr = __insert_int64(addr, i, (uniform int64)ptr);
+        addr = @llvm.ispc.insert(addr, i, (uniform int64)ptr);
     }
     return addr;
 }
 EXT void __delete_uniform_32rt(uniform int8 *uniform ptr) { free(ptr); }
 UNMANGLED CDECL void __delete_varying_32rt(varying int64 addr) {
     foreach_active(i) {
-        uniform int64 p_lane = __extract_int64(addr, i);
+        uniform int64 p_lane = @llvm.ispc.extract(addr, i);
         free((uniform int8 *uniform) p_lane);
     }
 }
@@ -911,27 +911,27 @@ EXT uniform int8 *uniform __new_uniform_64rt(uniform int64 size) {
 UNMANGLED CDECL varying int64 __new_varying32_64rt(varying int32 size) {
     varying int64 addr = 0;
     foreach_active(i) {
-        uniform int32 s = __extract_int32(size, i);
+        uniform int32 s = @llvm.ispc.extract(size, i);
         uniform int8 *uniform ptr = 0;
         posix_memalign(&ptr, __memory_alignment, s);
-        addr = __insert_int64(addr, i, (uniform int64)ptr);
+        addr = @llvm.ispc.insert(addr, i, (uniform int64)ptr);
     }
     return addr;
 }
 UNMANGLED CDECL varying int64 __new_varying64_64rt(varying int64 size) {
     varying int64 addr = 0;
     foreach_active(i) {
-        uniform int64 s = __extract_int64(size, i);
+        uniform int64 s = @llvm.ispc.extract(size, i);
         uniform int8 *uniform ptr = 0;
         posix_memalign(&ptr, __memory_alignment, s);
-        addr = __insert_int64(addr, i, (uniform int64)ptr);
+        addr = @llvm.ispc.insert(addr, i, (uniform int64)ptr);
     }
     return addr;
 }
 EXT void __delete_uniform_64rt(uniform int8 *uniform ptr) { free(ptr); }
 UNMANGLED CDECL void __delete_varying_64rt(varying int64 addr) {
     foreach_active(i) {
-        uniform int64 p_lane = __extract_int64(addr, i);
+        uniform int64 p_lane = @llvm.ispc.extract(addr, i);
         free((uniform int8 * uniform) p_lane);
     }
 }
@@ -942,16 +942,16 @@ EXT uniform int8 *uniform __new_uniform_32rt(uniform int64 size) { return _align
 UNMANGLED CDECL varying int64 __new_varying32_32rt(varying int32 size) {
     varying int64 addr = 0;
     foreach_active(i) {
-        uniform int64 s = __extract_int32(size, i);
+        uniform int64 s = @llvm.ispc.extract(size, i);
         uniform int8 *uniform ptr = _aligned_malloc(s, __memory_alignment);
-        addr = __insert_int64(addr, i, (uniform int64)ptr);
+        addr = @llvm.ispc.insert(addr, i, (uniform int64)ptr);
     }
     return addr;
 }
 EXT void __delete_uniform_32rt(uniform int8 *uniform ptr) { _aligned_free(ptr); }
 UNMANGLED CDECL void __delete_varying_32rt(varying int64 addr) {
     foreach_active(i) {
-        uniform int64 p_lane = __extract_int64(addr, i);
+        uniform int64 p_lane = @llvm.ispc.extract(addr, i);
         _aligned_free((uniform int8 *uniform) p_lane);
     }
 }
@@ -963,25 +963,25 @@ EXT uniform int8 *uniform __new_uniform_64rt(uniform int64 size) { return _align
 UNMANGLED CDECL varying int64 __new_varying32_64rt(varying int32 size) {
     varying int64 addr = 0;
     foreach_active(i) {
-        uniform int32 s = __extract_int32(size, i);
+        uniform int32 s = @llvm.ispc.extract(size, i);
         uniform int8 *uniform ptr = _aligned_malloc(s, __memory_alignment);
-        addr = __insert_int64(addr, i, (uniform int64)ptr);
+        addr = @llvm.ispc.insert(addr, i, (uniform int64)ptr);
     }
     return addr;
 }
 UNMANGLED CDECL varying int64 __new_varying64_64rt(varying int64 size) {
     varying int64 addr = 0;
     foreach_active(i) {
-        uniform int64 s = __extract_int64(size, i);
+        uniform int64 s = @llvm.ispc.extract(size, i);
         uniform int8 *uniform ptr = _aligned_malloc(s, __memory_alignment);
-        addr = __insert_int64(addr, i, (uniform int64)ptr);
+        addr = @llvm.ispc.insert(addr, i, (uniform int64)ptr);
     }
     return addr;
 }
 EXT void __delete_uniform_64rt(uniform int8 *uniform ptr) { _aligned_free(ptr); }
 UNMANGLED CDECL void __delete_varying_64rt(varying int64 addr) {
     foreach_active(i) {
-        uniform int64 p_lane = __extract_int64(addr, i);
+        uniform int64 p_lane = @llvm.ispc.extract(addr, i);
         _aligned_free((uniform int8 * uniform) p_lane);
     }
 }
@@ -1129,140 +1129,140 @@ EXT READONLY varying double __gather64_double(varying uint64 addrs, UIntMaskType
 UNMANGLED CDECL READONLY varying int8 __gather32_generic_i8(varying uint32 addrs) {
     varying int8 res;
     foreach_active(i) {
-        uniform int32 addr = __extract_int32(addrs, i);
+        uniform int32 addr = @llvm.ispc.extract(addrs, i);
         uniform int8 *uniform ptr = (uniform int8 *uniform)addr;
         uniform int8 val = *ptr;
-        res = __insert_int8(res, i, val);
+        res = @llvm.ispc.insert(res, i, val);
     }
     return res;
 }
 UNMANGLED CDECL READONLY varying int8 __gather64_generic_i8(varying uint64 addrs) {
     varying int8 res;
     foreach_active(i) {
-        uniform int64 addr = __extract_int64(addrs, i);
+        uniform int64 addr = @llvm.ispc.extract(addrs, i);
         uniform int8 *uniform ptr = (uniform int8 *uniform)addr;
         uniform int8 val = *ptr;
-        res = __insert_int8(res, i, val);
+        res = @llvm.ispc.insert(res, i, val);
     }
     return res;
 }
 UNMANGLED CDECL READONLY varying int16 __gather32_generic_i16(varying uint32 addrs) {
     varying int16 res;
     foreach_active(i) {
-        uniform int32 addr = __extract_int32(addrs, i);
+        uniform int32 addr = @llvm.ispc.extract(addrs, i);
         uniform int16 *uniform ptr = (uniform int16 *uniform)addr;
         uniform int16 val = *ptr;
-        res = __insert_int16(res, i, val);
+        res = @llvm.ispc.insert(res, i, val);
     }
     return res;
 }
 UNMANGLED CDECL READONLY varying int16 __gather64_generic_i16(varying uint64 addrs) {
     varying int16 res;
     foreach_active(i) {
-        uniform int64 addr = __extract_int64(addrs, i);
+        uniform int64 addr = @llvm.ispc.extract(addrs, i);
         uniform int16 *uniform ptr = (uniform int16 *uniform)addr;
         uniform int16 val = *ptr;
-        res = __insert_int16(res, i, val);
+        res = @llvm.ispc.insert(res, i, val);
     }
     return res;
 }
 UNMANGLED CDECL READONLY varying float16 __gather32_generic_half(varying uint32 addrs) {
     varying float16 res;
     foreach_active(i) {
-        uniform int32 addr = __extract_int32(addrs, i);
+        uniform int32 addr = @llvm.ispc.extract(addrs, i);
         uniform float16 *uniform ptr = (uniform float16 *uniform)addr;
         uniform float16 val = *ptr;
-        res = __insert_half(res, i, val);
+        res = @llvm.ispc.insert(res, i, val);
     }
     return res;
 }
 UNMANGLED CDECL READONLY varying float16 __gather64_generic_half(varying uint64 addrs) {
     varying float16 res;
     foreach_active(i) {
-        uniform int64 addr = __extract_half(addrs, i);
+        uniform int64 addr = @llvm.ispc.extract(addrs, i);
         uniform float16 *uniform ptr = (uniform float16 *uniform)addr;
         uniform float16 val = *ptr;
-        res = __insert_half(res, i, val);
+        res = @llvm.ispc.insert(res, i, val);
     }
     return res;
 }
 UNMANGLED CDECL READONLY varying int32 __gather32_generic_i32(varying uint32 addrs) {
     varying int32 res;
     foreach_active(i) {
-        uniform int32 addr = __extract_int32(addrs, i);
+        uniform int32 addr = @llvm.ispc.extract(addrs, i);
         uniform int32 *uniform ptr = (uniform int32 *uniform)addr;
         uniform int32 val = *ptr;
-        res = __insert_int32(res, i, val);
+        res = @llvm.ispc.insert(res, i, val);
     }
     return res;
 }
 UNMANGLED CDECL READONLY varying int32 __gather64_generic_i32(varying uint64 addrs) {
     varying int32 res;
     foreach_active(i) {
-        uniform int64 addr = __extract_int64(addrs, i);
+        uniform int64 addr = @llvm.ispc.extract(addrs, i);
         uniform int32 *uniform ptr = (uniform int32 *uniform)addr;
         uniform int32 val = *ptr;
-        res = __insert_int32(res, i, val);
+        res = @llvm.ispc.insert(res, i, val);
     }
     return res;
 }
 UNMANGLED CDECL READONLY varying float __gather32_generic_float(varying uint32 addrs) {
     varying float res;
     foreach_active(i) {
-        uniform int32 addr = __extract_float(addrs, i);
+        uniform int32 addr = @llvm.ispc.extract(addrs, i);
         uniform float *uniform ptr = (uniform float *uniform)addr;
         uniform float val = *ptr;
-        res = __insert_float(res, i, val);
+        res = @llvm.ispc.insert(res, i, val);
     }
     return res;
 }
 UNMANGLED CDECL READONLY varying float __gather64_generic_float(varying uint64 addrs) {
     varying float res;
     foreach_active(i) {
-        uniform int64 addr = __extract_float(addrs, i);
+        uniform int64 addr = @llvm.ispc.extract(addrs, i);
         uniform float *uniform ptr = (uniform float *uniform)addr;
         uniform float val = *ptr;
-        res = __insert_float(res, i, val);
+        res = @llvm.ispc.insert(res, i, val);
     }
     return res;
 }
 UNMANGLED CDECL READONLY varying int64 __gather32_generic_i64(varying uint32 addrs) {
     varying int64 res;
     foreach_active(i) {
-        uniform int32 addr = __extract_int32(addrs, i);
+        uniform int32 addr = @llvm.ispc.extract(addrs, i);
         uniform int64 *uniform ptr = (uniform int64 *uniform)addr;
         uniform int64 val = *ptr;
-        res = __insert_int64(res, i, val);
+        res = @llvm.ispc.insert(res, i, val);
     }
     return res;
 }
 UNMANGLED CDECL READONLY varying int64 __gather64_generic_i64(varying uint64 addrs) {
     varying int64 res;
     foreach_active(i) {
-        uniform int64 addr = __extract_int64(addrs, i);
+        uniform int64 addr = @llvm.ispc.extract(addrs, i);
         uniform int64 *uniform ptr = (uniform int64 *uniform)addr;
         uniform int64 val = *ptr;
-        res = __insert_int64(res, i, val);
+        res = @llvm.ispc.insert(res, i, val);
     }
     return res;
 }
 UNMANGLED CDECL READONLY varying double __gather32_generic_double(varying uint32 addrs) {
     varying double res;
     foreach_active(i) {
-        uniform int32 addr = __extract_double(addrs, i);
+        uniform int32 addr = @llvm.ispc.extract(addrs, i);
         uniform double *uniform ptr = (uniform double *uniform)addr;
         uniform double val = *ptr;
-        res = __insert_double(res, i, val);
+        res = @llvm.ispc.insert(res, i, val);
     }
     return res;
 }
 UNMANGLED CDECL READONLY varying double __gather64_generic_double(varying uint64 addrs) {
     varying double res;
     foreach_active(i) {
-        uniform int64 addr = __extract_double(addrs, i);
+        uniform int64 addr = @llvm.ispc.extract(addrs, i);
         uniform double *uniform ptr = (uniform double *uniform)addr;
         uniform double val = *ptr;
-        res = __insert_double(res, i, val);
+        res = @llvm.ispc.insert(res, i, val);
     }
     return res;
 }
@@ -1471,100 +1471,100 @@ EXT noinline void __pseudo_masked_store_double(NOESCAPE varying double *uniform 
 // For the targets which have scatters but --disable-scatters is requested
 UNMANGLED CDECL void __scatter32_generic_i8(varying uint32 addr, varying int8 val) {
     foreach_active(i) {
-        uniform int32 a = __extract_int32(addr, i);
+        uniform int32 a = @llvm.ispc.extract(addr, i);
         uniform int8 *uniform ptr = (uniform int8 *uniform)a;
-        *ptr = __extract_int8(val, i);
+        *ptr = @llvm.ispc.extract(val, i);
     }
 }
 UNMANGLED CDECL void __scatter64_generic_i8(varying uint64 addr, varying int8 val) {
     foreach_active(i) {
-        uniform int64 a = __extract_int64(addr, i);
+        uniform int64 a = @llvm.ispc.extract(addr, i);
         uniform int8 *uniform ptr = (uniform int8 *uniform)a;
-        *ptr = __extract_int8(val, i);
+        *ptr = @llvm.ispc.extract(val, i);
     }
 }
 UNMANGLED CDECL void __scatter32_generic_i16(varying uint32 addr, varying int16 val) {
     foreach_active(i) {
-        uniform int32 a = __extract_int32(addr, i);
+        uniform int32 a = @llvm.ispc.extract(addr, i);
         uniform int16 *uniform ptr = (uniform int16 *uniform)a;
-        *ptr = __extract_int16(val, i);
+        *ptr = @llvm.ispc.extract(val, i);
     }
 }
 UNMANGLED CDECL void __scatter64_generic_i16(varying uint64 addr, varying int16 val) {
     foreach_active(i) {
-        uniform int64 a = __extract_int64(addr, i);
+        uniform int64 a = @llvm.ispc.extract(addr, i);
         uniform int16 *uniform ptr = (uniform int16 *uniform)a;
-        *ptr = __extract_int16(val, i);
+        *ptr = @llvm.ispc.extract(val, i);
     }
 }
 UNMANGLED CDECL void __scatter32_generic_half(varying uint32 addr, varying float16 val) {
     foreach_active(i) {
-        uniform int32 a = __extract_int32(addr, i);
+        uniform int32 a = @llvm.ispc.extract(addr, i);
         uniform float16 *uniform ptr = (uniform float16 *uniform)a;
-        *ptr = __extract_int16(val, i);
+        *ptr = @llvm.ispc.extract(val, i);
     }
 }
 UNMANGLED CDECL void __scatter64_generic_half(varying uint64 addr, varying float16 val) {
     foreach_active(i) {
-        uniform int64 a = __extract_int64(addr, i);
+        uniform int64 a = @llvm.ispc.extract(addr, i);
         uniform float16 *uniform ptr = (uniform float16 *uniform)a;
-        *ptr = __extract_int16(val, i);
+        *ptr = @llvm.ispc.extract(val, i);
     }
 }
 UNMANGLED CDECL void __scatter32_generic_i32(varying uint32 addr, varying int32 val) {
     foreach_active(i) {
-        uniform int32 a = __extract_int32(addr, i);
+        uniform int32 a = @llvm.ispc.extract(addr, i);
         uniform int32 *uniform ptr = (uniform int32 *uniform)a;
-        *ptr = __extract_int32(val, i);
+        *ptr = @llvm.ispc.extract(val, i);
     }
 }
 UNMANGLED CDECL void __scatter64_generic_i32(varying uint64 addr, varying int32 val) {
     foreach_active(i) {
-        uniform int64 a = __extract_int64(addr, i);
+        uniform int64 a = @llvm.ispc.extract(addr, i);
         uniform int32 *uniform ptr = (uniform int32 *uniform)a;
-        *ptr = __extract_int32(val, i);
+        *ptr = @llvm.ispc.extract(val, i);
     }
 }
 UNMANGLED CDECL void __scatter32_generic_float(varying uint32 addr, varying float val) {
     foreach_active(i) {
-        uniform int32 a = __extract_int32(addr, i);
+        uniform int32 a = @llvm.ispc.extract(addr, i);
         uniform float *uniform ptr = (uniform float *uniform)a;
-        *ptr = __extract_int32(val, i);
+        *ptr = @llvm.ispc.extract(val, i);
     }
 }
 UNMANGLED CDECL void __scatter64_generic_float(varying uint64 addr, varying float val) {
     foreach_active(i) {
-        uniform int64 a = __extract_int64(addr, i);
+        uniform int64 a = @llvm.ispc.extract(addr, i);
         uniform float *uniform ptr = (uniform float *uniform)a;
-        *ptr = __extract_int32(val, i);
+        *ptr = @llvm.ispc.extract(val, i);
     }
 }
 UNMANGLED CDECL void __scatter32_generic_i64(varying uint32 addr, varying int64 val) {
     foreach_active(i) {
-        uniform int32 a = __extract_int32(addr, i);
+        uniform int32 a = @llvm.ispc.extract(addr, i);
         uniform int64 *uniform ptr = (uniform int64 *uniform)a;
-        *ptr = __extract_int64(val, i);
+        *ptr = @llvm.ispc.extract(val, i);
     }
 }
 UNMANGLED CDECL void __scatter64_generic_i64(varying uint64 addr, varying int64 val) {
     foreach_active(i) {
-        uniform int64 a = __extract_int64(addr, i);
+        uniform int64 a = @llvm.ispc.extract(addr, i);
         uniform int64 *uniform ptr = (uniform int64 *uniform)a;
-        *ptr = __extract_int64(val, i);
+        *ptr = @llvm.ispc.extract(val, i);
     }
 }
 UNMANGLED CDECL void __scatter32_generic_double(varying uint32 addr, varying double val) {
     foreach_active(i) {
-        uniform int32 a = __extract_int32(addr, i);
+        uniform int32 a = @llvm.ispc.extract(addr, i);
         uniform double *uniform ptr = (uniform double *uniform)a;
-        *ptr = __extract_int64(val, i);
+        *ptr = @llvm.ispc.extract(val, i);
     }
 }
 UNMANGLED CDECL void __scatter64_generic_double(varying uint64 addr, varying double val) {
     foreach_active(i) {
-        uniform int64 a = __extract_int64(addr, i);
+        uniform int64 a = @llvm.ispc.extract(addr, i);
         uniform double *uniform ptr = (uniform double *uniform)a;
-        *ptr = __extract_int64(val, i);
+        *ptr = @llvm.ispc.extract(val, i);
     }
 }
 
@@ -1920,9 +1920,9 @@ EXT void __aos_to_soa3_float(NOALIAS uniform int8 *uniform a, uniform int8 *unif
     uniform float<TRIPLE_WIDTH> x = *ptr;
     varying float x0 = 0, x1 = 0, x2 = 0;
     for (uniform int i = 0; i < TARGET_WIDTH; i++) {
-        x0 = __insert_float(x0, i, x[0 + i * 3]);
-        x1 = __insert_float(x1, i, x[1 + i * 3]);
-        x2 = __insert_float(x2, i, x[2 + i * 3]);
+        x0 = @llvm.ispc.insert(x0, i, x[0 + i * 3]);
+        x1 = @llvm.ispc.insert(x1, i, x[1 + i * 3]);
+        x2 = @llvm.ispc.insert(x2, i, x[2 + i * 3]);
     }
     varying float *uniform x0_ptr = (varying float *uniform)v0;
     varying float *uniform x1_ptr = (varying float *uniform)v1;
@@ -1940,9 +1940,9 @@ EXT void __soa_to_aos3_float(varying float v0, varying float v1, varying float v
     uniform float *uniform x = (uniform float *uniform)a;
     for (uniform int j = 0; j < TARGET_WIDTH; j++) {
         for (uniform int i = 0; i < 3; i++) {
-            x[3 * j + 0] = __extract_float(v0, j);
-            x[3 * j + 1] = __extract_float(v1, j);
-            x[3 * j + 2] = __extract_float(v2, j);
+            x[3 * j + 0] = @llvm.ispc.extract(v0, j);
+            x[3 * j + 1] = @llvm.ispc.extract(v1, j);
+            x[3 * j + 2] = @llvm.ispc.extract(v2, j);
         }
     }
 }
@@ -1953,9 +1953,9 @@ EXT void __aos_to_soa3_double(NOALIAS uniform int8 *uniform a, uniform int8 *uni
     uniform double<TRIPLE_WIDTH> x = *ptr;
     varying double x0 = 0, x1 = 0, x2 = 0;
     for (uniform int i = 0; i < TARGET_WIDTH; i++) {
-        x0 = __insert_double(x0, i, x[0 + i * 3]);
-        x1 = __insert_double(x1, i, x[1 + i * 3]);
-        x2 = __insert_double(x2, i, x[2 + i * 3]);
+        x0 = @llvm.ispc.insert(x0, i, x[0 + i * 3]);
+        x1 = @llvm.ispc.insert(x1, i, x[1 + i * 3]);
+        x2 = @llvm.ispc.insert(x2, i, x[2 + i * 3]);
     }
     varying double *uniform x0_ptr = (varying double *uniform)v0;
     varying double *uniform x1_ptr = (varying double *uniform)v1;
@@ -1969,9 +1969,9 @@ EXT void __soa_to_aos3_double(varying double v0, varying double v1, varying doub
     uniform double *uniform x = (uniform double *uniform)a;
     for (uniform int j = 0; j < TARGET_WIDTH; j++) {
         for (uniform int i = 0; i < 3; i++) {
-            x[3 * j + 0] = __extract_double(v0, j);
-            x[3 * j + 1] = __extract_double(v1, j);
-            x[3 * j + 2] = __extract_double(v2, j);
+            x[3 * j + 0] = @llvm.ispc.extract(v0, j);
+            x[3 * j + 1] = @llvm.ispc.extract(v1, j);
+            x[3 * j + 2] = @llvm.ispc.extract(v2, j);
         }
     }
 }
