@@ -54,6 +54,7 @@ static llvm::Value *lLowerExtractIntrinsic(llvm::CallInst *CI) {
 
         return builder.CreateExtractElement(V, I);
     }
+    return nullptr;
 }
 
 static llvm::Value *lLowerInserIntrinsic(llvm::CallInst *CI) {
