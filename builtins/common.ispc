@@ -632,6 +632,43 @@ EXT READNONE varying int64 __intbits_varying_double(varying double x) {
 EXT READNONE varying int32 __intbits_varying_float(varying float x) { return @llvm.ispc.bitcast(x, (varying int32)0); }
 EXT READNONE varying int16 __intbits_varying_half(varying float16 x) { return @llvm.ispc.bitcast(x, (varying int16)0); }
 
+// broadcast
+EXT READNONE varying double __broadcast_double(varying double v, uniform int32 i) {
+    uniform double vi = @llvm.ispc.extract(v, i);
+    varying double result = vi;
+    return result;
+}
+EXT READNONE varying float __broadcast_float(varying float v, uniform int32 i) {
+    uniform float vi = @llvm.ispc.extract(v, i);
+    varying float result = vi;
+    return result;
+}
+EXT READNONE varying float16 __broadcast_half(varying float16 v, uniform int32 i) {
+    uniform float16 vi = @llvm.ispc.extract(v, i);
+    varying float16 result = vi;
+    return result;
+}
+EXT READNONE varying int16 __broadcast_i16(varying int16 v, uniform int32 i) {
+    uniform int16 vi = @llvm.ispc.extract(v, i);
+    varying int16 result = vi;
+    return result;
+}
+EXT READNONE varying int32 __broadcast_i32(varying int32 v, uniform int32 i) {
+    uniform int32 vi = @llvm.ispc.extract(v, i);
+    varying int32 result = vi;
+    return result;
+}
+EXT READNONE varying int64 __broadcast_i64(varying int64 v, uniform int32 i) {
+    uniform int64 vi = @llvm.ispc.extract(v, i);
+    varying int64 result = vi;
+    return result;
+}
+EXT READNONE varying int8 __broadcast_i8(varying int8 v, uniform int32 i) {
+    uniform int8 vi = @llvm.ispc.extract(v, i);
+    varying int8 result = vi;
+    return result;
+}
+
 // vector ops
 EXT uniform bool __extract_bool(IntMaskType vec, uniform int32 lane) { return @llvm.ispc.extract(vec, lane); }
 EXT uniform int16 __extract_int16(varying int16 vec, uniform int32 lane) { return @llvm.ispc.extract(vec, lane); }

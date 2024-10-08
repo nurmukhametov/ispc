@@ -110,12 +110,6 @@ divert`'dnl
 ;; $1: type size
 
 define(`vector_permutations', `
-define <WIDTH x $1> @__broadcast_$1(<WIDTH x $1>, i32) nounwind readnone alwaysinline {
-  %v = extractelement <WIDTH x $1> %0, i32 %1
-  %broadcast_init = insertelement <WIDTH x $1> undef, $1 %v, i32 0
-  %broadcast = shufflevector <WIDTH x $1> %broadcast_init, <WIDTH x $1> undef, <WIDTH x i32> zeroinitializer
-  ret <WIDTH x $1> %broadcast
-}
 
 define <WIDTH x $1> @__rotate_$1(<WIDTH x $1>, i32) nounwind readnone alwaysinline {
   %isc = call i1 @__is_compile_time_constant_uniform_int32(i32 %1)
