@@ -637,42 +637,27 @@ EXT READNONE uniform int64 __count_leading_zeros_i64(uniform int64 x) { return @
 EXT uniform int32 __popcnt_int32(uniform int32 x) { return @llvm.ctpop(x); }
 EXT uniform int64 __popcnt_int64(uniform int64 x) { return @llvm.ctpop(x); }
 
-// // // vector ops
-// // EXT uniform bool __extract_bool(IntMaskType vec, uniform int32 lane);
-// // // {
-// // //     IntMaskType mem = vec;
-// // //     uniform bool *uniform ptr = (uniform bool *uniform) & mem;
-// // //     return ptr[lane];
-// // // }
-// // EXT uniform int16 __extract_int16(varying int16 vec, uniform int32 lane);
-// // // {
-// // //     varying int16 mem = vec;
-// // //     uniform int16 *uniform ptr = (uniform int16 *uniform)&mem;
-// // //     return ptr[lane];
-// // // }
-// // EXT uniform int32 __extract_int32(varying int32 vec, uniform int32 lane);
-// // // {
-// // //     varying int32 mem = vec;
-// // //     uniform int32 *uniform ptr = (uniform int32 *uniform)&mem;
-// // //     return ptr[lane];
-// // // }
-// // EXT uniform int64 __extract_int64(varying int64 vec, uniform int32 lane);
-// // // {
-// // //     varying int64 mem = vec;
-// // //     uniform int64 *uniform ptr = (uniform int64 *uniform)&mem;
-// // //     return ptr[lane];
-// // // }
-// // EXT uniform int8 __extract_int8(varying int8 vec, uniform int32 lane);
-// // // {
-// // //     varying int8 mem = vec;
-// // //     uniform int8 *uniform ptr = (uniform int8 *uniform)&mem;
-// // //     return ptr[lane];
-// // // }
-// // EXT READNONE IntMaskType __insert_bool(IntMaskType vec, uniform int32 lane, uniform bool val);
-// // EXT READNONE varying int16 __insert_int16(varying int16 vec, uniform int32 lane, uniform int16 val);
-// // EXT READNONE varying int32 __insert_int32(varying int32 vec, uniform int32 lane, uniform int32 val);
-// // EXT READNONE varying int64 __insert_int64(varying int64 vec, uniform int32 lane, uniform int64 val);
-// // EXT READNONE varying int8 __insert_int8(varying int8 vec, uniform int32 lane, uniform int8 val);
+// vector ops
+EXT uniform bool __extract_bool(IntMaskType vec, uniform int32 lane) { return @llvm.ispc.extract(vec, lane); }
+EXT uniform int16 __extract_int16(varying int16 vec, uniform int32 lane) { return @llvm.ispc.extract(vec, lane); }
+EXT uniform int32 __extract_int32(varying int32 vec, uniform int32 lane) { return @llvm.ispc.extract(vec, lane); }
+EXT uniform int64 __extract_int64(varying int64 vec, uniform int32 lane) { return @llvm.ispc.extract(vec, lane); }
+EXT uniform int8 __extract_int8(varying int8 vec, uniform int32 lane) { return @llvm.ispc.extract(vec, lane); }
+EXT READNONE IntMaskType __insert_bool(IntMaskType vec, uniform int32 lane, uniform bool val) {
+    return @llvm.ispc.insert(vec, lane, val);
+}
+EXT READNONE varying int16 __insert_int16(varying int16 vec, uniform int32 lane, uniform int16 val) {
+    return @llvm.ispc.insert(vec, lane, val);
+}
+EXT READNONE varying int32 __insert_int32(varying int32 vec, uniform int32 lane, uniform int32 val) {
+    return @llvm.ispc.insert(vec, lane, val);
+}
+EXT READNONE varying int64 __insert_int64(varying int64 vec, uniform int32 lane, uniform int64 val) {
+    return @llvm.ispc.insert(vec, lane, val);
+}
+EXT READNONE varying int8 __insert_int8(varying int8 vec, uniform int32 lane, uniform int8 val) {
+    return @llvm.ispc.insert(vec, lane, val);
+}
 
 // prefetching
 EXT void __prefetch_read_uniform_1(uniform int8 *uniform ptr) { @llvm.prefetch(ptr, 0, 3, 1); }
@@ -729,7 +714,7 @@ UNMANGLED CDECL void __prefetch_write_varying_3_native(uniform int8 *uniform, un
 }
 
 EXT READNONE varying int8 __shuffle_i8(varying int8 v, varying int32 perm) {
-    varying double result = 0;
+    varying int8 result = 0;
     for (uniform int32 i = 0; i < TARGET_WIDTH; i++) {
         uniform int8 lane_v = @llvm.ispc.extract(v, @llvm.ispc.extract(perm, i));
         result = @llvm.ispc.insert(result, i, lane_v);
@@ -737,7 +722,7 @@ EXT READNONE varying int8 __shuffle_i8(varying int8 v, varying int32 perm) {
     return result;
 }
 EXT READNONE varying int16 __shuffle_i16(varying int16 v, varying int32 perm) {
-    varying double result = 0;
+    varying int16 result = 0;
     for (uniform int32 i = 0; i < TARGET_WIDTH; i++) {
         uniform int16 lane_v = @llvm.ispc.extract(v, @llvm.ispc.extract(perm, i));
         result = @llvm.ispc.insert(result, i, lane_v);
@@ -745,7 +730,7 @@ EXT READNONE varying int16 __shuffle_i16(varying int16 v, varying int32 perm) {
     return result;
 }
 EXT READNONE varying int32 __shuffle_i32(varying int32 v, varying int32 perm) {
-    varying double result = 0;
+    varying int32 result = 0;
     for (uniform int32 i = 0; i < TARGET_WIDTH; i++) {
         uniform int32 lane_v = @llvm.ispc.extract(v, @llvm.ispc.extract(perm, i));
         result = @llvm.ispc.insert(result, i, lane_v);
@@ -753,7 +738,7 @@ EXT READNONE varying int32 __shuffle_i32(varying int32 v, varying int32 perm) {
     return result;
 }
 EXT READNONE varying int64 __shuffle_i64(varying int64 v, varying int32 perm) {
-    varying double result = 0;
+    varying int64 result = 0;
     for (uniform int32 i = 0; i < TARGET_WIDTH; i++) {
         uniform int64 lane_v = @llvm.ispc.extract(v, @llvm.ispc.extract(perm, i));
         result = @llvm.ispc.insert(result, i, lane_v);
@@ -761,7 +746,7 @@ EXT READNONE varying int64 __shuffle_i64(varying int64 v, varying int32 perm) {
     return result;
 }
 EXT READNONE varying float16 __shuffle_half(varying float16 v, varying int32 perm) {
-    varying double result = 0;
+    varying float16 result = 0;
     for (uniform int32 i = 0; i < TARGET_WIDTH; i++) {
         uniform float16 lane_v = @llvm.ispc.extract(v, @llvm.ispc.extract(perm, i));
         result = @llvm.ispc.insert(result, i, lane_v);
@@ -769,7 +754,7 @@ EXT READNONE varying float16 __shuffle_half(varying float16 v, varying int32 per
     return result;
 }
 EXT READNONE varying float __shuffle_float(varying float v, varying int32 perm) {
-    varying double result = 0;
+    varying float result = 0;
     for (uniform int32 i = 0; i < TARGET_WIDTH; i++) {
         uniform float lane_v = @llvm.ispc.extract(v, @llvm.ispc.extract(perm, i));
         result = @llvm.ispc.insert(result, i, lane_v);
