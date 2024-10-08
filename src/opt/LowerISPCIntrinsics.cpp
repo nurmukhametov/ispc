@@ -38,7 +38,6 @@ static llvm::Value *lLowerExtractIntrinsic(llvm::CallInst *CI) {
     llvm::IRBuilder<> builder(CI);
     auto numArgs = CI->getNumOperands() - 1;
 
-    llvm::Value *D = nullptr;
     if (numArgs == 2) {
         llvm::Value *V = CI->getArgOperand(0);
         llvm::Value *I = CI->getArgOperand(1);
@@ -57,6 +56,16 @@ static llvm::Value *lLowerExtractIntrinsic(llvm::CallInst *CI) {
     }
 }
 
+static llvm::Value *lLowerInserIntrinsic(llvm::CallInst *CI) {
+    llvm::IRBuilder<> builder(CI);
+
+    llvm::Value *V = CI->getArgOperand(0);
+    llvm::Value *I = CI->getArgOperand(1);
+    llvm::Value *E = CI->getArgOperand(2);
+
+    return builder.CreateInsertElement(V, E, I);
+}
+
 static bool lRunOnBasicBlock(llvm::BasicBlock &BB) {
     // TODO: add lit tests
     for (llvm::BasicBlock::iterator iter = BB.begin(), e = BB.end(); iter != e;) {
@@ -66,9 +75,10 @@ static bool lRunOnBasicBlock(llvm::BasicBlock &BB) {
                 llvm::Value *D = nullptr;
                 if (Callee->getName().startswith("llvm.ispc.concat.")) {
                     D = lLowerConcatIntrinsic(CI);
-                }
-                if (Callee->getName().startswith("llvm.ispc.extract.")) {
+                } else if (Callee->getName().startswith("llvm.ispc.extract.")) {
                     D = lLowerExtractIntrinsic(CI);
+                } else if (Callee->getName().startswith("llvm.ispc.insert.")) {
+                    D = lLowerInserIntrinsic(CI);
                 }
 
                 if (D) {
