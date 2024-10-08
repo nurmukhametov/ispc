@@ -111,39 +111,6 @@ divert`'dnl
 
 define(`vector_permutations', `
 
-define <WIDTH x $1> @__rotate_$1(<WIDTH x $1>, i32) nounwind readnone alwaysinline {
-  %isc = call i1 @__is_compile_time_constant_uniform_int32(i32 %1)
-  br i1 %isc, label %is_const, label %not_const
-
-is_const:
-  ; though verbose, this turms into tight code if %1 is a constant
-forloop(i, 0, eval(WIDTH-1), `
-  %delta_`'i = add i32 %1, i
-  %delta_clamped_`'i = and i32 %delta_`'i, eval(WIDTH-1)
-  %v_`'i = extractelement <WIDTH x $1> %0, i32 %delta_clamped_`'i')
-
-  %ret_0 = insertelement <WIDTH x $1> undef, $1 %v_0, i32 0
-forloop(i, 1, eval(WIDTH-1), `  %ret_`'i = insertelement <WIDTH x $1> %ret_`'eval(i-1), $1 %v_`'i, i32 i
-')
-  ret <WIDTH x $1> %ret_`'eval(WIDTH-1)
-
-not_const:
-  ; store two instances of the vector into memory
-  %ptr = alloca <WIDTH x $1>, i32 2
-  %ptr0 = getelementptr PTR_OP_ARGS(`<WIDTH x $1>') %ptr, i32 0
-  store <WIDTH x $1> %0, <WIDTH x $1> * %ptr0
-  %ptr1 = getelementptr PTR_OP_ARGS(`<WIDTH x $1>') %ptr, i32 1
-  store <WIDTH x $1> %0, <WIDTH x $1> * %ptr1
-
-  ; compute offset in [0,vectorwidth-1], then index into the doubled-up vector
-  %offset = and i32 %1, eval(WIDTH-1)
-  %ptr_as_elt_array = bitcast <WIDTH x $1> * %ptr to [eval(2*WIDTH) x $1] *
-  %load_ptr = getelementptr PTR_OP_ARGS(`[eval(2*WIDTH) x $1]') %ptr_as_elt_array, i32 0, i32 %offset
-  %load_ptr_vec = bitcast $1 * %load_ptr to <WIDTH x $1> *
-  %result = load PTR_OP_ARGS(`<WIDTH x $1> ')  %load_ptr_vec, align $2
-  ret <WIDTH x $1> %result
-}
-
 define <WIDTH x $1> @__shift_$1(<WIDTH x $1>, i32) nounwind readnone alwaysinline {
   %ptr = alloca <WIDTH x $1>, i32 3
   %ptr0 = getelementptr PTR_OP_ARGS(`<WIDTH x $1>') %ptr, i32 0

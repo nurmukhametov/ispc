@@ -691,6 +691,71 @@ EXT READNONE varying int8 __insert_int8(varying int8 vec, uniform int32 lane, un
     return @llvm.ispc.insert(vec, lane, val);
 }
 
+// rotate
+EXT READNONE varying double __rotate_double(varying double v, uniform int32 i) {
+    uniform double<DOUBLE_WIDTH> dbl = @llvm.ispc.concat(v, v);
+    uniform int32 start_pos = i & (TARGET_WIDTH - 1);
+    varying double result;
+    for (uniform int32 j = 0; j < TARGET_WIDTH; j++) {
+        result = @llvm.ispc.insert(result, j, @llvm.ispc.extract(dbl, j + start_pos));
+    }
+    return result;
+}
+EXT READNONE varying float __rotate_float(varying float v, uniform int32 i) {
+    uniform float<DOUBLE_WIDTH> dbl = @llvm.ispc.concat(v, v);
+    uniform int32 start_pos = i & (TARGET_WIDTH - 1);
+    varying float result;
+    for (uniform int32 j = 0; j < TARGET_WIDTH; j++) {
+        result = @llvm.ispc.insert(result, j, @llvm.ispc.extract(dbl, j + start_pos));
+    }
+    return result;
+}
+EXT READNONE varying float16 __rotate_half(varying float16 v, uniform int32 i) {
+    uniform float16<DOUBLE_WIDTH> dbl = @llvm.ispc.concat(v, v);
+    uniform int32 start_pos = i & (TARGET_WIDTH - 1);
+    varying float16 result;
+    for (uniform int32 j = 0; j < TARGET_WIDTH; j++) {
+        result = @llvm.ispc.insert(result, j, @llvm.ispc.extract(dbl, j + start_pos));
+    }
+    return result;
+}
+EXT READNONE varying int16 __rotate_i16(varying int16 v, uniform int32 i) {
+    uniform int16<DOUBLE_WIDTH> dbl = @llvm.ispc.concat(v, v);
+    uniform int32 start_pos = i & (TARGET_WIDTH - 1);
+    varying int16 result;
+    for (uniform int32 j = 0; j < TARGET_WIDTH; j++) {
+        result = @llvm.ispc.insert(result, j, @llvm.ispc.extract(dbl, j + start_pos));
+    }
+    return result;
+}
+EXT READNONE varying int32 __rotate_i32(varying int32 v, uniform int32 i) {
+    uniform int32<DOUBLE_WIDTH> dbl = @llvm.ispc.concat(v, v);
+    uniform int32 start_pos = i & (TARGET_WIDTH - 1);
+    varying int32 result;
+    for (uniform int32 j = 0; j < TARGET_WIDTH; j++) {
+        result = @llvm.ispc.insert(result, j, @llvm.ispc.extract(dbl, j + start_pos));
+    }
+    return result;
+}
+EXT READNONE varying int64 __rotate_i64(varying int64 v, uniform int32 i) {
+    uniform int64<DOUBLE_WIDTH> dbl = @llvm.ispc.concat(v, v);
+    uniform int32 start_pos = i & (TARGET_WIDTH - 1);
+    varying int64 result;
+    for (uniform int32 j = 0; j < TARGET_WIDTH; j++) {
+        result = @llvm.ispc.insert(result, j, @llvm.ispc.extract(dbl, j + start_pos));
+    }
+    return result;
+}
+EXT READNONE varying int8 __rotate_i8(varying int8 v, uniform int32 i) {
+    uniform int8<DOUBLE_WIDTH> dbl = @llvm.ispc.concat(v, v);
+    uniform int32 start_pos = i & (TARGET_WIDTH - 1);
+    varying int8 result;
+    for (uniform int32 j = 0; j < TARGET_WIDTH; j++) {
+        result = @llvm.ispc.insert(result, j, @llvm.ispc.extract(dbl, j + start_pos));
+    }
+    return result;
+}
+
 // prefetching
 EXT void __prefetch_read_uniform_1(uniform int8 *uniform ptr) { @llvm.prefetch(ptr, 0, 3, 1); }
 EXT void __prefetch_read_uniform_2(uniform int8 *uniform ptr) { @llvm.prefetch(ptr, 0, 2, 1); }
