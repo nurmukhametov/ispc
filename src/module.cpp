@@ -583,6 +583,14 @@ static llvm::Function *lGetISPCIntrinsicsFuncDecl(llvm::Module *M, ISPCIntrinsic
     }
     bool hasUnnamedType = false;
     switch (ID) {
+    case ISPCIntrinsics::insert: {
+        llvm::VectorType *vt = llvm::dyn_cast<llvm::VectorType>(TYs[0]);
+        Assert(vt);
+        retType = vt;
+        name = "llvm.ispc.insert";
+        name += "." + lGetMangledTypeStr(TYs[0], hasUnnamedType);
+        break;
+    }
     case ISPCIntrinsics::extract: {
         llvm::VectorType *vt = llvm::dyn_cast<llvm::VectorType>(TYs[0]);
         Assert(vt);
