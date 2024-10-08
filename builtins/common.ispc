@@ -348,23 +348,6 @@ EXT READNONE uniform double __stdlib_log(uniform double x) { return log(x); }
 EXT READNONE uniform double __stdlib_exp(uniform double x) { return exp(x); }
 EXT READNONE uniform double __stdlib_pow(uniform double x, uniform double y) { return pow(x, y); }
 
-// // /* Define macros for token concatenation */
-// // #define CONCAT(a, b) a##b
-// // #define CONCAT3(a, b, c) a##b##c
-// // 
-// // /* Ensure macro arguments are expanded before concatenation */
-// // #define EXPAND_AND_CONCAT(a, b) CONCAT(a, b)
-// // #define EXPAND_AND_CONCAT3(a, b, c) CONCAT3(a, b, c)
-// // 
-// // #define LLVM_ROUNDEVEN_V_F16 EXPAND_AND_CONCAT3(@llvm.roundeven.v, TARGET_WIDTH, f16)
-// // #define LLVM_FLOOR_V_F16 EXPAND_AND_CONCAT3(@llvm.floor.v, TARGET_WIDTH, f16)
-// // #define LLVM_CEIL_V_F16 EXPAND_AND_CONCAT3(@llvm.ceil.v, TARGET_WIDTH, f16)
-// // #define LLVM_TRUNC_V_F16 EXPAND_AND_CONCAT3(@llvm.trunc.v, TARGET_WIDTH, f16)
-// // #define LLVM_LOG_V_F16 EXPAND_AND_CONCAT3(@llvm.log.v, TARGET_WIDTH, f16)
-// // #define LLVM_EXP_V_F16 EXPAND_AND_CONCAT3(@llvm.exp.v, TARGET_WIDTH, f16)
-// // #define LLVM_POW_V_F16 EXPAND_AND_CONCAT3(@llvm.pow.v, TARGET_WIDTH, f16)
-// // #define LLVM_SQRT_V_F16 EXPAND_AND_CONCAT3(@llvm.sqrt.v, TARGET_WIDTH, f16)
-
 EXT READNONE uniform float16 __round_uniform_half(uniform float16 x) { return @llvm.roundeven(x); }
 EXT READNONE varying float16 __round_varying_half(varying float16 x) { return @llvm.roundeven(x); }
 EXT READNONE uniform float16 __floor_uniform_half(uniform float16 x) { return @llvm.floor(x); }
@@ -599,24 +582,6 @@ EXT READNONE uniform double __max_uniform_double(uniform double x, uniform doubl
 EXT READNONE varying double __min_varying_double(varying double x, varying double y) { return x < y ? x : y; }
 EXT READNONE varying double __max_varying_double(varying double x, varying double y) { return x > y ? x : y; }
 
-// // #if TARGET_WIDTH == 2
-// // #define ONE_INITIALIZER 1, 1
-// // #elif TARGET_WIDTH == 4
-// // #define ONE_INITIALIZER 1, 1, 1, 1
-// // #elif TARGET_WIDTH == 8
-// // #define ONE_INITIALIZER 1, 1, 1, 1, 1, 1, 1, 1
-// // #elif TARGET_WIDTH == 16
-// // #define ONE_INITIALIZER 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1
-// // #elif TARGET_WIDTH == 32
-// // #define ONE_INITIALIZER 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1
-// // #elif TARGET_WIDTH == 64
-// // #define ONE_INITIALIZER                                                                                                \
-// //     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,  \
-// //         1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1
-// // #else
-// // #error Unknown value of TARGET_WIDTH
-// // #endif
-
 // int8/int16 avg builtins
 EXT varying uint8 __avg_up_uint8(varying uint8 a, varying uint8 b) { return ((uint16)a + (uint16)b + 1) >> 1; }
 EXT varying int8 __avg_up_int8(varying int8 a, varying int8 b) { return ((int16)a + (int16)b + 1) / 2; }
@@ -636,6 +601,36 @@ EXT READNONE uniform int64 __count_leading_zeros_i64(uniform int64 x) { return @
 // population count
 EXT uniform int32 __popcnt_int32(uniform int32 x) { return @llvm.ctpop(x); }
 EXT uniform int64 __popcnt_int64(uniform int64 x) { return @llvm.ctpop(x); }
+
+// various bitcasts from one type to another
+EXT READNONE uniform double __doublebits_uniform_int64(uniform int64 x) {
+    return @llvm.ispc.bitcast(x, (uniform double)0);
+}
+EXT READNONE varying double __doublebits_varying_int64(varying int64 x) {
+    return @llvm.ispc.bitcast(x, (varying double)0);
+}
+EXT READNONE uniform float __floatbits_uniform_int32(uniform int32 x) {
+    return @llvm.ispc.bitcast(x, (uniform float)0);
+}
+EXT READNONE varying float __floatbits_varying_int32(varying int32 x) {
+    return @llvm.ispc.bitcast(x, (varying float)0);
+}
+EXT READNONE uniform float16 __halfbits_uniform_int16(uniform int16 x) {
+    return @llvm.ispc.bitcast(x, (uniform float16)0);
+}
+EXT READNONE varying float16 __halfbits_varying_int16(varying int16 x) {
+    return @llvm.ispc.bitcast(x, (varying float16)0);
+}
+EXT READNONE uniform int64 __intbits_uniform_double(uniform double x) {
+    return @llvm.ispc.bitcast(x, (uniform int64)0);
+}
+EXT READNONE uniform int32 __intbits_uniform_float(uniform float x) { return @llvm.ispc.bitcast(x, (uniform int32)0); }
+EXT READNONE uniform int16 __intbits_uniform_half(uniform float16 x) { return @llvm.ispc.bitcast(x, (uniform int16)0); }
+EXT READNONE varying int64 __intbits_varying_double(varying double x) {
+    return @llvm.ispc.bitcast(x, (varying int64)0);
+}
+EXT READNONE varying int32 __intbits_varying_float(varying float x) { return @llvm.ispc.bitcast(x, (varying int32)0); }
+EXT READNONE varying int16 __intbits_varying_half(varying float16 x) { return @llvm.ispc.bitcast(x, (varying int16)0); }
 
 // vector ops
 EXT uniform bool __extract_bool(IntMaskType vec, uniform int32 lane) { return @llvm.ispc.extract(vec, lane); }
