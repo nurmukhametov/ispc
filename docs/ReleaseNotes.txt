@@ -1,3 +1,62 @@
+=== v1.25.0 === (TBD October 2024)
+
+This release is based on patched LLVM 18.1.8. The minimum required version of
+glibc for Linux release binaries has been raised to 2.27.
+
+Language changes:
+
+ - Added `__attribute__` syntax support variable and function declarations.
+   Attributes are supported now: `noescape`, `address_space(N)`,
+   `external_only` and `unmangled`.
+ - Added error messages for variable declarations with incompatible type
+   specifiers.
+ - Supported typedef with same name as struct tag.
+
+Code generation:
+
+ - Switched to NewGVN pass for global value numbering for CPU targets. This
+   change improves the performance of the generated code in some cases.
+ - Improved generated code for cases when `foreach` loop iteration domain is
+   equal 3.
+ - Reduced the number of copies for dispatcher logic for cases when an user
+   application consists of several multi-target modules.
+ - Propogate LLVM IR flags (e.g., `nsw`, `nuw`) in ISPC optimization passes.
+   This improves the generated code for `foreach` loop counters.
+
+New targets:
+
+ - Added `xe2hpg-x16` and `xe2hpg-x32` targets for Xe2 Battlemage Inte(R) GPUs.
+ - Added `xe2lpg-x16` and `xe2lpg-x32` targets for Xe2 Lunar Lake Intel(R) GPUs.
+
+Deprecated targets:
+
+ - `avx512knl-x16`, `gen9-x8` and `gen9-x16` targets are deprecated and will
+   be removed in future releases.
+ - Adjusted device names for `xelpg-x8` and `xelpg-x16` to `mtl-u` and `mtl-h`.
+
+Standard library:
+
+ - Fixed integer overflow in `exp` for -Inf, NaN and big numbers.
+
+Compiler switches behavior:
+
+ - Supported `-ffunction-sections` command line flag to generate each function
+   in a separate section.
+
+Infrastructure/build changes:
+
+ - Removed build dependency from `ncurses/terminfo`.
+ - Added dead code stripping for macOS binaries during linking to reduce the
+   size of the final binaries.
+ - Fixed build logic for figuring out the list of system libs required by LLVM.
+ - Fixed issue with installation of test files.
+
+Bug fixes:
+
+ - Fixed crashes found by fuzzing.
+ - Dump module verifier output when it reports an error.
+ - Fixed C/C++ header generation for typedefs with anonymous structs.
+
 === v1.24.0 === (16 May 2024)
 
 ISPC release with dot product functions, non-type template parameters, and
