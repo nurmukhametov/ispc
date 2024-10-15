@@ -105,41 +105,6 @@ divert`'dnl
 ;; target's vector width
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;; broadcast/rotate/shift macros
-;; $1: type
-;; $1: type size
-
-define(`vector_permutations', `
-
-define <WIDTH x $1> @__shift_$1(<WIDTH x $1>, i32) nounwind readnone alwaysinline {
-  %ptr = alloca <WIDTH x $1>, i32 3
-  %ptr0 = getelementptr PTR_OP_ARGS(`<WIDTH x $1>') %ptr, i32 0
-  store <WIDTH x $1> zeroinitializer, <WIDTH x $1> * %ptr0
-  %ptr1 = getelementptr PTR_OP_ARGS(`<WIDTH x $1>') %ptr, i32 1
-  store <WIDTH x $1> %0, <WIDTH x $1> * %ptr1
-  %ptr2 = getelementptr PTR_OP_ARGS(`<WIDTH x $1>') %ptr, i32 2
-  store <WIDTH x $1> zeroinitializer, <WIDTH x $1> * %ptr2
-
-  %offset = add i32 %1, WIDTH
-  %ptr_as_elt_array = bitcast <WIDTH x $1> * %ptr to [eval(3*WIDTH) x $1] *
-  %load_ptr = getelementptr PTR_OP_ARGS(`[eval(3*WIDTH) x $1]') %ptr_as_elt_array, i32 0, i32 %offset
-  %load_ptr_vec = bitcast $1 * %load_ptr to <WIDTH x $1> *
-  %result = load PTR_OP_ARGS(`<WIDTH x $1> ')  %load_ptr_vec, align $2
-  ret <WIDTH x $1> %result
-}
-')
-
-
-define(`define_vector_permutations',`
-vector_permutations(i8, 1)
-vector_permutations(i16, 2)
-vector_permutations(half, 2)
-vector_permutations(float, 4)
-vector_permutations(i32, 4)
-vector_permutations(double, 8)
-vector_permutations(i64, 8)
-')
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; global_atomic_associative
 ;; More efficient implementation for atomics that are associative (e.g.,
@@ -855,7 +820,6 @@ define i1 @__rdrand_i64(i8 * %ptr) {
 stdlib_core()
 scans()
 rdrand_definition()
-define_vector_permutations()
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; fast math mode

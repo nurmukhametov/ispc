@@ -756,6 +756,99 @@ EXT READNONE varying int8 __rotate_i8(varying int8 v, uniform int32 i) {
     return result;
 }
 
+// shift
+EXT READNONE varying double __shift_double(varying double v, uniform int32 i) {
+    uniform double<DOUBLE_WIDTH> dbl;
+    varying double zero = 0;
+    uniform int32 start_pos = i;
+    if (i < 0) {
+        start_pos = TARGET_WIDTH + i;
+        dbl = @llvm.ispc.concat(zero, v);
+    } else {
+        dbl = @llvm.ispc.concat(v, zero);
+    }
+    varying double *uniform ptr = (varying double *uniform)&dbl[start_pos];
+    return *ptr;
+}
+EXT READNONE varying float __shift_float(varying float v, uniform int32 i) {
+    uniform float<DOUBLE_WIDTH> dbl;
+    varying float zero = 0;
+    uniform int32 start_pos = i;
+    if (i < 0) {
+        start_pos = TARGET_WIDTH + i;
+        dbl = @llvm.ispc.concat(zero, v);
+    } else {
+        dbl = @llvm.ispc.concat(v, zero);
+    }
+    varying float *uniform ptr = (varying float *uniform)&dbl[start_pos];
+    return *ptr;
+}
+EXT READNONE varying float16 __shift_half(varying float16 v, uniform int32 i) {
+    uniform float16<DOUBLE_WIDTH> dbl;
+    varying float16 zero = 0;
+    uniform int32 start_pos = i;
+    if (i < 0) {
+        start_pos = TARGET_WIDTH + i;
+        dbl = @llvm.ispc.concat(zero, v);
+    } else {
+        dbl = @llvm.ispc.concat(v, zero);
+    }
+    varying float16 *uniform ptr = (varying float16 *uniform)&dbl[start_pos];
+    return *ptr;
+}
+EXT READNONE varying int16 __shift_i16(varying int16 v, uniform int32 i) {
+    uniform int16<DOUBLE_WIDTH> dbl;
+    varying int16 zero = 0;
+    uniform int32 start_pos = i;
+    if (i < 0) {
+        start_pos = TARGET_WIDTH + i;
+        dbl = @llvm.ispc.concat(zero, v);
+    } else {
+        dbl = @llvm.ispc.concat(v, zero);
+    }
+    varying int16 *uniform ptr = (varying int16 *uniform)&dbl[start_pos];
+    return *ptr;
+}
+EXT READNONE varying int32 __shift_i32(varying int32 v, uniform int32 i) {
+    uniform int32<DOUBLE_WIDTH> dbl;
+    varying int32 zero = 0;
+    uniform int32 start_pos = i;
+    if (i < 0) {
+        start_pos = TARGET_WIDTH + i;
+        dbl = @llvm.ispc.concat(zero, v);
+    } else {
+        dbl = @llvm.ispc.concat(v, zero);
+    }
+    varying int32 *uniform ptr = (varying int32 *uniform)&dbl[start_pos];
+    return *ptr;
+}
+EXT READNONE varying int64 __shift_i64(varying int64 v, uniform int32 i) {
+    uniform int64<DOUBLE_WIDTH> dbl;
+    varying int64 zero = 0;
+    uniform int32 start_pos = i;
+    if (i < 0) {
+        start_pos = TARGET_WIDTH + i;
+        dbl = @llvm.ispc.concat(zero, v);
+    } else {
+        dbl = @llvm.ispc.concat(v, zero);
+    }
+    varying int64 *uniform ptr = (varying int64 *uniform)&dbl[start_pos];
+    return *ptr;
+}
+EXT READNONE varying int8 __shift_i8(varying int8 v, uniform int32 i) {
+    uniform int8<DOUBLE_WIDTH> dbl;
+    varying int8 zero = 0;
+    uniform int32 start_pos = i;
+    if (i < 0) {
+        start_pos = TARGET_WIDTH + i;
+        dbl = @llvm.ispc.concat(zero, v);
+    } else {
+        dbl = @llvm.ispc.concat(v, zero);
+    }
+    varying int8 *uniform ptr = (varying int8 *uniform)&dbl[start_pos];
+    return *ptr;
+}
+
 // prefetching
 EXT void __prefetch_read_uniform_1(uniform int8 *uniform ptr) { @llvm.prefetch(ptr, 0, 3, 1); }
 EXT void __prefetch_read_uniform_2(uniform int8 *uniform ptr) { @llvm.prefetch(ptr, 0, 2, 1); }
