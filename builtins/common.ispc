@@ -669,6 +669,24 @@ EXT READNONE varying int8 __broadcast_i8(varying int8 v, uniform int32 i) {
     return result;
 }
 
+// exclusive scan
+EXT varying double __exclusive_scan_add_double(varying double v, UIntMaskType mask) {
+    varying double res = 0;
+    varying double val = mask ? v : 0;
+    for (uniform int32 i = 1; i < TARGET_WIDTH; i++) {
+        res = @llvm.ispc.insert(res, i, @llvm.ispc.extract(val, i - 1) + @llvm.ispc.extract(res, i - 1));
+    }
+    return res;
+}
+EXT varying float __exclusive_scan_add_float(varying float v, UIntMaskType mask);
+EXT varying float16 __exclusive_scan_add_half(varying float16 v, UIntMaskType mask);
+EXT varying int32 __exclusive_scan_add_i32(varying int32 v, UIntMaskType mask);
+EXT varying int64 __exclusive_scan_add_i64(varying int64 v, UIntMaskType mask);
+EXT varying int32 __exclusive_scan_and_i32(varying int32 v, UIntMaskType mask);
+EXT varying int64 __exclusive_scan_and_i64(varying int64 v, UIntMaskType mask);
+EXT varying int32 __exclusive_scan_or_i32(varying int32 v, UIntMaskType mask);
+EXT varying int64 __exclusive_scan_or_i64(varying int64 v, UIntMaskType mask);
+
 // vector ops
 EXT uniform bool __extract_bool(IntMaskType vec, uniform int32 lane) { return @llvm.ispc.extract(vec, lane); }
 EXT uniform int16 __extract_int16(varying int16 vec, uniform int32 lane) { return @llvm.ispc.extract(vec, lane); }
