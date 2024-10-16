@@ -76,6 +76,11 @@ static llvm::Value *lLowerBitcastIntrinsic(llvm::CallInst *CI) {
     return builder.CreateBitCast(V, VT->getType());
 }
 
+static llvm::MDNode *lNonTemporalMetadata(llvm::LLVMContext &ctx) {
+    return llvm::MDNode::get(ctx,
+                             llvm::ConstantAsMetadata::get(llvm::ConstantInt::get(llvm::Type::getInt32Ty(ctx), 1)));
+}
+
 static llvm::Value *lLowerStreamStoreIntrinsic(llvm::CallInst *CI) {
     // generate store with !nontemporal metadata attached
     llvm::IRBuilder<> builder(CI);
@@ -84,7 +89,7 @@ static llvm::Value *lLowerStreamStoreIntrinsic(llvm::CallInst *CI) {
     llvm::Value *V = CI->getArgOperand(1);
 
     llvm::StoreInst *SI = builder.CreateStore(V, P);
-    SI->setMetadata("nontemporal", llvm::MDNode::get(CI->getContext(), {}));
+    SI->setMetadata("nontemporal", lNonTemporalMetadata(CI->getContext()));
 
     return SI;
 }
@@ -97,7 +102,7 @@ static llvm::Value *lLowerStreamLoadIntrinsic(llvm::CallInst *CI) {
     llvm::Type *T = CI->getArgOperand(1)->getType();
 
     llvm::LoadInst *LI = builder.CreateLoad(T, P);
-    LI->setMetadata("nontemporal", llvm::MDNode::get(CI->getContext(), {}));
+    LI->setMetadata("nontemporal", lNonTemporalMetadata(CI->getContext()));
 
     return LI;
 }
