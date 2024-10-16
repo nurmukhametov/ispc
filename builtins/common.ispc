@@ -40,6 +40,45 @@
 // In sane cases, this function call should always be removed.
 extern "C" void __not_supported();
 
+// Template functions that are wrappers around insertelement and extractelement LLVM operations.
+template <typename T> varying T __insert(varying T v, uniform int32 i, uniform T val) {
+    // only specializations below to be called
+    __not_supported();
+}
+template <> varying float16 __insert<float16>(varying float16 v, uniform int32 i, uniform float16 val) {
+    return @llvm.ispc.insert(v, i, val);
+}
+template <> varying double __insert<double>(varying double v, uniform int32 i, uniform double val) {
+    return @llvm.ispc.insert(v, i, val);
+}
+template <> varying float __insert<float>(varying float v, uniform int32 i, uniform float val) {
+    return @llvm.ispc.insert(v, i, val);
+}
+template <> varying int8 __insert<int8>(varying int8 v, uniform int32 i, uniform int8 val) {
+    return @llvm.ispc.insert(v, i, val);
+}
+template <> varying int16 __insert<int16>(varying int16 v, uniform int32 i, uniform int16 val) {
+    return @llvm.ispc.insert(v, i, val);
+}
+template <> varying int32 __insert<int32>(varying int32 v, uniform int32 i, uniform int32 val) {
+    return @llvm.ispc.insert(v, i, val);
+}
+template <> varying int64 __insert<int64>(varying int64 v, uniform int32 i, uniform int64 val) {
+    return @llvm.ispc.insert(v, i, val);
+}
+
+template <typename T> uniform T __extract(varying T v, uniform int32 i) {
+    // only specializations below to be called
+    __not_supported();
+}
+template <> uniform int8 __extract<int8>(varying int8 v, uniform int32 i) { return @llvm.ispc.extract(v, i); }
+template <> uniform int16 __extract<int16>(varying int16 v, uniform int32 i) { return @llvm.ispc.extract(v, i); }
+template <> uniform int32 __extract<int32>(varying int32 v, uniform int32 i) { return @llvm.ispc.extract(v, i); }
+template <> uniform int64 __extract<int64>(varying int64 v, uniform int32 i) { return @llvm.ispc.extract(v, i); }
+template <> uniform float16 __extract<float16>(varying float16 v, uniform int32 i) { return @llvm.ispc.extract(v, i); }
+template <> uniform float __extract<float>(varying float v, uniform int32 i) { return @llvm.ispc.extract(v, i); }
+template <> uniform double __extract<double>(varying double v, uniform int32 i) { return @llvm.ispc.extract(v, i); }
+
 // // EXT uniform bool __is_compile_time_constant_mask(UIntMaskType);
 // // EXT uniform bool __is_compile_time_constant_uniform_int32(uniform int32);
 // // EXT uniform bool __is_compile_time_constant_varying_int32(varying int32);
@@ -670,22 +709,57 @@ EXT READNONE varying int8 __broadcast_i8(varying int8 v, uniform int32 i) {
 }
 
 // exclusive scan
-EXT varying double __exclusive_scan_add_double(varying double v, UIntMaskType mask) {
-    varying double res = 0;
-    varying double val = mask ? v : 0;
+template <typename T> varying T __exclusive_scan_add(varying T v, UIntMaskType mask) {
+    varying T res = 0;
+    varying T val = mask ? v : 0;
     for (uniform int32 i = 1; i < TARGET_WIDTH; i++) {
-        res = @llvm.ispc.insert(res, i, @llvm.ispc.extract(val, i - 1) + @llvm.ispc.extract(res, i - 1));
+        res = __insert<T>(res, i, __extract<T>(val, i - 1) + __extract<T>(res, i - 1));
     }
     return res;
 }
-EXT varying float __exclusive_scan_add_float(varying float v, UIntMaskType mask);
-EXT varying float16 __exclusive_scan_add_half(varying float16 v, UIntMaskType mask);
-EXT varying int32 __exclusive_scan_add_i32(varying int32 v, UIntMaskType mask);
-EXT varying int64 __exclusive_scan_add_i64(varying int64 v, UIntMaskType mask);
-EXT varying int32 __exclusive_scan_and_i32(varying int32 v, UIntMaskType mask);
-EXT varying int64 __exclusive_scan_and_i64(varying int64 v, UIntMaskType mask);
-EXT varying int32 __exclusive_scan_or_i32(varying int32 v, UIntMaskType mask);
-EXT varying int64 __exclusive_scan_or_i64(varying int64 v, UIntMaskType mask);
+EXT varying double __exclusive_scan_add_double(varying double v, UIntMaskType mask) {
+    return __exclusive_scan_add<double>(v, mask);
+}
+EXT varying float __exclusive_scan_add_float(varying float v, UIntMaskType mask) {
+    return __exclusive_scan_add<float>(v, mask);
+}
+EXT varying float16 __exclusive_scan_add_half(varying float16 v, UIntMaskType mask) {
+    return __exclusive_scan_add<float16>(v, mask);
+}
+EXT varying int32 __exclusive_scan_add_i32(varying int32 v, UIntMaskType mask) {
+    return __exclusive_scan_add<int32>(v, mask);
+}
+EXT varying int64 __exclusive_scan_add_i64(varying int64 v, UIntMaskType mask) {
+    return __exclusive_scan_add<int64>(v, mask);
+}
+template <typename T> varying T __exclusive_scan_and(varying T v, UIntMaskType mask) {
+    varying T res = -1;
+    varying T val = mask ? v : -1;
+    for (uniform int32 i = 1; i < TARGET_WIDTH; i++) {
+        res = __insert<T>(res, i, __extract<T>(val, i - 1) & __extract<T>(res, i - 1));
+    }
+    return res;
+}
+EXT varying int32 __exclusive_scan_and_i32(varying int32 v, UIntMaskType mask) {
+    return __exclusive_scan_and<int32>(v, mask);
+}
+EXT varying int64 __exclusive_scan_and_i64(varying int64 v, UIntMaskType mask) {
+    return __exclusive_scan_and<int64>(v, mask);
+}
+template <typename T> varying T __exclusive_scan_or(varying T v, UIntMaskType mask) {
+    varying T res = 0;
+    varying T val = mask ? v : 0;
+    for (uniform int32 i = 1; i < TARGET_WIDTH; i++) {
+        res = __insert<T>(res, i, __extract<T>(val, i - 1) | __extract<T>(res, i - 1));
+    }
+    return res;
+}
+EXT varying int32 __exclusive_scan_or_i32(varying int32 v, UIntMaskType mask) {
+    return __exclusive_scan_or<int32>(v, mask);
+}
+EXT varying int64 __exclusive_scan_or_i64(varying int64 v, UIntMaskType mask) {
+    return __exclusive_scan_or<int64>(v, mask);
+}
 
 // vector ops
 EXT uniform bool __extract_bool(IntMaskType vec, uniform int32 lane) { return @llvm.ispc.extract(vec, lane); }
