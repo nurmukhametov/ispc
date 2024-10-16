@@ -545,6 +545,7 @@ enum class ISPCIntrinsics : unsigned {
     insert,
     extract,
     concat,
+    stream_load,
     stream_store,
 };
 
@@ -554,6 +555,7 @@ const char *ISPCIntrinsicsNames[] = {
     "llvm.ispc.insert",
     "llvm.ispc.extract",
     "llvm.ispc.concat",
+    "llvm.ispc.stream_load",
     "llvm.ispc.stream_store",
 };
 
@@ -618,6 +620,12 @@ static llvm::Function *lGetISPCIntrinsicsFuncDecl(llvm::Module *M, ISPCIntrinsic
         retType = lGetDoubleVectorType(TYs[0]);
         name = ISPCIntrinsicsNames[(unsigned)ID];
         name += "." + lGetMangledTypeStr(retType, hasUnnamedType) + "." + lGetMangledTypeStr(TYs[1], hasUnnamedType);
+        break;
+    }
+    case ISPCIntrinsics::stream_load: {
+        retType = TYs[1];
+        name = ISPCIntrinsicsNames[(unsigned)ID];
+        name += "." + lGetMangledTypeStr(TYs[1], hasUnnamedType);
         break;
     }
     case ISPCIntrinsics::stream_store: {

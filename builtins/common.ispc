@@ -1165,6 +1165,64 @@ EXT void __streaming_store_varying_double(NOESCAPE uniform int8 *uniform ptr, va
     @llvm.ispc.stream_store(ptr, val);
 }
 
+// streaming loads
+EXT uniform int8 __streaming_load_uniform_i8(NOESCAPE uniform int8 *uniform ptr) {
+    uniform int8 dummy;
+    return @llvm.ispc.stream_load(ptr, dummy);
+}
+EXT uniform int16 __streaming_load_uniform_i16(NOESCAPE uniform int8 *uniform ptr) {
+    uniform int16 dummy;
+    return @llvm.ispc.stream_load(ptr, dummy);
+}
+EXT uniform int32 __streaming_load_uniform_i32(NOESCAPE uniform int8 *uniform ptr) {
+    uniform int32 dummy;
+    return @llvm.ispc.stream_load(ptr, dummy);
+}
+EXT uniform int64 __streaming_load_uniform_i64(NOESCAPE uniform int8 *uniform ptr) {
+    uniform int64 dummy;
+    return @llvm.ispc.stream_load(ptr, dummy);
+}
+EXT uniform float16 __streaming_load_uniform_half(NOESCAPE uniform int8 *uniform ptr) {
+    uniform float16 dummy;
+    return @llvm.ispc.stream_load(ptr, dummy);
+}
+EXT uniform float __streaming_load_uniform_float(NOESCAPE uniform int8 *uniform ptr) {
+    uniform float dummy;
+    return @llvm.ispc.stream_load(ptr, dummy);
+}
+EXT uniform double __streaming_load_uniform_double(NOESCAPE uniform int8 *uniform ptr) {
+    uniform double dummy;
+    return @llvm.ispc.stream_load(ptr, dummy);
+}
+EXT varying int8 __streaming_load_varying_i8(NOESCAPE uniform int8 *uniform ptr) {
+    varying int8 dummy;
+    return @llvm.ispc.stream_load(ptr, dummy);
+}
+EXT varying int16 __streaming_load_varying_i16(NOESCAPE uniform int8 *uniform ptr) {
+    varying int16 dummy;
+    return @llvm.ispc.stream_load(ptr, dummy);
+}
+EXT varying int32 __streaming_load_varying_i32(NOESCAPE uniform int8 *uniform ptr) {
+    varying int32 dummy;
+    return @llvm.ispc.stream_load(ptr, dummy);
+}
+EXT varying int64 __streaming_load_varying_i64(NOESCAPE uniform int8 *uniform ptr) {
+    varying int64 dummy;
+    return @llvm.ispc.stream_load(ptr, dummy);
+}
+EXT varying float16 __streaming_load_varying_half(NOESCAPE uniform int8 *uniform ptr) {
+    varying float16 dummy;
+    return @llvm.ispc.stream_load(ptr, dummy);
+}
+EXT varying float __streaming_load_varying_float(NOESCAPE uniform int8 *uniform ptr) {
+    varying float dummy;
+    return @llvm.ispc.stream_load(ptr, dummy);
+}
+EXT varying double __streaming_load_varying_double(NOESCAPE uniform int8 *uniform ptr) {
+    varying double dummy;
+    return @llvm.ispc.stream_load(ptr, dummy);
+}
+
 EXT varying int8 __masked_load_i8(varying int8 *uniform ptr, UIntMaskType mask) {
     varying int8 passthru;
     return @llvm.masked.load((uniform int8 * uniform) ptr, 1, mask, passthru);

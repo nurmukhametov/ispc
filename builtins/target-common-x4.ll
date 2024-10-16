@@ -549,58 +549,6 @@ define void @__restore_ftz_daz_flags(i32 %oldVal) nounwind alwaysinline {
 }
 ')
 
-define(`gen_streaming_stores_metadata', `
-  !1 = !{i32 1}
-')
-
-  gen_streaming_stores_metadata()
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; streaming loads
-
-define(`gen_streaming_loads_varying_by_type', `
-  define <WIDTH x $1> @__streaming_load_varying_$1(i8* nocapture) nounwind alwaysinline {
-  %ptr = bitcast i8* %0 to <WIDTH x $1>*
-  %loadval = load PTR_OP_ARGS(`<WIDTH x $1>') %ptr , !nontemporal !1
-  ret <WIDTH x $1> %loadval
-}
-')
-
-define(`gen_streaming_loads_uniform_by_type', `
-define $1 @__streaming_load_uniform_$1(i8* nocapture) nounwind alwaysinline {
-  %ptr = bitcast i8* %0 to $1*
-  %loadval = load $1, $1* %ptr
-  ret $1 %loadval
-}
-')
-
-define(`gen_streaming_loads_varying', `
-  gen_streaming_loads_varying_by_type(half)
-  gen_streaming_loads_varying_by_type(float)
-  gen_streaming_loads_varying_by_type(double)
-  gen_streaming_loads_varying_by_type(i8)
-  gen_streaming_loads_varying_by_type(i16)
-  gen_streaming_loads_varying_by_type(i32)
-  gen_streaming_loads_varying_by_type(i64)
-')
-
-define(`gen_streaming_loads_uniform', `
-  gen_streaming_loads_uniform_by_type(half)
-  gen_streaming_loads_uniform_by_type(float)
-  gen_streaming_loads_uniform_by_type(double)
-  gen_streaming_loads_uniform_by_type(i8)
-  gen_streaming_loads_uniform_by_type(i16)
-  gen_streaming_loads_uniform_by_type(i32)
-  gen_streaming_loads_uniform_by_type(i64)
-')
-
-define(`gen_streaming_loads', `
-  gen_streaming_loads_varying()
-  gen_streaming_loads_uniform()
-')
-
-gen_streaming_loads()
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; per_lane
 ;;
