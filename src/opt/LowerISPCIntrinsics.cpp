@@ -107,6 +107,68 @@ static llvm::Value *lLowerStreamLoadIntrinsic(llvm::CallInst *CI) {
     return LI;
 }
 
+static llvm::Value *lLowerAtomicRMWIntrinsic(llvm::CallInst *CI) {
+    // generate atomicrmw instruction with the first operand fetched from
+    // instrinsic name suffix (that is placed before type overloading suffix)
+    llvm::IRBuilder<> builder(CI);
+
+    llvm::Value *P = CI->getArgOperand(0);
+    llvm::Value *V = CI->getArgOperand(1);
+
+    llvm::AtomicRMWInst::BinOp op = llvm::AtomicRMWInst::BinOp::BAD_BINOP;
+    llvm::AtomicOrdering ordering = llvm::AtomicOrdering::NotAtomic;
+
+    // llvm.ispc.atomicrmw.<op>.<memoryOrdering>.<type>
+    std::string opName = CI->getCalledFunction()->getName().str();
+    opName = opName.substr(0, opName.find_last_of('.'));
+    std::string memoryOrdering = opName.substr(opName.find_last_of('.') + 1);
+    opName = opName.substr(0, opName.find_last_of('.'));
+    opName = opName.substr(opName.find_last_of('.') + 1);
+    printf("opName: %s\n", opName.c_str());
+    printf("memoryOrdering: %s\n", memoryOrdering.c_str());
+    if (opName == "xchg") {
+        op = llvm::AtomicRMWInst::BinOp::Xchg;
+    } else if (opName == "add") {
+        op = llvm::AtomicRMWInst::BinOp::Add;
+    } else if (opName == "sub") {
+        op = llvm::AtomicRMWInst::BinOp::Sub;
+    } else if (opName == "and") {
+        op = llvm::AtomicRMWInst::BinOp::And;
+    } else if (opName == "nand") {
+        op = llvm::AtomicRMWInst::BinOp::Nand;
+    } else if (opName == "or") {
+        op = llvm::AtomicRMWInst::BinOp::Or;
+    } else if (opName == "xor") {
+        op = llvm::AtomicRMWInst::BinOp::Xor;
+    } else if (opName == "max") {
+        op = llvm::AtomicRMWInst::BinOp::Max;
+    } else if (opName == "min") {
+        op = llvm::AtomicRMWInst::BinOp::Min;
+    } else if (opName == "umax") {
+        op = llvm::AtomicRMWInst::BinOp::UMax;
+    } else if (opName == "umin") {
+        op = llvm::AtomicRMWInst::BinOp::UMin;
+    }
+    Assert(op != llvm::AtomicRMWInst::BinOp::BAD_BINOP);
+
+    if (memoryOrdering == "unordered") {
+        ordering = llvm::AtomicOrdering::Unordered;
+    } else if (memoryOrdering == "monotonic") {
+        ordering = llvm::AtomicOrdering::Monotonic;
+    } else if (memoryOrdering == "acquire") {
+        ordering = llvm::AtomicOrdering::Acquire;
+    } else if (memoryOrdering == "release") {
+        ordering = llvm::AtomicOrdering::Release;
+    } else if (memoryOrdering == "acq_rel") {
+        ordering = llvm::AtomicOrdering::AcquireRelease;
+    } else if (memoryOrdering == "seq_cst") {
+        ordering = llvm::AtomicOrdering::SequentiallyConsistent;
+    }
+    Assert(ordering != llvm::AtomicOrdering::NotAtomic);
+
+    return builder.CreateAtomicRMW(op, P, V, llvm::MaybeAlign(), ordering);
+}
+
 static bool lRunOnBasicBlock(llvm::BasicBlock &BB) {
     // TODO: add lit tests
     for (llvm::BasicBlock::iterator iter = BB.begin(), e = BB.end(); iter != e;) {
@@ -126,6 +188,8 @@ static bool lRunOnBasicBlock(llvm::BasicBlock &BB) {
                     D = lLowerStreamStoreIntrinsic(CI);
                 } else if (Callee->getName().startswith("llvm.ispc.stream_load.")) {
                     D = lLowerStreamLoadIntrinsic(CI);
+                } else if (Callee->getName().startswith("llvm.ispc.atomicrmw.")) {
+                    D = lLowerAtomicRMWIntrinsic(CI);
                 }
 
                 if (D) {

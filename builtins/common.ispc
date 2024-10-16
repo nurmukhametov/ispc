@@ -2043,6 +2043,19 @@ EXT void __soa_to_aos3_double(varying double v0, varying double v1, varying doub
     }
 }
 
+EXT uniform double __atomic_swap_uniform_double_global(uniform int8 *uniform ptr, uniform double val) {
+    return @llvm.ispc.atomicrmw.xchg.seq_cst(ptr, val);
+}
+EXT uniform float __atomic_swap_uniform_float_global(uniform int8 *uniform ptr, uniform float val) {
+    return @llvm.ispc.atomicrmw.xchg.seq_cst(ptr, val);
+}
+EXT uniform int32 __atomic_swap_uniform_int32_global(uniform int8 *uniform ptr, uniform int32 val) {
+    return @llvm.ispc.atomicrmw.xchg.seq_cst(ptr, val);
+}
+EXT uniform int64 __atomic_swap_uniform_int64_global(uniform int8 *uniform ptr, uniform int64 val) {
+    return @llvm.ispc.atomicrmw.xchg.seq_cst(ptr, val);
+}
+
 #undef NOESCAPE
 #undef ADDRSPACE
 #undef READONLY

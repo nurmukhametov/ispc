@@ -541,6 +541,7 @@ static std::string lGetMangledTypeStr(llvm::Type *Ty, bool &HasUnnamedType) {
 
 enum class ISPCIntrinsics : unsigned {
     not_intrinsic = 0,
+    atomicrmw,
     bitcast,
     insert,
     extract,
@@ -551,6 +552,7 @@ enum class ISPCIntrinsics : unsigned {
 
 const char *ISPCIntrinsicsNames[] = {
     "not_intrinsic",
+    "llvm.ispc.atomicrmw",
     "llvm.ispc.bitcast",
     "llvm.ispc.insert",
     "llvm.ispc.extract",
@@ -560,6 +562,10 @@ const char *ISPCIntrinsicsNames[] = {
 };
 
 static ISPCIntrinsics lLookupISPCInstrinsic(const std::string &name) {
+    llvm::StringRef ref(name);
+    if (ref.startswith("llvm.ispc.atomicrmw.")) {
+        return ISPCIntrinsics::atomicrmw;
+    }
     for (unsigned i = 1; i <= (unsigned)ISPCIntrinsics::stream_store; i++) {
         if (name == ISPCIntrinsicsNames[i]) {
             return (ISPCIntrinsics)i;
@@ -578,7 +584,7 @@ static llvm::VectorType *lGetDoubleVectorType(llvm::Type *type) {
     return  llvm::VectorType::get(vt->getElementType(), vectorWidth * 2, false);
 }
 
-static llvm::Function *lGetISPCIntrinsicsFuncDecl(llvm::Module *M, ISPCIntrinsics ID,
+static llvm::Function *lGetISPCIntrinsicsFuncDecl(llvm::Module *M, std::string origName, ISPCIntrinsics ID,
                                                   std::vector<const Type *> &argTypes) {
     std::string name = {};
     llvm::Type *retType = nullptr;
@@ -589,6 +595,11 @@ static llvm::Function *lGetISPCIntrinsicsFuncDecl(llvm::Module *M, ISPCIntrinsic
     }
     bool hasUnnamedType = false;
     switch (ID) {
+    case ISPCIntrinsics::atomicrmw: {
+        retType = TYs[1];
+        name += origName + "." + lGetMangledTypeStr(TYs[1], hasUnnamedType);
+        break;
+    }
     case ISPCIntrinsics::bitcast: {
         Assert(TYs[0]->getPrimitiveSizeInBits() == TYs[1]->getPrimitiveSizeInBits());
         retType = TYs[1];
@@ -782,7 +793,7 @@ Symbol *Module::AddLLVMIntrinsicDecl(const std::string &name, ExprList *args, So
                 for (size_t i = 0; i < args->exprs.size(); i++) {
                     argTypes[i] = args->exprs[i]->GetType();
                 }
-                funcDecl = lGetISPCIntrinsicsFuncDecl(module, IID, argTypes);
+                funcDecl = lGetISPCIntrinsicsFuncDecl(module, name, IID, argTypes);
             } else {
                 Error(pos, "LLVM intrinsic \"%s\" not supported.", name.c_str());
                 return nullptr;

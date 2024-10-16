@@ -312,21 +312,6 @@ define $3 @__atomic_$2_uniform_$4_global(i8 * %ptr, $3 %val) nounwind alwaysinli
 }
 ')
 
-;; Macro to declare the function that implements the swap atomic.
-;; Takes three parameters:
-;; $1: vector width of the target
-;; $2: llvm type of the vector elements (e.g. i32)
-;; $3: ispc type of the elements (e.g. int32)
-
-define(`global_swap', `
-define $2 @__atomic_swap_uniform_$3_global(i8* %ptr, $2 %val) nounwind alwaysinline {
- %ptr_typed = bitcast i8* %ptr to $2*
- %r = atomicrmw xchg $2 * %ptr_typed, $2 %val seq_cst
- ret $2 %r
-}
-')
-
-
 ;; Similarly, macro to declare the function that implements the compare/exchange
 ;; atomic.  Takes three parameters:
 ;; $1: vector width of the target
@@ -442,23 +427,6 @@ global_atomic_uniform(WIDTH, fadd, double, double)
 global_atomic_uniform(WIDTH, fsub, double, double)
 global_atomic_uniform(WIDTH, fmin, double, double)
 global_atomic_uniform(WIDTH, fmax, double, double)
-
-global_swap(WIDTH, i32, int32)
-global_swap(WIDTH, i64, int64)
-
-define float @__atomic_swap_uniform_float_global(i8 * %ptr, float %val) nounwind alwaysinline {
-  %ival = bitcast float %val to i32
-  %iret = call i32 @__atomic_swap_uniform_int32_global(i8 * %ptr, i32 %ival)
-  %ret = bitcast i32 %iret to float
-  ret float %ret
-}
-
-define double @__atomic_swap_uniform_double_global(i8 * %ptr, double %val) nounwind alwaysinline {
-  %ival = bitcast double %val to i64
-  %iret = call i64 @__atomic_swap_uniform_int64_global(i8 * %ptr, i64 %ival)
-  %ret = bitcast i64 %iret to double
-  ret double %ret
-}
 
 global_atomic_exchange(WIDTH, i32, int32)
 global_atomic_exchange(WIDTH, i64, int64)
