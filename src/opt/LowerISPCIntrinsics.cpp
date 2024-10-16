@@ -76,6 +76,19 @@ static llvm::Value *lLowerBitcastIntrinsic(llvm::CallInst *CI) {
     return builder.CreateBitCast(V, VT->getType());
 }
 
+static llvm::Value *lLowerStreamStoreIntrinsic(llvm::CallInst *CI) {
+    // generate store with !nontemporal metadata attached
+    llvm::IRBuilder<> builder(CI);
+
+    llvm::Value *P = CI->getArgOperand(0);
+    llvm::Value *V = CI->getArgOperand(1);
+
+    llvm::StoreInst *SI = builder.CreateStore(V, P);
+    SI->setMetadata("nontemporal", llvm::MDNode::get(CI->getContext(), {}));
+
+    return SI;
+}
+
 static bool lRunOnBasicBlock(llvm::BasicBlock &BB) {
     // TODO: add lit tests
     for (llvm::BasicBlock::iterator iter = BB.begin(), e = BB.end(); iter != e;) {
@@ -91,6 +104,8 @@ static bool lRunOnBasicBlock(llvm::BasicBlock &BB) {
                     D = lLowerInserIntrinsic(CI);
                 } else if (Callee->getName().startswith("llvm.ispc.bitcast.")) {
                     D = lLowerBitcastIntrinsic(CI);
+                } else if (Callee->getName().startswith("llvm.ispc.stream_store.")) {
+                    D = lLowerStreamStoreIntrinsic(CI);
                 }
 
                 if (D) {

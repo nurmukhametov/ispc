@@ -1121,6 +1121,50 @@ UNMANGLED CDECL void __delete_varying_64rt(varying int64 addr) {
 }
 #endif // BUILD_OS == WINDOWS && RUNTIME == 64
 
+// streaming stores
+EXT void __streaming_store_uniform_i8(NOESCAPE uniform int8 *uniform ptr, uniform int8 val) {
+    @llvm.ispc.stream_store(ptr, val);
+}
+EXT void __streaming_store_uniform_i16(NOESCAPE uniform int8 *uniform ptr, uniform int16 val) {
+    @llvm.ispc.stream_store(ptr, val);
+}
+EXT void __streaming_store_uniform_i32(NOESCAPE uniform int8 *uniform ptr, uniform int32 val) {
+    @llvm.ispc.stream_store(ptr, val);
+}
+EXT void __streaming_store_uniform_i64(NOESCAPE uniform int8 *uniform ptr, uniform int64 val) {
+    @llvm.ispc.stream_store(ptr, val);
+}
+EXT void __streaming_store_uniform_half(NOESCAPE uniform int8 *uniform ptr, uniform float16 val) {
+    @llvm.ispc.stream_store(ptr, val);
+}
+EXT void __streaming_store_uniform_float(NOESCAPE uniform int8 *uniform ptr, uniform float val) {
+    @llvm.ispc.stream_store(ptr, val);
+}
+EXT void __streaming_store_uniform_double(NOESCAPE uniform int8 *uniform ptr, uniform double val) {
+    @llvm.ispc.stream_store(ptr, val);
+}
+EXT void __streaming_store_varying_i8(NOESCAPE uniform int8 *uniform ptr, varying int8 val) {
+    @llvm.ispc.stream_store(ptr, val);
+}
+EXT void __streaming_store_varying_i16(NOESCAPE uniform int8 *uniform ptr, varying int16 val) {
+    @llvm.ispc.stream_store(ptr, val);
+}
+EXT void __streaming_store_varying_i32(NOESCAPE uniform int8 *uniform ptr, varying int32 val) {
+    @llvm.ispc.stream_store(ptr, val);
+}
+EXT void __streaming_store_varying_i64(NOESCAPE uniform int8 *uniform ptr, varying int64 val) {
+    @llvm.ispc.stream_store(ptr, val);
+}
+EXT void __streaming_store_varying_half(NOESCAPE uniform int8 *uniform ptr, varying float16 val) {
+    @llvm.ispc.stream_store(ptr, val);
+}
+EXT void __streaming_store_varying_float(NOESCAPE uniform int8 *uniform ptr, varying float val) {
+    @llvm.ispc.stream_store(ptr, val);
+}
+EXT void __streaming_store_varying_double(NOESCAPE uniform int8 *uniform ptr, varying double val) {
+    @llvm.ispc.stream_store(ptr, val);
+}
+
 EXT varying int8 __masked_load_i8(varying int8 *uniform ptr, UIntMaskType mask) {
     varying int8 passthru;
     return @llvm.masked.load((uniform int8 * uniform) ptr, 1, mask, passthru);
