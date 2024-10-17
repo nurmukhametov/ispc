@@ -72,166 +72,43 @@
 // In sane cases, this function call should always be removed.
 extern "C" void __not_supported();
 
-// Template functions that are wrappers around insertelement and extractelement LLVM operations.
-//
-// We need a hack below with specializations because at the moment ISPC needs
-// to know the exact type of the intrinsic arguments to correctly deduce the
-// intrinsic type. This is a limitation of the current ISPC implementation.
-//
-template <typename T> unmasked varying T __insert(varying T v, uniform int32 i, uniform T val) {
-    // only specializations below to be called
-    __not_supported();
-}
-template <> unmasked varying int8 __insert<int8>(varying int8 v, uniform int32 i, uniform int8 val) {
-    return @llvm.ispc.insert(v, i, val);
-}
-template <> unmasked varying int16 __insert<int16>(varying int16 v, uniform int32 i, uniform int16 val) {
-    return @llvm.ispc.insert(v, i, val);
-}
-template <> unmasked varying int32 __insert<int32>(varying int32 v, uniform int32 i, uniform int32 val) {
-    return @llvm.ispc.insert(v, i, val);
-}
-template <> unmasked varying int64 __insert<int64>(varying int64 v, uniform int32 i, uniform int64 val) {
-    return @llvm.ispc.insert(v, i, val);
-}
-template <> unmasked varying uint8 __insert<uint8>(varying uint8 v, uniform int32 i, uniform uint8 val) {
-    return @llvm.ispc.insert(v, i, val);
-}
-template <> unmasked varying uint16 __insert<uint16>(varying uint16 v, uniform int32 i, uniform uint16 val) {
-    return @llvm.ispc.insert(v, i, val);
-}
-template <> unmasked varying uint32 __insert<uint32>(varying uint32 v, uniform int32 i, uniform uint32 val) {
-    return @llvm.ispc.insert(v, i, val);
-}
-template <> unmasked varying uint64 __insert<uint64>(varying uint64 v, uniform int32 i, uniform uint64 val) {
-    return @llvm.ispc.insert(v, i, val);
-}
-template <> unmasked varying float16 __insert<float16>(varying float16 v, uniform int32 i, uniform float16 val) {
-    return @llvm.ispc.insert(v, i, val);
-}
-template <> unmasked varying float __insert<float>(varying float v, uniform int32 i, uniform float val) {
-    return @llvm.ispc.insert(v, i, val);
-}
-template <> unmasked varying double __insert<double>(varying double v, uniform int32 i, uniform double val) {
-    return @llvm.ispc.insert(v, i, val);
-}
+// Overloaded functions that are wrappers around insertelement and extractelement LLVM operations.
+int8 __insert(int8 v, uniform int32 i, uniform int8 val) { return @llvm.ispc.insert(v, i, val); }
+int16 __insert(int16 v, uniform int32 i, uniform int16 val) { return @llvm.ispc.insert(v, i, val); }
+int32 __insert(int32 v, uniform int32 i, uniform int32 val) { return @llvm.ispc.insert(v, i, val); }
+int64 __insert(int64 v, uniform int32 i, uniform int64 val) { return @llvm.ispc.insert(v, i, val); }
+uint8 __insert(uint8 v, uniform int32 i, uniform uint8 val) { return @llvm.ispc.insert(v, i, val); }
+uint16 __insert(uint16 v, uniform int32 i, uniform uint16 val) { return @llvm.ispc.insert(v, i, val); }
+uint32 __insert(uint32 v, uniform int32 i, uniform uint32 val) { return @llvm.ispc.insert(v, i, val); }
+uint64 __insert(uint64 v, uniform int32 i, uniform uint64 val) { return @llvm.ispc.insert(v, i, val); }
+float16 __insert(float16 v, uniform int32 i, uniform float16 val) { return @llvm.ispc.insert(v, i, val); }
+float __insert(float v, uniform int32 i, uniform float val) { return @llvm.ispc.insert(v, i, val); }
+double __insert(double v, uniform int32 i, uniform double val) { return @llvm.ispc.insert(v, i, val); }
 
-// extract from varying vector
-template <typename T> unmasked uniform T __extract(varying T v, uniform int32 i) {
-    // only specializations below to be called
-    __not_supported();
-}
-template <> unmasked uniform int8 __extract<int8>(varying int8 v, uniform int32 i) { return @llvm.ispc.extract(v, i); }
-template <> unmasked uniform int16 __extract<int16>(varying int16 v, uniform int32 i) {
-    return @llvm.ispc.extract(v, i);
-}
-template <> unmasked uniform int32 __extract<int32>(varying int32 v, uniform int32 i) {
-    return @llvm.ispc.extract(v, i);
-}
-template <> unmasked uniform int64 __extract<int64>(varying int64 v, uniform int32 i) {
-    return @llvm.ispc.extract(v, i);
-}
-template <> unmasked uniform uint8 __extract<uint8>(varying uint8 v, uniform int32 i) {
-    return @llvm.ispc.extract(v, i);
-}
-template <> unmasked uniform uint16 __extract<uint16>(varying uint16 v, uniform int32 i) {
-    return @llvm.ispc.extract(v, i);
-}
-template <> unmasked uniform uint32 __extract<uint32>(varying uint32 v, uniform int32 i) {
-    return @llvm.ispc.extract(v, i);
-}
-template <> unmasked uniform uint64 __extract<uint64>(varying uint64 v, uniform int32 i) {
-    return @llvm.ispc.extract(v, i);
-}
-template <> unmasked uniform float16 __extract<float16>(varying float16 v, uniform int32 i) {
-    return @llvm.ispc.extract(v, i);
-}
-template <> unmasked uniform float __extract<float>(varying float v, uniform int32 i) {
-    return @llvm.ispc.extract(v, i);
-}
-template <> unmasked uniform double __extract<double>(varying double v, uniform int32 i) {
-    return @llvm.ispc.extract(v, i);
-}
-
-// extract from short vector
-template <typename T, int N> unmasked uniform T __extract(uniform T<N> v, uniform int32 i) {
-    // only specializations below to be called
-    __not_supported();
-}
-// only short vector of DOUBLE_WIDTH are specialized
-template <> unmasked uniform int8 __extract<int8, DOUBLE_WIDTH>(uniform int8<DOUBLE_WIDTH> v, uniform int32 i) {
-    return @llvm.ispc.extract(v, i);
-}
-template <> unmasked uniform int16 __extract<int16, DOUBLE_WIDTH>(uniform int16<DOUBLE_WIDTH> v, uniform int32 i) {
-    return @llvm.ispc.extract(v, i);
-}
-template <> unmasked uniform int32 __extract<int32, DOUBLE_WIDTH>(uniform int32<DOUBLE_WIDTH> v, uniform int32 i) {
-    return @llvm.ispc.extract(v, i);
-}
-template <> unmasked uniform int64 __extract<int64, DOUBLE_WIDTH>(uniform int64<DOUBLE_WIDTH> v, uniform int32 i) {
-    return @llvm.ispc.extract(v, i);
-}
-template <> unmasked uniform uint8 __extract<uint8, DOUBLE_WIDTH>(uniform uint8<DOUBLE_WIDTH> v, uniform int32 i) {
-    return @llvm.ispc.extract(v, i);
-}
-template <> unmasked uniform uint16 __extract<uint16, DOUBLE_WIDTH>(uniform uint16<DOUBLE_WIDTH> v, uniform int32 i) {
-    return @llvm.ispc.extract(v, i);
-}
-template <> unmasked uniform uint32 __extract<uint32, DOUBLE_WIDTH>(uniform uint32<DOUBLE_WIDTH> v, uniform int32 i) {
-    return @llvm.ispc.extract(v, i);
-}
-template <> unmasked uniform uint64 __extract<uint64, DOUBLE_WIDTH>(uniform uint64<DOUBLE_WIDTH> v, uniform int32 i) {
-    return @llvm.ispc.extract(v, i);
-}
-template <>
-unmasked uniform float16 __extract<float16, DOUBLE_WIDTH>(uniform float16<DOUBLE_WIDTH> v, uniform int32 i) {
-    return @llvm.ispc.extract(v, i);
-}
-template <> unmasked uniform float __extract<float, DOUBLE_WIDTH>(uniform float<DOUBLE_WIDTH> v, uniform int32 i) {
-    return @llvm.ispc.extract(v, i);
-}
-template <> unmasked uniform double __extract<double, DOUBLE_WIDTH>(uniform double<DOUBLE_WIDTH> v, uniform int32 i) {
-    return @llvm.ispc.extract(v, i);
-}
+uniform int8 __extract(int8 v, uniform int32 i) { return @llvm.ispc.extract(v, i); }
+uniform int16 __extract(int16 v, uniform int32 i) { return @llvm.ispc.extract(v, i); }
+uniform int32 __extract(int32 v, uniform int32 i) { return @llvm.ispc.extract(v, i); }
+uniform int64 __extract(int64 v, uniform int32 i) { return @llvm.ispc.extract(v, i); }
+uniform uint8 __extract(uint8 v, uniform int32 i) { return @llvm.ispc.extract(v, i); }
+uniform uint16 __extract(uint16 v, uniform int32 i) { return @llvm.ispc.extract(v, i); }
+uniform uint32 __extract(uint32 v, uniform int32 i) { return @llvm.ispc.extract(v, i); }
+uniform uint64 __extract(uint64 v, uniform int32 i) { return @llvm.ispc.extract(v, i); }
+uniform float16 __extract(float16 v, uniform int32 i) { return @llvm.ispc.extract(v, i); }
+uniform float __extract(float v, uniform int32 i) { return @llvm.ispc.extract(v, i); }
+uniform double __extract(double v, uniform int32 i) { return @llvm.ispc.extract(v, i); }
 
 // concat: concatenate varying vectors to short vector of DOUBLE_WIDTH
-template <typename T> unmasked uniform T<DOUBLE_WIDTH> __concat(varying T v0, varying T v1) {
-    // only specializations below to be called
-    __not_supported();
-}
-template <> unmasked uniform int8<DOUBLE_WIDTH> __concat<int8>(varying int8 v0, varying int8 v1) {
-    return @llvm.ispc.concat(v0, v1);
-}
-template <> unmasked uniform int16<DOUBLE_WIDTH> __concat<int16>(varying int16 v0, varying int16 v1) {
-    return @llvm.ispc.concat(v0, v1);
-}
-template <> unmasked uniform int32<DOUBLE_WIDTH> __concat<int32>(varying int32 v0, varying int32 v1) {
-    return @llvm.ispc.concat(v0, v1);
-}
-template <> unmasked uniform int64<DOUBLE_WIDTH> __concat<int64>(varying int64 v0, varying int64 v1) {
-    return @llvm.ispc.concat(v0, v1);
-}
-template <> unmasked uniform uint8<DOUBLE_WIDTH> __concat<uint8>(varying uint8 v0, varying uint8 v1) {
-    return @llvm.ispc.concat(v0, v1);
-}
-template <> unmasked uniform uint16<DOUBLE_WIDTH> __concat<uint16>(varying uint16 v0, varying uint16 v1) {
-    return @llvm.ispc.concat(v0, v1);
-}
-template <> unmasked uniform uint32<DOUBLE_WIDTH> __concat<uint32>(varying uint32 v0, varying uint32 v1) {
-    return @llvm.ispc.concat(v0, v1);
-}
-template <> unmasked uniform uint64<DOUBLE_WIDTH> __concat<uint64>(varying uint64 v0, varying uint64 v1) {
-    return @llvm.ispc.concat(v0, v1);
-}
-template <> unmasked uniform float16<DOUBLE_WIDTH> __concat<float16>(varying float16 v0, varying float16 v1) {
-    return @llvm.ispc.concat(v0, v1);
-}
-template <> unmasked uniform float<DOUBLE_WIDTH> __concat<float>(varying float v0, varying float v1) {
-    return @llvm.ispc.concat(v0, v1);
-}
-template <> unmasked uniform double<DOUBLE_WIDTH> __concat<double>(varying double v0, varying double v1) {
-    return @llvm.ispc.concat(v0, v1);
-}
+uniform int8<DOUBLE_WIDTH> __concat(int8 v0, int8 v1) { return @llvm.ispc.concat(v0, v1); }
+uniform int16<DOUBLE_WIDTH> __concat(int16 v0, int16 v1) { return @llvm.ispc.concat(v0, v1); }
+uniform int32<DOUBLE_WIDTH> __concat(int32 v0, int32 v1) { return @llvm.ispc.concat(v0, v1); }
+uniform int64<DOUBLE_WIDTH> __concat(int64 v0, int64 v1) { return @llvm.ispc.concat(v0, v1); }
+uniform uint8<DOUBLE_WIDTH> __concat(uint8 v0, uint8 v1) { return @llvm.ispc.concat(v0, v1); }
+uniform uint16<DOUBLE_WIDTH> __concat(uint16 v0, uint16 v1) { return @llvm.ispc.concat(v0, v1); }
+uniform uint32<DOUBLE_WIDTH> __concat(uint32 v0, uint32 v1) { return @llvm.ispc.concat(v0, v1); }
+uniform uint64<DOUBLE_WIDTH> __concat(uint64 v0, uint64 v1) { return @llvm.ispc.concat(v0, v1); }
+uniform float16<DOUBLE_WIDTH> __concat(float16 v0, float16 v1) { return @llvm.ispc.concat(v0, v1); }
+uniform float<DOUBLE_WIDTH> __concat(float v0, float v1) { return @llvm.ispc.concat(v0, v1); }
+uniform double<DOUBLE_WIDTH> __concat(double v0, double v1) { return @llvm.ispc.concat(v0, v1); }
 
 // // EXT uniform bool __is_compile_time_constant_mask(UIntMaskType);
 // // EXT uniform bool __is_compile_time_constant_uniform_int32(uniform int32);
@@ -608,11 +485,11 @@ template <typename T> uniform bool __reduce_equal(varying T x, uniform T *unifor
     uniform bool res = false;
     foreach_active(i) {
         if (j == 0) {
-            first = __extract<T>(x, i);
+            first = __extract(x, i);
             res = true;
             j++;
         } else {
-            if (first != __extract<T>(x, i)) {
+            if (first != __extract(x, i)) {
                 res = false;
             }
         }
@@ -768,7 +645,7 @@ template <typename T> unmasked varying T __exclusive_scan_add(varying T v, UIntM
     varying T res = 0;
     varying T val = mask ? v : 0;
     for (uniform int32 i = 1; i < TARGET_WIDTH; i++) {
-        res = __insert<T>(res, i, __extract<T>(val, i - 1) + __extract<T>(res, i - 1));
+        res = __insert(res, i, __extract(val, i - 1) + __extract(res, i - 1));
     }
     return res;
 }
@@ -791,7 +668,7 @@ template <typename T> unmasked varying T __exclusive_scan_and(varying T v, UIntM
     varying T res = -1;
     varying T val = mask ? v : -1;
     for (uniform int32 i = 1; i < TARGET_WIDTH; i++) {
-        res = __insert<T>(res, i, __extract<T>(val, i - 1) & __extract<T>(res, i - 1));
+        res = __insert(res, i, __extract(val, i - 1) & __extract(res, i - 1));
     }
     return res;
 }
@@ -805,7 +682,7 @@ template <typename T> unmasked varying T __exclusive_scan_or(varying T v, UIntMa
     varying T res = 0;
     varying T val = mask ? v : 0;
     for (uniform int32 i = 1; i < TARGET_WIDTH; i++) {
-        res = __insert<T>(res, i, __extract<T>(val, i - 1) | __extract<T>(res, i - 1));
+        res = __insert(res, i, __extract(val, i - 1) | __extract(res, i - 1));
     }
     return res;
 }
@@ -840,7 +717,7 @@ EXT READNONE varying int8 __insert_int8(varying int8 vec, uniform int32 lane, un
 
 // rotate
 template <typename T> unmasked varying T __rotate(varying T v, uniform int32 i) {
-    uniform T<DOUBLE_WIDTH> dbl = __concat<T>(v, v);
+    uniform T<DOUBLE_WIDTH> dbl = __concat(v, v);
     uniform int32 start_pos = i & (TARGET_WIDTH - 1);
     varying T *uniform ptr = (varying T * uniform) & dbl[start_pos];
     return *ptr;
@@ -860,9 +737,9 @@ template <typename T> unmasked varying T __shift(varying T v, uniform int32 i) {
     uniform int32 start_pos = i;
     if (i < 0) {
         start_pos = TARGET_WIDTH + i;
-        dbl = __concat<T>(zero, v);
+        dbl = __concat(zero, v);
     } else {
-        dbl = __concat<T>(v, zero);
+        dbl = __concat(v, zero);
     }
     varying T *uniform ptr = (varying T * uniform) & dbl[start_pos];
     return *ptr;
@@ -933,8 +810,8 @@ UNMANGLED CDECL void __prefetch_write_varying_3_native(uniform int8 *uniform, un
 template <typename T> unmasked varying T __shuffle(varying T v, varying int32 perm) {
     varying T result = 0;
     for (uniform int32 i = 0; i < TARGET_WIDTH; i++) {
-        uniform T lane_v = __extract<T>(v, __extract<T>(perm, i));
-        result = __insert<T>(result, i, lane_v);
+        uniform T lane_v = __extract(v, __extract(perm, i));
+        result = __insert(result, i, lane_v);
     }
     return result;
 }
@@ -952,11 +829,11 @@ EXT READNONE varying double __shuffle_double(varying double v, varying int32 per
 
 // shuffle2
 template <typename T> unmasked varying T __shuffle2(varying T v0, varying T v1, varying int32 perm) {
-    uniform T<DOUBLE_WIDTH> v = __concat<T>(v0, v1);
+    uniform T<DOUBLE_WIDTH> v = __concat(v0, v1);
     varying T result = 0;
     for (uniform int32 i = 0; i < TARGET_WIDTH; i++) {
-        uniform T lane_v = __extract<T, DOUBLE_WIDTH>(v, __extract<T>(perm, i));
-        result = __insert<T>(result, i, lane_v);
+        uniform T lane_v = v[__extract(perm, i)];
+        result = __insert(result, i, lane_v);
     }
     return result;
 }
@@ -1365,10 +1242,10 @@ EXT READONLY varying double __gather64_double(varying uint64 addrs, UIntMaskType
 template <typename T, typename ADDRi, typename ADDRu> varying T __gather_generic(varying ADDRu addrs) {
     varying T res;
     foreach_active(i) {
-        uniform ADDRi addr = (uniform ADDRi) __extract<ADDRu>(addrs, i);
+        uniform ADDRi addr = (uniform ADDRi) __extract(addrs, i);
         uniform T *uniform ptr = (uniform T *uniform)addr;
         uniform T val = *ptr;
-        res = __insert<T>(res, i, val);
+        res = __insert(res, i, val);
     }
     return res;
 }
@@ -1619,9 +1496,9 @@ EXT noinline void __pseudo_masked_store_double(NOESCAPE varying double *uniform 
 // For the targets which have scatters but --disable-scatters is requested
 template <typename T, typename ADDRi, typename ADDRu> void __scatter_generic(varying ADDRu addrs, varying T val) {
     foreach_active(i) {
-        uniform ADDRi addr = (uniform ADDRi) __extract<ADDRu>(addrs, i);
+        uniform ADDRi addr = (uniform ADDRi) __extract(addrs, i);
         uniform T *uniform ptr = (uniform T *uniform)addr;
-        *ptr = __extract<T>(val, i);
+        *ptr = __extract(val, i);
     }
 }
 UNMANGLED CDECL void __scatter32_generic_i8(varying uint32 addr, varying int8 val) {
