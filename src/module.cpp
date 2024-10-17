@@ -547,6 +547,7 @@ enum class ISPCIntrinsics : unsigned {
     cmpxchg,
     extract,
     insert,
+    select,
     stream_load,
     stream_store,
 };
@@ -559,6 +560,7 @@ const char *ISPCIntrinsicsNames[] = {
     "llvm.ispc.cmpxchg",
     "llvm.ispc.extract",
     "llvm.ispc.insert",
+    "llvm.ispc.select",
     "llvm.ispc.stream_load",
     "llvm.ispc.stream_store",
 };
@@ -641,6 +643,12 @@ static llvm::Function *lGetISPCIntrinsicsFuncDecl(llvm::Module *M, std::string o
         retType = vt;
         name = ISPCIntrinsicsNames[(unsigned)ID];
         name += "." + lGetMangledTypeStr(TYs[0], hasUnnamedType);
+        break;
+    }
+    case ISPCIntrinsics::select: {
+        retType = TYs[1];
+        name = ISPCIntrinsicsNames[(unsigned)ID];
+        name += "." + lGetMangledTypeStr(TYs[1], hasUnnamedType);
         break;
     }
     case ISPCIntrinsics::stream_load: {

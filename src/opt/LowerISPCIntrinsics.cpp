@@ -202,6 +202,17 @@ static llvm::Value *lLowerCmpXchgIntrinsic(llvm::CallInst *CI) {
     return builder.CreateExtractValue(result, 0);
 }
 
+static llvm::Value *lLowerSelectIntrinsic(llvm::CallInst *CI) {
+    // generate select instruction
+    llvm::IRBuilder<> builder(CI);
+
+    llvm::Value *C = CI->getArgOperand(0);
+    llvm::Value *T = CI->getArgOperand(1);
+    llvm::Value *F = CI->getArgOperand(2);
+
+    return builder.CreateSelect(C, T, F);
+}
+
 static bool lRunOnBasicBlock(llvm::BasicBlock &BB) {
     // TODO: add lit tests
     for (llvm::BasicBlock::iterator iter = BB.begin(), e = BB.end(); iter != e;) {
@@ -225,6 +236,8 @@ static bool lRunOnBasicBlock(llvm::BasicBlock &BB) {
                     D = lLowerAtomicRMWIntrinsic(CI);
                 } else if (Callee->getName().startswith("llvm.ispc.cmpxchg.")) {
                     D = lLowerCmpXchgIntrinsic(CI);
+                } else if (Callee->getName().startswith("llvm.ispc.select.")) {
+                    D = lLowerSelectIntrinsic(CI);
                 }
 
                 if (D) {
