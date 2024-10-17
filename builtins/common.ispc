@@ -1888,6 +1888,84 @@ EXT uniform int32 __atomic_swap_uniform_int32_global(uniform int8 *uniform ptr, 
 EXT uniform int64 __atomic_swap_uniform_int64_global(uniform int8 *uniform ptr, uniform int64 val) {
     return @llvm.ispc.atomicrmw.xchg.seq_cst(ptr, val);
 }
+EXT uniform int32 __atomic_add_uniform_int32_global(uniform int8 *uniform ptr, uniform int32 val) {
+    return @llvm.ispc.atomicrmw.add.seq_cst(ptr, val);
+}
+EXT uniform int64 __atomic_add_uniform_int64_global(uniform int8 *uniform ptr, uniform int64 val) {
+    return @llvm.ispc.atomicrmw.add.seq_cst(ptr, val);
+}
+EXT uniform int32 __atomic_sub_uniform_int32_global(uniform int8 *uniform ptr, uniform int32 val) {
+    return @llvm.ispc.atomicrmw.sub.seq_cst(ptr, val);
+}
+EXT uniform int64 __atomic_sub_uniform_int64_global(uniform int8 *uniform ptr, uniform int64 val) {
+    return @llvm.ispc.atomicrmw.sub.seq_cst(ptr, val);
+}
+EXT uniform int32 __atomic_and_uniform_int32_global(uniform int8 *uniform ptr, uniform int32 val) {
+    return @llvm.ispc.atomicrmw.and.seq_cst(ptr, val);
+}
+EXT uniform int64 __atomic_and_uniform_int64_global(uniform int8 *uniform ptr, uniform int64 val) {
+    return @llvm.ispc.atomicrmw.and.seq_cst(ptr, val);
+}
+EXT uniform int32 __atomic_or_uniform_int32_global(uniform int8 *uniform ptr, uniform int32 val) {
+    return @llvm.ispc.atomicrmw.or.seq_cst(ptr, val);
+}
+EXT uniform int64 __atomic_or_uniform_int64_global(uniform int8 *uniform ptr, uniform int64 val) {
+    return @llvm.ispc.atomicrmw.or.seq_cst(ptr, val);
+}
+EXT uniform int32 __atomic_xor_uniform_int32_global(uniform int8 *uniform ptr, uniform int32 val) {
+    return @llvm.ispc.atomicrmw.xor.seq_cst(ptr, val);
+}
+EXT uniform int64 __atomic_xor_uniform_int64_global(uniform int8 *uniform ptr, uniform int64 val) {
+    return @llvm.ispc.atomicrmw.xor.seq_cst(ptr, val);
+}
+EXT uniform int32 __atomic_min_uniform_int32_global(uniform int8 *uniform ptr, uniform int32 val) {
+    return @llvm.ispc.atomicrmw.min.seq_cst(ptr, val);
+}
+EXT uniform int64 __atomic_min_uniform_int64_global(uniform int8 *uniform ptr, uniform int64 val) {
+    return @llvm.ispc.atomicrmw.min.seq_cst(ptr, val);
+}
+EXT uniform int32 __atomic_max_uniform_int32_global(uniform int8 *uniform ptr, uniform int32 val) {
+    return @llvm.ispc.atomicrmw.max.seq_cst(ptr, val);
+}
+EXT uniform int64 __atomic_max_uniform_int64_global(uniform int8 *uniform ptr, uniform int64 val) {
+    return @llvm.ispc.atomicrmw.max.seq_cst(ptr, val);
+}
+EXT uniform int32 __atomic_umin_uniform_uint32_global(uniform int8 *uniform ptr, uniform uint32 val) {
+    return @llvm.ispc.atomicrmw.umin.seq_cst(ptr, val);
+}
+EXT uniform int64 __atomic_umin_uniform_uint64_global(uniform int8 *uniform ptr, uniform uint64 val) {
+    return @llvm.ispc.atomicrmw.umin.seq_cst(ptr, val);
+}
+EXT uniform int32 __atomic_umax_uniform_uint32_global(uniform int8 *uniform ptr, uniform uint32 val) {
+    return @llvm.ispc.atomicrmw.umax.seq_cst(ptr, val);
+}
+EXT uniform int64 __atomic_umax_uniform_uint64_global(uniform int8 *uniform ptr, uniform uint64 val) {
+    return @llvm.ispc.atomicrmw.umax.seq_cst(ptr, val);
+}
+EXT uniform double __atomic_fadd_uniform_double_global(uniform int8 *uniform ptr, uniform double val) {
+    return @llvm.ispc.atomicrmw.fadd.seq_cst(ptr, val);
+}
+EXT uniform float __atomic_fadd_uniform_float_global(uniform int8 *uniform ptr, uniform float val) {
+    return @llvm.ispc.atomicrmw.fadd.seq_cst(ptr, val);
+}
+EXT uniform double __atomic_fsub_uniform_double_global(uniform int8 *uniform ptr, uniform double val) {
+    return @llvm.ispc.atomicrmw.fsub.seq_cst(ptr, val);
+}
+EXT uniform float __atomic_fsub_uniform_float_global(uniform int8 *uniform ptr, uniform float val) {
+    return @llvm.ispc.atomicrmw.fsub.seq_cst(ptr, val);
+}
+EXT uniform double __atomic_fmin_uniform_double_global(uniform int8 *uniform ptr, uniform double val) {
+    return @llvm.ispc.atomicrmw.fmin.seq_cst(ptr, val);
+}
+EXT uniform float __atomic_fmin_uniform_float_global(uniform int8 *uniform ptr, uniform float val) {
+    return @llvm.ispc.atomicrmw.fmin.seq_cst(ptr, val);
+}
+EXT uniform double __atomic_fmax_uniform_double_global(uniform int8 *uniform ptr, uniform double val) {
+    return @llvm.ispc.atomicrmw.fmax.seq_cst(ptr, val);
+}
+EXT uniform float __atomic_fmax_uniform_float_global(uniform int8 *uniform ptr, uniform float val) {
+    return @llvm.ispc.atomicrmw.fmax.seq_cst(ptr, val);
+}
 
 #undef NOESCAPE
 #undef ADDRSPACE

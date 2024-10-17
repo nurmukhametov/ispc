@@ -305,11 +305,7 @@ define <$1 x $3> @__atomic_$2_$4_global(i8* %ptr, <$1 x $3> %val,
 ;; $4: return type of the LLVM atomic type, in ispc naming paralance (e.g. int32)
 
 define(`global_atomic_uniform', `
-define $3 @__atomic_$2_uniform_$4_global(i8 * %ptr, $3 %val) nounwind alwaysinline {
-  %ptr_typed = bitcast i8* %ptr to $3*
-  %r = atomicrmw $2 $3 * %ptr_typed, $3 %val seq_cst
-  ret $3 %r
-}
+declare $3 @__atomic_$2_uniform_$4_global(i8 * %ptr, $3 %val) nounwind alwaysinline
 ')
 
 ;; Similarly, macro to declare the function that implements the compare/exchange

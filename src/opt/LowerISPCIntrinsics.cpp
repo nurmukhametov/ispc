@@ -148,6 +148,14 @@ static llvm::Value *lLowerAtomicRMWIntrinsic(llvm::CallInst *CI) {
         op = llvm::AtomicRMWInst::BinOp::UMax;
     } else if (opName == "umin") {
         op = llvm::AtomicRMWInst::BinOp::UMin;
+    } else if (opName == "fadd") {
+        op = llvm::AtomicRMWInst::BinOp::FAdd;
+    } else if (opName == "fsub") {
+        op = llvm::AtomicRMWInst::BinOp::FSub;
+    } else if (opName == "fmax") {
+        op = llvm::AtomicRMWInst::BinOp::FMax;
+    } else if (opName == "fmin") {
+        op = llvm::AtomicRMWInst::BinOp::FMin;
     }
     Assert(op != llvm::AtomicRMWInst::BinOp::BAD_BINOP);
 
