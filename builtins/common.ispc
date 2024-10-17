@@ -73,6 +73,7 @@
 extern "C" void __not_supported();
 
 // Overloaded functions that are wrappers around insertelement and extractelement LLVM operations.
+bool __insert(bool v, uniform int32 i, uniform bool val) { return @llvm.ispc.insert(v, i, val); }
 int8 __insert(int8 v, uniform int32 i, uniform int8 val) { return @llvm.ispc.insert(v, i, val); }
 int16 __insert(int16 v, uniform int32 i, uniform int16 val) { return @llvm.ispc.insert(v, i, val); }
 int32 __insert(int32 v, uniform int32 i, uniform int32 val) { return @llvm.ispc.insert(v, i, val); }
@@ -85,6 +86,7 @@ float16 __insert(float16 v, uniform int32 i, uniform float16 val) { return @llvm
 float __insert(float v, uniform int32 i, uniform float val) { return @llvm.ispc.insert(v, i, val); }
 double __insert(double v, uniform int32 i, uniform double val) { return @llvm.ispc.insert(v, i, val); }
 
+uniform bool __extract(bool v, uniform int32 i) { return @llvm.ispc.extract(v, i); }
 uniform int8 __extract(int8 v, uniform int32 i) { return @llvm.ispc.extract(v, i); }
 uniform int16 __extract(int16 v, uniform int32 i) { return @llvm.ispc.extract(v, i); }
 uniform int32 __extract(int32 v, uniform int32 i) { return @llvm.ispc.extract(v, i); }
@@ -109,6 +111,20 @@ uniform uint64<DOUBLE_WIDTH> __concat(uint64 v0, uint64 v1) { return @llvm.ispc.
 uniform float16<DOUBLE_WIDTH> __concat(float16 v0, float16 v1) { return @llvm.ispc.concat(v0, v1); }
 uniform float<DOUBLE_WIDTH> __concat(float v0, float v1) { return @llvm.ispc.concat(v0, v1); }
 uniform double<DOUBLE_WIDTH> __concat(double v0, double v1) { return @llvm.ispc.concat(v0, v1); }
+
+// vector ops
+EXT uniform bool __extract_bool(IntMaskType vec, uniform int32 lane) { return __extract(vec, lane); }
+EXT uniform int16 __extract_int16(int16 vec, uniform int32 lane) { return __extract(vec, lane); }
+EXT uniform int32 __extract_int32(int32 vec, uniform int32 lane) { return __extract(vec, lane); }
+EXT uniform int64 __extract_int64(int64 vec, uniform int32 lane) { return __extract(vec, lane); }
+EXT uniform int8 __extract_int8(int8 vec, uniform int32 lane) { return __extract(vec, lane); }
+EXT READNONE IntMaskType __insert_bool(IntMaskType vec, uniform int32 lane, uniform bool val) {
+    return __insert(vec, lane, val);
+}
+EXT READNONE int16 __insert_int16(int16 vec, uniform int32 lane, uniform int16 val) { return __insert(vec, lane, val); }
+EXT READNONE int32 __insert_int32(int32 vec, uniform int32 lane, uniform int32 val) { return __insert(vec, lane, val); }
+EXT READNONE int64 __insert_int64(int64 vec, uniform int32 lane, uniform int64 val) { return __insert(vec, lane, val); }
+EXT READNONE int8 __insert_int8(int8 vec, uniform int32 lane, uniform int8 val) { return __insert(vec, lane, val); }
 
 // // EXT uniform bool __is_compile_time_constant_mask(UIntMaskType);
 // // EXT uniform bool __is_compile_time_constant_uniform_int32(uniform int32);
@@ -604,41 +620,14 @@ EXT READNONE varying int32 __intbits_varying_float(varying float x) { return @ll
 EXT READNONE varying int16 __intbits_varying_half(varying float16 x) { return @llvm.ispc.bitcast(x, (varying int16)0); }
 
 // broadcast
-EXT READNONE varying double __broadcast_double(varying double v, uniform int32 i) {
-    uniform double vi = @llvm.ispc.extract(v, i);
-    varying double result = vi;
-    return result;
-}
-EXT READNONE varying float __broadcast_float(varying float v, uniform int32 i) {
-    uniform float vi = @llvm.ispc.extract(v, i);
-    varying float result = vi;
-    return result;
-}
-EXT READNONE varying float16 __broadcast_half(varying float16 v, uniform int32 i) {
-    uniform float16 vi = @llvm.ispc.extract(v, i);
-    varying float16 result = vi;
-    return result;
-}
-EXT READNONE varying int16 __broadcast_i16(varying int16 v, uniform int32 i) {
-    uniform int16 vi = @llvm.ispc.extract(v, i);
-    varying int16 result = vi;
-    return result;
-}
-EXT READNONE varying int32 __broadcast_i32(varying int32 v, uniform int32 i) {
-    uniform int32 vi = @llvm.ispc.extract(v, i);
-    varying int32 result = vi;
-    return result;
-}
-EXT READNONE varying int64 __broadcast_i64(varying int64 v, uniform int32 i) {
-    uniform int64 vi = @llvm.ispc.extract(v, i);
-    varying int64 result = vi;
-    return result;
-}
-EXT READNONE varying int8 __broadcast_i8(varying int8 v, uniform int32 i) {
-    uniform int8 vi = @llvm.ispc.extract(v, i);
-    varying int8 result = vi;
-    return result;
-}
+template <typename T> unmasked varying T __broadcast(varying T v, uniform int32 i) { return __extract(v, i); }
+EXT READNONE double __broadcast_double(double v, uniform int32 i) { return __broadcast<double>(v, i); }
+EXT READNONE float __broadcast_float(float v, uniform int32 i) { return __broadcast<float>(v, i); }
+EXT READNONE float16 __broadcast_half(float16 v, uniform int32 i) { return __broadcast<float16>(v, i); }
+EXT READNONE int16 __broadcast_i16(int16 v, uniform int32 i) { return __broadcast<int16>(v, i); }
+EXT READNONE int32 __broadcast_i32(int32 v, uniform int32 i) { return __broadcast<int32>(v, i); }
+EXT READNONE int64 __broadcast_i64(int64 v, uniform int32 i) { return __broadcast<int64>(v, i); }
+EXT READNONE int8 __broadcast_i8(int8 v, uniform int32 i) { return __broadcast<int8>(v, i); }
 
 // exclusive scan
 template <typename T> unmasked varying T __exclusive_scan_add(varying T v, UIntMaskType mask) {
@@ -649,21 +638,11 @@ template <typename T> unmasked varying T __exclusive_scan_add(varying T v, UIntM
     }
     return res;
 }
-EXT varying double __exclusive_scan_add_double(varying double v, UIntMaskType mask) {
-    return __exclusive_scan_add<double>(v, mask);
-}
-EXT varying float __exclusive_scan_add_float(varying float v, UIntMaskType mask) {
-    return __exclusive_scan_add<float>(v, mask);
-}
-EXT varying float16 __exclusive_scan_add_half(varying float16 v, UIntMaskType mask) {
-    return __exclusive_scan_add<float16>(v, mask);
-}
-EXT varying int32 __exclusive_scan_add_i32(varying int32 v, UIntMaskType mask) {
-    return __exclusive_scan_add<int32>(v, mask);
-}
-EXT varying int64 __exclusive_scan_add_i64(varying int64 v, UIntMaskType mask) {
-    return __exclusive_scan_add<int64>(v, mask);
-}
+EXT double __exclusive_scan_add_double(double v, UIntMaskType mask) { return __exclusive_scan_add<double>(v, mask); }
+EXT float __exclusive_scan_add_float(float v, UIntMaskType mask) { return __exclusive_scan_add<float>(v, mask); }
+EXT float16 __exclusive_scan_add_half(float16 v, UIntMaskType mask) { return __exclusive_scan_add<float16>(v, mask); }
+EXT int32 __exclusive_scan_add_i32(int32 v, UIntMaskType mask) { return __exclusive_scan_add<int32>(v, mask); }
+EXT int64 __exclusive_scan_add_i64(int64 v, UIntMaskType mask) { return __exclusive_scan_add<int64>(v, mask); }
 template <typename T> unmasked varying T __exclusive_scan_and(varying T v, UIntMaskType mask) {
     varying T res = -1;
     varying T val = mask ? v : -1;
@@ -672,12 +651,8 @@ template <typename T> unmasked varying T __exclusive_scan_and(varying T v, UIntM
     }
     return res;
 }
-EXT varying int32 __exclusive_scan_and_i32(varying int32 v, UIntMaskType mask) {
-    return __exclusive_scan_and<int32>(v, mask);
-}
-EXT varying int64 __exclusive_scan_and_i64(varying int64 v, UIntMaskType mask) {
-    return __exclusive_scan_and<int64>(v, mask);
-}
+EXT int32 __exclusive_scan_and_i32(int32 v, UIntMaskType mask) { return __exclusive_scan_and<int32>(v, mask); }
+EXT int64 __exclusive_scan_and_i64(int64 v, UIntMaskType mask) { return __exclusive_scan_and<int64>(v, mask); }
 template <typename T> unmasked varying T __exclusive_scan_or(varying T v, UIntMaskType mask) {
     varying T res = 0;
     varying T val = mask ? v : 0;
@@ -686,34 +661,8 @@ template <typename T> unmasked varying T __exclusive_scan_or(varying T v, UIntMa
     }
     return res;
 }
-EXT varying int32 __exclusive_scan_or_i32(varying int32 v, UIntMaskType mask) {
-    return __exclusive_scan_or<int32>(v, mask);
-}
-EXT varying int64 __exclusive_scan_or_i64(varying int64 v, UIntMaskType mask) {
-    return __exclusive_scan_or<int64>(v, mask);
-}
-
-// vector ops
-EXT uniform bool __extract_bool(IntMaskType vec, uniform int32 lane) { return @llvm.ispc.extract(vec, lane); }
-EXT uniform int16 __extract_int16(varying int16 vec, uniform int32 lane) { return @llvm.ispc.extract(vec, lane); }
-EXT uniform int32 __extract_int32(varying int32 vec, uniform int32 lane) { return @llvm.ispc.extract(vec, lane); }
-EXT uniform int64 __extract_int64(varying int64 vec, uniform int32 lane) { return @llvm.ispc.extract(vec, lane); }
-EXT uniform int8 __extract_int8(varying int8 vec, uniform int32 lane) { return @llvm.ispc.extract(vec, lane); }
-EXT READNONE IntMaskType __insert_bool(IntMaskType vec, uniform int32 lane, uniform bool val) {
-    return @llvm.ispc.insert(vec, lane, val);
-}
-EXT READNONE varying int16 __insert_int16(varying int16 vec, uniform int32 lane, uniform int16 val) {
-    return @llvm.ispc.insert(vec, lane, val);
-}
-EXT READNONE varying int32 __insert_int32(varying int32 vec, uniform int32 lane, uniform int32 val) {
-    return @llvm.ispc.insert(vec, lane, val);
-}
-EXT READNONE varying int64 __insert_int64(varying int64 vec, uniform int32 lane, uniform int64 val) {
-    return @llvm.ispc.insert(vec, lane, val);
-}
-EXT READNONE varying int8 __insert_int8(varying int8 vec, uniform int32 lane, uniform int8 val) {
-    return @llvm.ispc.insert(vec, lane, val);
-}
+EXT int32 __exclusive_scan_or_i32(int32 v, UIntMaskType mask) { return __exclusive_scan_or<int32>(v, mask); }
+EXT int64 __exclusive_scan_or_i64(int64 v, UIntMaskType mask) { return __exclusive_scan_or<int64>(v, mask); }
 
 // rotate
 template <typename T> unmasked varying T __rotate(varying T v, uniform int32 i) {
@@ -762,43 +711,43 @@ EXT void __prefetch_write_uniform_2(uniform int8 *uniform ptr) { @llvm.prefetch(
 EXT void __prefetch_write_uniform_3(uniform int8 *uniform ptr) { @llvm.prefetch(ptr, 1, 1, 1); }
 UNMANGLED CDECL void __prefetch_read_varying_1(varying int64 addr) {
     foreach_active(i) {
-        uniform int64 p_lane = @llvm.ispc.extract(addr, i);
+        uniform int64 p_lane = __extract(addr, i);
         __prefetch_read_uniform_1((uniform int8 * uniform) p_lane);
     }
 }
 UNMANGLED CDECL void __prefetch_read_varying_2(varying int64 addr) {
     foreach_active(i) {
-        uniform int64 p_lane = @llvm.ispc.extract(addr, i);
+        uniform int64 p_lane = __extract(addr, i);
         __prefetch_read_uniform_2((uniform int8 * uniform) p_lane);
     }
 }
 UNMANGLED CDECL void __prefetch_read_varying_3(varying int64 addr) {
     foreach_active(i) {
-        uniform int64 p_lane = @llvm.ispc.extract(addr, i);
+        uniform int64 p_lane = __extract(addr, i);
         __prefetch_read_uniform_3((uniform int8 * uniform) p_lane);
     }
 }
 UNMANGLED CDECL void __prefetch_read_varying_nt(varying int64 addr) {
     foreach_active(i) {
-        uniform int64 p_lane = @llvm.ispc.extract(addr, i);
+        uniform int64 p_lane = __extract(addr, i);
         __prefetch_read_uniform_nt((uniform int8 * uniform) p_lane);
     }
 }
 UNMANGLED CDECL void __prefetch_write_varying_1(varying int64 addr) {
     foreach_active(i) {
-        uniform int64 p_lane = @llvm.ispc.extract(addr, i);
+        uniform int64 p_lane = __extract(addr, i);
         __prefetch_write_uniform_1((uniform int8 * uniform) p_lane);
     }
 }
 UNMANGLED CDECL void __prefetch_write_varying_2(varying int64 addr) {
     foreach_active(i) {
-        uniform int64 p_lane = @llvm.ispc.extract(addr, i);
+        uniform int64 p_lane = __extract(addr, i);
         __prefetch_write_uniform_2((uniform int8 * uniform) p_lane);
     }
 }
 UNMANGLED CDECL void __prefetch_write_varying_3(varying int64 addr) {
     foreach_active(i) {
-        uniform int64 p_lane = @llvm.ispc.extract(addr, i);
+        uniform int64 p_lane = __extract(addr, i);
         __prefetch_write_uniform_3((uniform int8 * uniform) p_lane);
     }
 }
@@ -897,17 +846,17 @@ EXT uniform int8 *uniform __new_uniform_32rt(uniform int64 size) {
 UNMANGLED CDECL varying int64 __new_varying32_32rt(varying int32 size) {
     varying int64 addr = 0;
     foreach_active(i) {
-        uniform int64 s = @llvm.ispc.extract(size, i);
+        uniform int64 s = __extract(size, i);
         uniform int8 *uniform ptr = 0;
         posix_memalign(&ptr, __memory_alignment, s);
-        addr = @llvm.ispc.insert(addr, i, (uniform int64)ptr);
+        addr = __insert(addr, i, (uniform int64)ptr);
     }
     return addr;
 }
 EXT void __delete_uniform_32rt(uniform int8 *uniform ptr) { free(ptr); }
 UNMANGLED CDECL void __delete_varying_32rt(varying int64 addr) {
     foreach_active(i) {
-        uniform int64 p_lane = @llvm.ispc.extract(addr, i);
+        uniform int64 p_lane = __extract(addr, i);
         free((uniform int8 *uniform) p_lane);
     }
 }
@@ -922,27 +871,27 @@ EXT uniform int8 *uniform __new_uniform_64rt(uniform int64 size) {
 UNMANGLED CDECL varying int64 __new_varying32_64rt(varying int32 size) {
     varying int64 addr = 0;
     foreach_active(i) {
-        uniform int32 s = @llvm.ispc.extract(size, i);
+        uniform int32 s = __extract(size, i);
         uniform int8 *uniform ptr = 0;
         posix_memalign(&ptr, __memory_alignment, s);
-        addr = @llvm.ispc.insert(addr, i, (uniform int64)ptr);
+        addr = __insert(addr, i, (uniform int64)ptr);
     }
     return addr;
 }
 UNMANGLED CDECL varying int64 __new_varying64_64rt(varying int64 size) {
     varying int64 addr = 0;
     foreach_active(i) {
-        uniform int64 s = @llvm.ispc.extract(size, i);
+        uniform int64 s = __extract(size, i);
         uniform int8 *uniform ptr = 0;
         posix_memalign(&ptr, __memory_alignment, s);
-        addr = @llvm.ispc.insert(addr, i, (uniform int64)ptr);
+        addr = __insert(addr, i, (uniform int64)ptr);
     }
     return addr;
 }
 EXT void __delete_uniform_64rt(uniform int8 *uniform ptr) { free(ptr); }
 UNMANGLED CDECL void __delete_varying_64rt(varying int64 addr) {
     foreach_active(i) {
-        uniform int64 p_lane = @llvm.ispc.extract(addr, i);
+        uniform int64 p_lane = __extract(addr, i);
         free((uniform int8 * uniform) p_lane);
     }
 }
@@ -953,16 +902,16 @@ EXT uniform int8 *uniform __new_uniform_32rt(uniform int64 size) { return _align
 UNMANGLED CDECL varying int64 __new_varying32_32rt(varying int32 size) {
     varying int64 addr = 0;
     foreach_active(i) {
-        uniform int64 s = @llvm.ispc.extract(size, i);
+        uniform int64 s = __extract(size, i);
         uniform int8 *uniform ptr = _aligned_malloc(s, __memory_alignment);
-        addr = @llvm.ispc.insert(addr, i, (uniform int64)ptr);
+        addr = __insert(addr, i, (uniform int64)ptr);
     }
     return addr;
 }
 EXT void __delete_uniform_32rt(uniform int8 *uniform ptr) { _aligned_free(ptr); }
 UNMANGLED CDECL void __delete_varying_32rt(varying int64 addr) {
     foreach_active(i) {
-        uniform int64 p_lane = @llvm.ispc.extract(addr, i);
+        uniform int64 p_lane = __extract(addr, i);
         _aligned_free((uniform int8 *uniform) p_lane);
     }
 }
@@ -974,25 +923,25 @@ EXT uniform int8 *uniform __new_uniform_64rt(uniform int64 size) { return _align
 UNMANGLED CDECL varying int64 __new_varying32_64rt(varying int32 size) {
     varying int64 addr = 0;
     foreach_active(i) {
-        uniform int32 s = @llvm.ispc.extract(size, i);
+        uniform int32 s = __extract(size, i);
         uniform int8 *uniform ptr = _aligned_malloc(s, __memory_alignment);
-        addr = @llvm.ispc.insert(addr, i, (uniform int64)ptr);
+        addr = __insert(addr, i, (uniform int64)ptr);
     }
     return addr;
 }
 UNMANGLED CDECL varying int64 __new_varying64_64rt(varying int64 size) {
     varying int64 addr = 0;
     foreach_active(i) {
-        uniform int64 s = @llvm.ispc.extract(size, i);
+        uniform int64 s = __extract(size, i);
         uniform int8 *uniform ptr = _aligned_malloc(s, __memory_alignment);
-        addr = @llvm.ispc.insert(addr, i, (uniform int64)ptr);
+        addr = __insert(addr, i, (uniform int64)ptr);
     }
     return addr;
 }
 EXT void __delete_uniform_64rt(uniform int8 *uniform ptr) { _aligned_free(ptr); }
 UNMANGLED CDECL void __delete_varying_64rt(varying int64 addr) {
     foreach_active(i) {
-        uniform int64 p_lane = @llvm.ispc.extract(addr, i);
+        uniform int64 p_lane = __extract(addr, i);
         _aligned_free((uniform int8 * uniform) p_lane);
     }
 }
@@ -1743,17 +1692,41 @@ typedef struct {
     varying float even;
 } __ispcstub_vyfvyf; // special mangled name generated in src/builtins.cpp(lLLVMTypeToISPCType)
 
+typedef struct {
+    varying double odd;
+    varying double even;
+} __ispcstub_vydvyd; // special mangled name generated in src/builtins.cpp(lLLVMTypeToISPCType)
+
 // AOS/SOA conversion primitives
-EXT void __aos_to_soa2_float(NOALIAS uniform int8 *uniform a, uniform int8 *uniform v0, uniform int8 *uniform v1) {
+uniform __ispcstub_vyfvyf __deinterleave2(uniform int8 *uniform a,
+                                          uniform __ispcstub_vyfvyf *uniform dummy) {
+    // Unfortunately at the moment, declaring short vector inside template function leads to error
+    uniform float<DOUBLE_WIDTH> *uniform ptr = (uniform float<DOUBLE_WIDTH> *uniform)a;
+    return @llvm.experimental.vector.deinterleave2(*ptr);
+}
+uniform __ispcstub_vydvyd __deinterleave2(uniform int8 *uniform a,
+                                          uniform __ispcstub_vydvyd *uniform dummy) {
+    uniform double<DOUBLE_WIDTH> *uniform ptr = (uniform double<DOUBLE_WIDTH> *uniform)a;
+    return @llvm.experimental.vector.deinterleave2(*ptr);
+}
+
+template <typename T, typename S>
+unmasked void __aos_to_soa2(NOALIAS uniform int8 *uniform a, uniform int8 *uniform v0, uniform int8 *uniform v1) {
     // E.g., given 2 4-vectors. Convert 2-wide AOS values to SOA--specifically
     // <x0 y0 x1 y1> <x2 y2 x3 y3>, transpose to
     // <x0 x1 x2 x3> <y0 y1 y2 y3>.
-    uniform float<DOUBLE_WIDTH> *uniform ptr = (uniform float<DOUBLE_WIDTH> *uniform)a;
-    uniform __ispcstub_vyfvyf x = @llvm.experimental.vector.deinterleave2(*ptr);
-    varying float *uniform x0_ptr = (varying float *uniform)v0;
-    varying float *uniform x1_ptr = (varying float *uniform)v1;
+    uniform S *uniform dummy;
+    uniform S x = __deinterleave2(a, dummy);
+    varying T *uniform x0_ptr = (varying T *uniform)v0;
+    varying T *uniform x1_ptr = (varying T *uniform)v1;
     *x0_ptr = x.odd;
     *x1_ptr = x.even;
+}
+EXT void __aos_to_soa2_float(NOALIAS uniform int8 *uniform a, uniform int8 *uniform v0, uniform int8 *uniform v1) {
+    __aos_to_soa2<float, __ispcstub_vyfvyf>(a, v0, v1);
+}
+EXT void __aos_to_soa2_double(NOALIAS uniform int8 *uniform a, uniform int8 *uniform v0, uniform int8 *uniform v1) {
+    __aos_to_soa2<double, __ispcstub_vydvyd>(a, v0, v1);
 }
 
 EXT void __soa_to_aos2_float(varying float v0, varying float v1, NOALIAS uniform int8 *uniform a) {
@@ -1763,20 +1736,6 @@ EXT void __soa_to_aos2_float(varying float v0, varying float v1, NOALIAS uniform
     uniform float<DOUBLE_WIDTH> x = @llvm.experimental.vector.interleave2(v0, v1);
     uniform float<DOUBLE_WIDTH> *uniform ptr = (uniform float<DOUBLE_WIDTH> *uniform)a;
     *ptr = x;
-}
-
-typedef struct {
-    varying double odd;
-    varying double even;
-} __ispcstub_vydvyd; // special mangled name generated in src/builtins.cpp(lLLVMTypeToISPCType)
-
-EXT void __aos_to_soa2_double(NOALIAS uniform int8 *uniform a, uniform int8 *uniform v0, uniform int8 *uniform v1) {
-    uniform double<DOUBLE_WIDTH> *uniform ptr = (uniform double<DOUBLE_WIDTH> *uniform)a;
-    uniform __ispcstub_vydvyd x = @llvm.experimental.vector.deinterleave2(*ptr);
-    varying double *uniform x0_ptr = (varying double *uniform)v0;
-    varying double *uniform x1_ptr = (varying double *uniform)v1;
-    *x0_ptr = x.odd;
-    *x1_ptr = x.even;
 }
 
 EXT void __soa_to_aos2_double(varying double v0, varying double v1, NOALIAS uniform int8 *uniform a) {
@@ -1812,18 +1771,6 @@ EXT void __aos_to_soa4_float(NOALIAS uniform int8 *uniform a, NOALIAS uniform in
     *x3_ptr = ga.even;
 }
 
-EXT void __soa_to_aos4_float(varying float v0, varying float v1, varying float v2, varying float v3,
-                             NOALIAS uniform int8 *uniform a) {
-    // For example, for 4-wide vectors:
-    // take 4 4-wide vectors laid out like <r0 r1 r2 r3> <g0 g1 g2 g3> <b0 b1 b2 b3> <a0 a1 a2 a3>
-    // and reorder them to 4 4-wide vectors laid out like <r0 g0 b0 a0> <r1 g1 b1 a1> <r2 g2 b2 a2> <r3 g3 b3 a3>
-    uniform float<DOUBLE_WIDTH> rb = @llvm.experimental.vector.interleave2(v0, v2);
-    uniform float<DOUBLE_WIDTH> ga = @llvm.experimental.vector.interleave2(v1, v3);
-    // x = <r0 b0 r1 b1 r2 b2 r3 b3>, y = <g0 a0 g1 a1 g2 a2 g3 a3>
-    uniform float<QUAD_WIDTH> *uniform ptr = (uniform float<QUAD_WIDTH> *uniform)a;
-    *ptr = @llvm.experimental.vector.interleave2(rb, ga);
-}
-
 typedef struct {
     uniform double<DOUBLE_WIDTH> rb;
     uniform double<DOUBLE_WIDTH> ga;
@@ -1846,6 +1793,18 @@ EXT void __aos_to_soa4_double(NOALIAS uniform int8 *uniform a, NOALIAS uniform i
     *x3_ptr = ga.even;
 }
 
+EXT void __soa_to_aos4_float(varying float v0, varying float v1, varying float v2, varying float v3,
+                             NOALIAS uniform int8 *uniform a) {
+    // For example, for 4-wide vectors:
+    // take 4 4-wide vectors laid out like <r0 r1 r2 r3> <g0 g1 g2 g3> <b0 b1 b2 b3> <a0 a1 a2 a3>
+    // and reorder them to 4 4-wide vectors laid out like <r0 g0 b0 a0> <r1 g1 b1 a1> <r2 g2 b2 a2> <r3 g3 b3 a3>
+    uniform float<DOUBLE_WIDTH> rb = @llvm.experimental.vector.interleave2(v0, v2);
+    uniform float<DOUBLE_WIDTH> ga = @llvm.experimental.vector.interleave2(v1, v3);
+    // x = <r0 b0 r1 b1 r2 b2 r3 b3>, y = <g0 a0 g1 a1 g2 a2 g3 a3>
+    uniform float<QUAD_WIDTH> *uniform ptr = (uniform float<QUAD_WIDTH> *uniform)a;
+    *ptr = @llvm.experimental.vector.interleave2(rb, ga);
+}
+
 EXT void __soa_to_aos4_double(varying double v0, varying double v1, varying double v2, varying double v3,
                               NOALIAS uniform int8 *uniform a) {
     uniform double<DOUBLE_WIDTH> rb = @llvm.experimental.vector.interleave2(v0, v2);
@@ -1864,9 +1823,9 @@ EXT void __aos_to_soa3_float(NOALIAS uniform int8 *uniform a, uniform int8 *unif
     uniform float<TRIPLE_WIDTH> x = *ptr;
     varying float x0 = 0, x1 = 0, x2 = 0;
     for (uniform int i = 0; i < TARGET_WIDTH; i++) {
-        x0 = @llvm.ispc.insert(x0, i, x[0 + i * 3]);
-        x1 = @llvm.ispc.insert(x1, i, x[1 + i * 3]);
-        x2 = @llvm.ispc.insert(x2, i, x[2 + i * 3]);
+        x0 = __insert(x0, i, x[0 + i * 3]);
+        x1 = __insert(x1, i, x[1 + i * 3]);
+        x2 = __insert(x2, i, x[2 + i * 3]);
     }
     varying float *uniform x0_ptr = (varying float *uniform)v0;
     varying float *uniform x1_ptr = (varying float *uniform)v1;
@@ -1876,30 +1835,15 @@ EXT void __aos_to_soa3_float(NOALIAS uniform int8 *uniform a, uniform int8 *unif
     *x2_ptr = x2;
 }
 
-EXT void __soa_to_aos3_float(varying float v0, varying float v1, varying float v2, NOALIAS uniform int8 *uniform a) {
-    // For example, for 4-wide vectors:
-    // The inverse of __aos_to_soa3_float4: convert 3 4-vectors
-    // <x0 x1 x2 x3> <y0 y1 y2 y3> <z0 z1 z2 z3> to
-    // <x0 y0 z0 x1> <y1 z1 x2 y2> <z2 x3 y3 z3>.
-    uniform float *uniform x = (uniform float *uniform)a;
-    for (uniform int j = 0; j < TARGET_WIDTH; j++) {
-        for (uniform int i = 0; i < 3; i++) {
-            x[3 * j + 0] = @llvm.ispc.extract(v0, j);
-            x[3 * j + 1] = @llvm.ispc.extract(v1, j);
-            x[3 * j + 2] = @llvm.ispc.extract(v2, j);
-        }
-    }
-}
-
 EXT void __aos_to_soa3_double(NOALIAS uniform int8 *uniform a, uniform int8 *uniform v0, uniform int8 *uniform v1,
                               uniform int8 *uniform v2) {
     uniform double<TRIPLE_WIDTH> *uniform ptr = (uniform double<TRIPLE_WIDTH> *uniform)a;
     uniform double<TRIPLE_WIDTH> x = *ptr;
     varying double x0 = 0, x1 = 0, x2 = 0;
     for (uniform int i = 0; i < TARGET_WIDTH; i++) {
-        x0 = @llvm.ispc.insert(x0, i, x[0 + i * 3]);
-        x1 = @llvm.ispc.insert(x1, i, x[1 + i * 3]);
-        x2 = @llvm.ispc.insert(x2, i, x[2 + i * 3]);
+        x0 = __insert(x0, i, x[0 + i * 3]);
+        x1 = __insert(x1, i, x[1 + i * 3]);
+        x2 = __insert(x2, i, x[2 + i * 3]);
     }
     varying double *uniform x0_ptr = (varying double *uniform)v0;
     varying double *uniform x1_ptr = (varying double *uniform)v1;
@@ -1909,15 +1853,27 @@ EXT void __aos_to_soa3_double(NOALIAS uniform int8 *uniform a, uniform int8 *uni
     *x2_ptr = x2;
 }
 
-EXT void __soa_to_aos3_double(varying double v0, varying double v1, varying double v2, NOALIAS uniform int8 *uniform a) {
-    uniform double *uniform x = (uniform double *uniform)a;
+template <typename T>
+unmasked void __soa_to_aos3(varying T v0, varying T v1, varying T v2, NOALIAS uniform int8 *uniform a) {
+    // For example, for 4-wide vectors:
+    // The inverse of __aos_to_soa3_T4: convert 3 4-vectors
+    // <x0 x1 x2 x3> <y0 y1 y2 y3> <z0 z1 z2 z3> to
+    // <x0 y0 z0 x1> <y1 z1 x2 y2> <z2 x3 y3 z3>.
+    uniform T *uniform x = (uniform T * uniform) a;
     for (uniform int j = 0; j < TARGET_WIDTH; j++) {
         for (uniform int i = 0; i < 3; i++) {
-            x[3 * j + 0] = @llvm.ispc.extract(v0, j);
-            x[3 * j + 1] = @llvm.ispc.extract(v1, j);
-            x[3 * j + 2] = @llvm.ispc.extract(v2, j);
+            x[3 * j + 0] = __extract(v0, j);
+            x[3 * j + 1] = __extract(v1, j);
+            x[3 * j + 2] = __extract(v2, j);
         }
     }
+}
+
+EXT void __soa_to_aos3_float(float v0, float v1, float v2, NOALIAS uniform int8 *uniform a) {
+    __soa_to_aos3<float>(v0, v1, v2, a);
+}
+EXT void __soa_to_aos3_double(double v0, double v1, double v2, NOALIAS uniform int8 *uniform a) {
+    __soa_to_aos3<double>(v0, v1, v2, a);
 }
 
 EXT uniform double __atomic_swap_uniform_double_global(uniform int8 *uniform ptr, uniform double val) {
