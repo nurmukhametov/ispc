@@ -123,14 +123,6 @@ EXT inline uniform int32 __atomic_compare_exchange_uniform_int32_global(uniform 
                                                                         uniform int32);
 EXT inline uniform int64 __atomic_compare_exchange_uniform_int64_global(uniform int8 *uniform, uniform int64,
                                                                         uniform int64);
-EXT varying double __atomic_compare_exchange_varying_double_global(varying int64, varying double, varying double,
-                                                                   UIntMaskType);
-EXT varying float __atomic_compare_exchange_varying_float_global(varying int64, varying float, varying float,
-                                                                 UIntMaskType);
-EXT varying int32 __atomic_compare_exchange_varying_int32_global(varying int64, varying int32, varying int32,
-                                                                 UIntMaskType);
-EXT varying int64 __atomic_compare_exchange_varying_int64_global(varying int64, varying int64, varying int64,
-                                                                 UIntMaskType);
 EXT inline varying double __atomic_fadd_double_global(uniform int8 *uniform, varying double, UIntMaskType);
 EXT inline varying float __atomic_fadd_float_global(uniform int8 *uniform, varying float, UIntMaskType);
 EXT inline uniform double __atomic_fadd_uniform_double_global(uniform int8 *uniform, uniform double);
