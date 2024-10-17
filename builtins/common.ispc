@@ -112,6 +112,84 @@ unmasked uniform float16<DOUBLE_WIDTH> __concat(float16 v0, float16 v1) { return
 unmasked uniform float<DOUBLE_WIDTH> __concat(float v0, float v1) { return @llvm.ispc.concat(v0, v1); }
 unmasked uniform double<DOUBLE_WIDTH> __concat(double v0, double v1) { return @llvm.ispc.concat(v0, v1); }
 
+// bitcast
+template <typename L, typename R> unmasked
+L __bitcast(R x) {
+    // This function should never be called, instead specialized versions should be used.
+    __not_supported();
+}
+template <> unmasked uniform int8 __bitcast<uniform int8, uniform int8>(uniform int8 x) { return x; }
+template <> unmasked uniform uint8 __bitcast<uniform uint8, uniform uint8>(uniform uint8 x) { return x; }
+template <> unmasked uniform uint8 __bitcast<uniform uint8, uniform int8>(uniform int8 x) {
+    return @llvm.ispc.bitcast(x, (uniform uint8)0);
+}
+template <> unmasked uniform int8 __bitcast<uniform int8, uniform uint8>(uniform uint8 x) {
+    return @llvm.ispc.bitcast(x, (uniform int8)0);
+}
+template <> unmasked uniform int16 __bitcast<uniform int16, uniform int16>(uniform int16 x) { return x; }
+template <> unmasked uniform uint16 __bitcast<uniform uint16, uniform uint16>(uniform uint16 x) { return x; }
+template <> unmasked uniform float16 __bitcast<uniform float16, uniform float16>(uniform float16 x) { return x; }
+template <> unmasked uniform uint16 __bitcast<uniform uint16, uniform int16>(uniform int16 x) {
+    return @llvm.ispc.bitcast(x, (uniform uint16)0);
+}
+template <> unmasked uniform int16 __bitcast<uniform int16, uniform uint16>(uniform uint16 x) {
+    return @llvm.ispc.bitcast(x, (uniform int16)0);
+}
+template <> unmasked uniform int16 __bitcast<uniform int16, uniform float16>(uniform float16 x) {
+    return @llvm.ispc.bitcast(x, (uniform int16)0);
+}
+template <> unmasked uniform uint16 __bitcast<uniform uint16, uniform float16>(uniform float16 x) {
+    return @llvm.ispc.bitcast(x, (uniform uint16)0);
+}
+template <> unmasked uniform float16 __bitcast<uniform float16, uniform uint16>(uniform uint16 x) {
+    return @llvm.ispc.bitcast(x, (uniform float16)0);
+}
+template <> unmasked uniform float16 __bitcast<uniform float16, uniform int16>(uniform int16 x) {
+    return @llvm.ispc.bitcast(x, (uniform float16)0);
+}
+template <> unmasked uniform int32 __bitcast<uniform int32, uniform int32>(uniform int32 x) { return x; }
+template <> unmasked uniform uint32 __bitcast<uniform uint32, uniform uint32>(uniform uint32 x) { return x; }
+template <> unmasked uniform float __bitcast<uniform float, uniform float>(uniform float x) { return x; }
+template <> unmasked uniform uint32 __bitcast<uniform uint32, uniform int32>(uniform int32 x) {
+    return @llvm.ispc.bitcast(x, (uniform uint32)0);
+}
+template <> unmasked uniform int32 __bitcast<uniform int32, uniform uint32>(uniform uint32 x) {
+    return @llvm.ispc.bitcast(x, (uniform int32)0);
+}
+template <> unmasked uniform int32 __bitcast<uniform int32, uniform float>(uniform float x) {
+    return @llvm.ispc.bitcast(x, (uniform int32)0);
+}
+template <> unmasked uniform uint32 __bitcast<uniform uint32, uniform float>(uniform float x) {
+    return @llvm.ispc.bitcast(x, (uniform uint32)0);
+}
+template <> unmasked uniform float __bitcast<uniform float, uniform uint32>(uniform uint32 x) {
+    return @llvm.ispc.bitcast(x, (uniform float)0);
+}
+template <> unmasked uniform float __bitcast<uniform float, uniform int32>(uniform int32 x) {
+    return @llvm.ispc.bitcast(x, (uniform float)0);
+}
+template <> unmasked uniform int64 __bitcast<uniform int64, uniform int64>(uniform int64 x) { return x; }
+template <> unmasked uniform uint64 __bitcast<uniform uint64, uniform uint64>(uniform uint64 x) { return x; }
+template <> unmasked uniform double __bitcast<uniform double, uniform double>(uniform double x) { return x; }
+template <> unmasked uniform uint64 __bitcast<uniform uint64, uniform int64>(uniform int64 x) {
+    return @llvm.ispc.bitcast(x, (uniform uint64)0);
+}
+template <> unmasked uniform int64 __bitcast<uniform int64, uniform uint64>(uniform uint64 x) {
+    return @llvm.ispc.bitcast(x, (uniform int64)0);
+}
+template <> unmasked uniform int64 __bitcast<uniform int64, uniform double>(uniform double x) {
+    return @llvm.ispc.bitcast(x, (uniform int64)0);
+}
+template <> unmasked uniform uint64 __bitcast<uniform uint64, uniform double>(uniform double x) {
+    return @llvm.ispc.bitcast(x, (uniform uint64)0);
+}
+template <> unmasked uniform double __bitcast<uniform double, uniform uint64>(uniform uint64 x) {
+    return @llvm.ispc.bitcast(x, (uniform double)0);
+}
+template <> unmasked uniform double __bitcast<uniform double, uniform int64>(uniform int64 x) {
+    return @llvm.ispc.bitcast(x, (uniform double)0);
+}
+
 // vector ops
 EXT uniform bool __extract_bool(IntMaskType vec, uniform int32 lane) { return __extract(vec, lane); }
 EXT uniform int16 __extract_int16(int16 vec, uniform int32 lane) { return __extract(vec, lane); }
@@ -1967,27 +2045,63 @@ EXT uniform float __atomic_fmax_uniform_float_global(uniform int8 *uniform ptr, 
     return @llvm.ispc.atomicrmw.fmax.seq_cst(ptr, val);
 }
 
+unmasked uniform int32 __cmpxchg(uniform int8 *uniform ptr, uniform int32 cmp, uniform int32 val) {
+    return @llvm.ispc.cmpxchg.seq_cst.seq_cst(ptr, cmp, val);
+}
+unmasked uniform int64 __cmpxchg(uniform int8 *uniform ptr, uniform int64 cmp, uniform int64 val) {
+    return @llvm.ispc.cmpxchg.seq_cst.seq_cst(ptr, cmp, val);
+}
+
+template <typename F, typename I>
+unmasked uniform F __atomic_cmpxchg_u(uniform int8 *uniform ptr, uniform F cmp, uniform F val) {
+    uniform I cmp_i64 = __bitcast<uniform I, uniform F>(cmp);
+    uniform I val_i64 = __bitcast<uniform I, uniform F>(val);
+    uniform I res = __cmpxchg(ptr, cmp_i64, val_i64);
+    return __bitcast<uniform F, uniform I>(res);
+}
+
 EXT uniform double __atomic_compare_exchange_uniform_double_global(uniform int8 *uniform ptr, uniform double cmp,
                                                                    uniform double val) {
-    uniform int64 cmp_i64 = @llvm.ispc.bitcast(cmp, (uniform int64)0);
-    uniform int64 val_i64 = @llvm.ispc.bitcast(val, (uniform int64)0);
-    uniform int64 res = @llvm.ispc.cmpxchg.seq_cst.seq_cst(ptr, cmp_i64, val_i64);
-    return @llvm.ispc.bitcast(res, (uniform double)0);
+    return __atomic_cmpxchg_u<double, int64>(ptr, cmp, val);
 }
 EXT uniform float __atomic_compare_exchange_uniform_float_global(uniform int8 *uniform ptr, uniform float cmp,
                                                                  uniform float val) {
-    uniform int32 cmp_i32 = @llvm.ispc.bitcast(cmp, (uniform int32)0);
-    uniform int32 val_i32 = @llvm.ispc.bitcast(val, (uniform int32)0);
-    uniform int32 res = @llvm.ispc.cmpxchg.seq_cst.seq_cst(ptr, cmp_i32, val_i32);
-    return @llvm.ispc.bitcast(res, (uniform float)0);
+    return __atomic_cmpxchg_u<float, int32>(ptr, cmp, val);
 }
 EXT uniform int32 __atomic_compare_exchange_uniform_int32_global(uniform int8 *uniform ptr, uniform int32 cmp,
                                                                  uniform int32 val) {
-    return @llvm.ispc.cmpxchg.seq_cst.seq_cst(ptr, cmp, val);
+    return __cmpxchg(ptr, cmp, val);
 }
 EXT uniform int64 __atomic_compare_exchange_uniform_int64_global(uniform int8 *uniform ptr, uniform int64 cmp,
                                                                  uniform int64 val) {
-    return @llvm.ispc.cmpxchg.seq_cst.seq_cst(ptr, cmp, val);
+    return __cmpxchg(ptr, cmp, val);
+}
+
+template <typename F, typename I>
+unmasked varying F __atomic_cmpxchg_v(uniform int8 *uniform ptr, varying F cmp, varying F val) {
+    varying F res;
+    foreach_active(i) {
+        uniform F r = __atomic_cmpxchg_u<F, I>(ptr, __extract(cmp, i), __extract(val, i));
+        res = __insert(res, i, r);
+    }
+    return res;
+}
+
+UNMANGLED CDECL varying double __atomic_compare_exchange_double_global(uniform int8 *uniform ptr, varying double cmp,
+                                                                       varying double val) {
+    return __atomic_cmpxchg_v<double, int64>(ptr, cmp, val);
+}
+UNMANGLED CDECL varying float __atomic_compare_exchange_float_global(uniform int8 *uniform ptr, varying float cmp,
+                                                                     varying float val) {
+    return __atomic_cmpxchg_v<float, int32>(ptr, cmp, val);
+}
+UNMANGLED CDECL varying int32 __atomic_compare_exchange_int32_global(uniform int8 *uniform ptr, varying int32 cmp,
+                                                                     varying int32 val) {
+    return __atomic_cmpxchg_v<int32, int32>(ptr, cmp, val);
+}
+UNMANGLED CDECL varying int64 __atomic_compare_exchange_int64_global(uniform int8 *uniform ptr, varying int64 cmp,
+                                                                     varying int64 val) {
+    return __atomic_cmpxchg_v<int64, int64>(ptr, cmp, val);
 }
 
 #undef NOESCAPE

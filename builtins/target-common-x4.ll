@@ -307,34 +307,6 @@ define <$1 x $3> @__atomic_$2_$4_global(i8* %ptr, <$1 x $3> %val,
 define(`global_atomic_uniform', `
 declare $3 @__atomic_$2_uniform_$4_global(i8 * %ptr, $3 %val) nounwind alwaysinline
 ')
-
-;; Similarly, macro to declare the function that implements the compare/exchange
-;; atomic.  Takes three parameters:
-;; $1: vector width of the target
-;; $2: llvm type of the vector elements (e.g. i32)
-;; $3: ispc type of the elements (e.g. int32)
-
-define(`global_atomic_exchange', `
-
-define <$1 x $2> @__atomic_compare_exchange_$3_global(i8* %ptr, <$1 x $2> %cmp,
-                               <$1 x $2> %val, <$1 x MASK> %mask) nounwind alwaysinline {
-  %rptr = alloca <$1 x $2>
-  %rptr32 = bitcast <$1 x $2> * %rptr to $2 *
-  %ptr_typed = bitcast i8* %ptr to $2*
-
-  per_lane($1, <$1 x MASK> %mask, `
-   %cmp_LANE_ID = extractelement <$1 x $2> %cmp, i32 LANE
-   %val_LANE_ID = extractelement <$1 x $2> %val, i32 LANE
-   %r_LANE_ID_t = cmpxchg $2 * %ptr_typed, $2 %cmp_LANE_ID, $2 %val_LANE_ID seq_cst seq_cst
-   %r_LANE_ID = extractvalue { $2, i1 } %r_LANE_ID_t, 0
-   %rp_LANE_ID = getelementptr PTR_OP_ARGS(`$2') %rptr32, i32 LANE
-   store $2 %r_LANE_ID, $2 * %rp_LANE_ID')
-   %r = load PTR_OP_ARGS(`<$1 x $2> ')  %rptr
-   ret <$1 x $2> %r
-}
-
-')
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
@@ -416,29 +388,6 @@ global_atomic_uniform(WIDTH, fadd, double, double)
 global_atomic_uniform(WIDTH, fsub, double, double)
 global_atomic_uniform(WIDTH, fmin, double, double)
 global_atomic_uniform(WIDTH, fmax, double, double)
-
-global_atomic_exchange(WIDTH, i32, int32)
-global_atomic_exchange(WIDTH, i64, int64)
-
-define <WIDTH x float> @__atomic_compare_exchange_float_global(i8 * %ptr,
-                      <WIDTH x float> %cmp, <WIDTH x float> %val, <WIDTH x MASK> %mask) nounwind alwaysinline {
-  %icmp = bitcast <WIDTH x float> %cmp to <WIDTH x i32>
-  %ival = bitcast <WIDTH x float> %val to <WIDTH x i32>
-  %iret = call <WIDTH x i32> @__atomic_compare_exchange_int32_global(i8 * %ptr, <WIDTH x i32> %icmp,
-                                                                  <WIDTH x i32> %ival, <WIDTH x MASK> %mask)
-  %ret = bitcast <WIDTH x i32> %iret to <WIDTH x float>
-  ret <WIDTH x float> %ret
-}
-
-define <WIDTH x double> @__atomic_compare_exchange_double_global(i8 * %ptr,
-                      <WIDTH x double> %cmp, <WIDTH x double> %val, <WIDTH x MASK> %mask) nounwind alwaysinline {
-  %icmp = bitcast <WIDTH x double> %cmp to <WIDTH x i64>
-  %ival = bitcast <WIDTH x double> %val to <WIDTH x i64>
-  %iret = call <WIDTH x i64> @__atomic_compare_exchange_int64_global(i8 * %ptr, <WIDTH x i64> %icmp,
-                                                                  <WIDTH x i64> %ival, <WIDTH x MASK> %mask)
-  %ret = bitcast <WIDTH x i64> %iret to <WIDTH x double>
-  ret <WIDTH x double> %ret
-}
 
 ')
 
