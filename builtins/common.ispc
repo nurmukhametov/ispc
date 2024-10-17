@@ -73,44 +73,44 @@
 extern "C" void __not_supported();
 
 // Overloaded functions that are wrappers around insertelement and extractelement LLVM operations.
-bool __insert(bool v, uniform int32 i, uniform bool val) { return @llvm.ispc.insert(v, i, val); }
-int8 __insert(int8 v, uniform int32 i, uniform int8 val) { return @llvm.ispc.insert(v, i, val); }
-int16 __insert(int16 v, uniform int32 i, uniform int16 val) { return @llvm.ispc.insert(v, i, val); }
-int32 __insert(int32 v, uniform int32 i, uniform int32 val) { return @llvm.ispc.insert(v, i, val); }
-int64 __insert(int64 v, uniform int32 i, uniform int64 val) { return @llvm.ispc.insert(v, i, val); }
-uint8 __insert(uint8 v, uniform int32 i, uniform uint8 val) { return @llvm.ispc.insert(v, i, val); }
-uint16 __insert(uint16 v, uniform int32 i, uniform uint16 val) { return @llvm.ispc.insert(v, i, val); }
-uint32 __insert(uint32 v, uniform int32 i, uniform uint32 val) { return @llvm.ispc.insert(v, i, val); }
-uint64 __insert(uint64 v, uniform int32 i, uniform uint64 val) { return @llvm.ispc.insert(v, i, val); }
-float16 __insert(float16 v, uniform int32 i, uniform float16 val) { return @llvm.ispc.insert(v, i, val); }
-float __insert(float v, uniform int32 i, uniform float val) { return @llvm.ispc.insert(v, i, val); }
-double __insert(double v, uniform int32 i, uniform double val) { return @llvm.ispc.insert(v, i, val); }
+unmasked bool __insert(bool v, uniform int32 i, uniform bool val) { return @llvm.ispc.insert(v, i, val); }
+unmasked int8 __insert(int8 v, uniform int32 i, uniform int8 val) { return @llvm.ispc.insert(v, i, val); }
+unmasked int16 __insert(int16 v, uniform int32 i, uniform int16 val) { return @llvm.ispc.insert(v, i, val); }
+unmasked int32 __insert(int32 v, uniform int32 i, uniform int32 val) { return @llvm.ispc.insert(v, i, val); }
+unmasked int64 __insert(int64 v, uniform int32 i, uniform int64 val) { return @llvm.ispc.insert(v, i, val); }
+unmasked uint8 __insert(uint8 v, uniform int32 i, uniform uint8 val) { return @llvm.ispc.insert(v, i, val); }
+unmasked uint16 __insert(uint16 v, uniform int32 i, uniform uint16 val) { return @llvm.ispc.insert(v, i, val); }
+unmasked uint32 __insert(uint32 v, uniform int32 i, uniform uint32 val) { return @llvm.ispc.insert(v, i, val); }
+unmasked uint64 __insert(uint64 v, uniform int32 i, uniform uint64 val) { return @llvm.ispc.insert(v, i, val); }
+unmasked float16 __insert(float16 v, uniform int32 i, uniform float16 val) { return @llvm.ispc.insert(v, i, val); }
+unmasked float __insert(float v, uniform int32 i, uniform float val) { return @llvm.ispc.insert(v, i, val); }
+unmasked double __insert(double v, uniform int32 i, uniform double val) { return @llvm.ispc.insert(v, i, val); }
 
-uniform bool __extract(bool v, uniform int32 i) { return @llvm.ispc.extract(v, i); }
-uniform int8 __extract(int8 v, uniform int32 i) { return @llvm.ispc.extract(v, i); }
-uniform int16 __extract(int16 v, uniform int32 i) { return @llvm.ispc.extract(v, i); }
-uniform int32 __extract(int32 v, uniform int32 i) { return @llvm.ispc.extract(v, i); }
-uniform int64 __extract(int64 v, uniform int32 i) { return @llvm.ispc.extract(v, i); }
-uniform uint8 __extract(uint8 v, uniform int32 i) { return @llvm.ispc.extract(v, i); }
-uniform uint16 __extract(uint16 v, uniform int32 i) { return @llvm.ispc.extract(v, i); }
-uniform uint32 __extract(uint32 v, uniform int32 i) { return @llvm.ispc.extract(v, i); }
-uniform uint64 __extract(uint64 v, uniform int32 i) { return @llvm.ispc.extract(v, i); }
-uniform float16 __extract(float16 v, uniform int32 i) { return @llvm.ispc.extract(v, i); }
-uniform float __extract(float v, uniform int32 i) { return @llvm.ispc.extract(v, i); }
-uniform double __extract(double v, uniform int32 i) { return @llvm.ispc.extract(v, i); }
+unmasked uniform bool __extract(bool v, uniform int32 i) { return @llvm.ispc.extract(v, i); }
+unmasked uniform int8 __extract(int8 v, uniform int32 i) { return @llvm.ispc.extract(v, i); }
+unmasked uniform int16 __extract(int16 v, uniform int32 i) { return @llvm.ispc.extract(v, i); }
+unmasked uniform int32 __extract(int32 v, uniform int32 i) { return @llvm.ispc.extract(v, i); }
+unmasked uniform int64 __extract(int64 v, uniform int32 i) { return @llvm.ispc.extract(v, i); }
+unmasked uniform uint8 __extract(uint8 v, uniform int32 i) { return @llvm.ispc.extract(v, i); }
+unmasked uniform uint16 __extract(uint16 v, uniform int32 i) { return @llvm.ispc.extract(v, i); }
+unmasked uniform uint32 __extract(uint32 v, uniform int32 i) { return @llvm.ispc.extract(v, i); }
+unmasked uniform uint64 __extract(uint64 v, uniform int32 i) { return @llvm.ispc.extract(v, i); }
+unmasked uniform float16 __extract(float16 v, uniform int32 i) { return @llvm.ispc.extract(v, i); }
+unmasked uniform float __extract(float v, uniform int32 i) { return @llvm.ispc.extract(v, i); }
+unmasked uniform double __extract(double v, uniform int32 i) { return @llvm.ispc.extract(v, i); }
 
 // concat: concatenate varying vectors to short vector of DOUBLE_WIDTH
-uniform int8<DOUBLE_WIDTH> __concat(int8 v0, int8 v1) { return @llvm.ispc.concat(v0, v1); }
-uniform int16<DOUBLE_WIDTH> __concat(int16 v0, int16 v1) { return @llvm.ispc.concat(v0, v1); }
-uniform int32<DOUBLE_WIDTH> __concat(int32 v0, int32 v1) { return @llvm.ispc.concat(v0, v1); }
-uniform int64<DOUBLE_WIDTH> __concat(int64 v0, int64 v1) { return @llvm.ispc.concat(v0, v1); }
-uniform uint8<DOUBLE_WIDTH> __concat(uint8 v0, uint8 v1) { return @llvm.ispc.concat(v0, v1); }
-uniform uint16<DOUBLE_WIDTH> __concat(uint16 v0, uint16 v1) { return @llvm.ispc.concat(v0, v1); }
-uniform uint32<DOUBLE_WIDTH> __concat(uint32 v0, uint32 v1) { return @llvm.ispc.concat(v0, v1); }
-uniform uint64<DOUBLE_WIDTH> __concat(uint64 v0, uint64 v1) { return @llvm.ispc.concat(v0, v1); }
-uniform float16<DOUBLE_WIDTH> __concat(float16 v0, float16 v1) { return @llvm.ispc.concat(v0, v1); }
-uniform float<DOUBLE_WIDTH> __concat(float v0, float v1) { return @llvm.ispc.concat(v0, v1); }
-uniform double<DOUBLE_WIDTH> __concat(double v0, double v1) { return @llvm.ispc.concat(v0, v1); }
+unmasked uniform int8<DOUBLE_WIDTH> __concat(int8 v0, int8 v1) { return @llvm.ispc.concat(v0, v1); }
+unmasked uniform int16<DOUBLE_WIDTH> __concat(int16 v0, int16 v1) { return @llvm.ispc.concat(v0, v1); }
+unmasked uniform int32<DOUBLE_WIDTH> __concat(int32 v0, int32 v1) { return @llvm.ispc.concat(v0, v1); }
+unmasked uniform int64<DOUBLE_WIDTH> __concat(int64 v0, int64 v1) { return @llvm.ispc.concat(v0, v1); }
+unmasked uniform uint8<DOUBLE_WIDTH> __concat(uint8 v0, uint8 v1) { return @llvm.ispc.concat(v0, v1); }
+unmasked uniform uint16<DOUBLE_WIDTH> __concat(uint16 v0, uint16 v1) { return @llvm.ispc.concat(v0, v1); }
+unmasked uniform uint32<DOUBLE_WIDTH> __concat(uint32 v0, uint32 v1) { return @llvm.ispc.concat(v0, v1); }
+unmasked uniform uint64<DOUBLE_WIDTH> __concat(uint64 v0, uint64 v1) { return @llvm.ispc.concat(v0, v1); }
+unmasked uniform float16<DOUBLE_WIDTH> __concat(float16 v0, float16 v1) { return @llvm.ispc.concat(v0, v1); }
+unmasked uniform float<DOUBLE_WIDTH> __concat(float v0, float v1) { return @llvm.ispc.concat(v0, v1); }
+unmasked uniform double<DOUBLE_WIDTH> __concat(double v0, double v1) { return @llvm.ispc.concat(v0, v1); }
 
 // vector ops
 EXT uniform bool __extract_bool(IntMaskType vec, uniform int32 lane) { return __extract(vec, lane); }
@@ -1965,6 +1965,29 @@ EXT uniform double __atomic_fmax_uniform_double_global(uniform int8 *uniform ptr
 }
 EXT uniform float __atomic_fmax_uniform_float_global(uniform int8 *uniform ptr, uniform float val) {
     return @llvm.ispc.atomicrmw.fmax.seq_cst(ptr, val);
+}
+
+EXT uniform double __atomic_compare_exchange_uniform_double_global(uniform int8 *uniform ptr, uniform double cmp,
+                                                                   uniform double val) {
+    uniform int64 cmp_i64 = @llvm.ispc.bitcast(cmp, (uniform int64)0);
+    uniform int64 val_i64 = @llvm.ispc.bitcast(val, (uniform int64)0);
+    uniform int64 res = @llvm.ispc.cmpxchg.seq_cst.seq_cst(ptr, cmp_i64, val_i64);
+    return @llvm.ispc.bitcast(res, (uniform double)0);
+}
+EXT uniform float __atomic_compare_exchange_uniform_float_global(uniform int8 *uniform ptr, uniform float cmp,
+                                                                 uniform float val) {
+    uniform int32 cmp_i32 = @llvm.ispc.bitcast(cmp, (uniform int32)0);
+    uniform int32 val_i32 = @llvm.ispc.bitcast(val, (uniform int32)0);
+    uniform int32 res = @llvm.ispc.cmpxchg.seq_cst.seq_cst(ptr, cmp_i32, val_i32);
+    return @llvm.ispc.bitcast(res, (uniform float)0);
+}
+EXT uniform int32 __atomic_compare_exchange_uniform_int32_global(uniform int8 *uniform ptr, uniform int32 cmp,
+                                                                 uniform int32 val) {
+    return @llvm.ispc.cmpxchg.seq_cst.seq_cst(ptr, cmp, val);
+}
+EXT uniform int64 __atomic_compare_exchange_uniform_int64_global(uniform int8 *uniform ptr, uniform int64 cmp,
+                                                                 uniform int64 val) {
+    return @llvm.ispc.cmpxchg.seq_cst.seq_cst(ptr, cmp, val);
 }
 
 #undef NOESCAPE

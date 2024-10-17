@@ -107,25 +107,37 @@ static llvm::Value *lLowerStreamLoadIntrinsic(llvm::CallInst *CI) {
     return LI;
 }
 
+static llvm::AtomicOrdering lSetMemoryOrdering(const std::string &str) {
+    if (str == "unordered") {
+        return llvm::AtomicOrdering::Unordered;
+    } else if (str == "monotonic") {
+        return llvm::AtomicOrdering::Monotonic;
+    } else if (str == "acquire") {
+        return llvm::AtomicOrdering::Acquire;
+    } else if (str == "release") {
+        return llvm::AtomicOrdering::Release;
+    } else if (str == "acq_rel") {
+        return llvm::AtomicOrdering::AcquireRelease;
+    } else if (str == "seq_cst") {
+        return llvm::AtomicOrdering::SequentiallyConsistent;
+    }
+    return llvm::AtomicOrdering::NotAtomic;
+}
+
 static llvm::Value *lLowerAtomicRMWIntrinsic(llvm::CallInst *CI) {
-    // generate atomicrmw instruction with the first operand fetched from
-    // instrinsic name suffix (that is placed before type overloading suffix)
+    // generate atomicrmw instruction fetching op and ordering from intrinsic name
+    // llvm.ispc.atomicrmw.<op>.<memoryOrdering>.<type>
     llvm::IRBuilder<> builder(CI);
 
     llvm::Value *P = CI->getArgOperand(0);
     llvm::Value *V = CI->getArgOperand(1);
 
     llvm::AtomicRMWInst::BinOp op = llvm::AtomicRMWInst::BinOp::BAD_BINOP;
-    llvm::AtomicOrdering ordering = llvm::AtomicOrdering::NotAtomic;
-
-    // llvm.ispc.atomicrmw.<op>.<memoryOrdering>.<type>
     std::string opName = CI->getCalledFunction()->getName().str();
     opName = opName.substr(0, opName.find_last_of('.'));
     std::string memoryOrdering = opName.substr(opName.find_last_of('.') + 1);
     opName = opName.substr(0, opName.find_last_of('.'));
     opName = opName.substr(opName.find_last_of('.') + 1);
-    printf("opName: %s\n", opName.c_str());
-    printf("memoryOrdering: %s\n", memoryOrdering.c_str());
     if (opName == "xchg") {
         op = llvm::AtomicRMWInst::BinOp::Xchg;
     } else if (opName == "add") {
@@ -159,22 +171,35 @@ static llvm::Value *lLowerAtomicRMWIntrinsic(llvm::CallInst *CI) {
     }
     Assert(op != llvm::AtomicRMWInst::BinOp::BAD_BINOP);
 
-    if (memoryOrdering == "unordered") {
-        ordering = llvm::AtomicOrdering::Unordered;
-    } else if (memoryOrdering == "monotonic") {
-        ordering = llvm::AtomicOrdering::Monotonic;
-    } else if (memoryOrdering == "acquire") {
-        ordering = llvm::AtomicOrdering::Acquire;
-    } else if (memoryOrdering == "release") {
-        ordering = llvm::AtomicOrdering::Release;
-    } else if (memoryOrdering == "acq_rel") {
-        ordering = llvm::AtomicOrdering::AcquireRelease;
-    } else if (memoryOrdering == "seq_cst") {
-        ordering = llvm::AtomicOrdering::SequentiallyConsistent;
-    }
+    llvm::AtomicOrdering ordering = lSetMemoryOrdering(memoryOrdering);
     Assert(ordering != llvm::AtomicOrdering::NotAtomic);
 
     return builder.CreateAtomicRMW(op, P, V, llvm::MaybeAlign(), ordering);
+}
+
+static llvm::Value *lLowerCmpXchgIntrinsic(llvm::CallInst *CI) {
+    // generate cmpxchg instruction fetching success ordering and failure
+    // ordering from intrinsic name
+    // llvm.ispc.cmpxchg.<successOrdering>.<failureOrdering>.<type>
+    llvm::IRBuilder<> builder(CI);
+
+    llvm::Value *P = CI->getArgOperand(0);
+    llvm::Value *C = CI->getArgOperand(1);
+    llvm::Value *N = CI->getArgOperand(2);
+
+    std::string prefix = CI->getCalledFunction()->getName().str();
+    prefix = prefix.substr(0, prefix.find_last_of('.'));
+    std::string successOrdering = prefix.substr(prefix.find_last_of('.') + 1);
+    prefix = prefix.substr(0, prefix.find_last_of('.'));
+    std::string failureOrdering = prefix.substr(prefix.find_last_of('.') + 1);
+
+    llvm::AtomicOrdering SO = lSetMemoryOrdering(successOrdering);
+    llvm::AtomicOrdering FO = lSetMemoryOrdering(failureOrdering);
+    Assert(SO != llvm::AtomicOrdering::NotAtomic && FO != llvm::AtomicOrdering::NotAtomic);
+
+    // cmpxchg returns a struct with two values, we only need the first one
+    llvm::Value *result = builder.CreateAtomicCmpXchg(P, C, N, llvm::MaybeAlign(), SO, FO);
+    return builder.CreateExtractValue(result, 0);
 }
 
 static bool lRunOnBasicBlock(llvm::BasicBlock &BB) {
@@ -198,6 +223,8 @@ static bool lRunOnBasicBlock(llvm::BasicBlock &BB) {
                     D = lLowerStreamLoadIntrinsic(CI);
                 } else if (Callee->getName().startswith("llvm.ispc.atomicrmw.")) {
                     D = lLowerAtomicRMWIntrinsic(CI);
+                } else if (Callee->getName().startswith("llvm.ispc.cmpxchg.")) {
+                    D = lLowerCmpXchgIntrinsic(CI);
                 }
 
                 if (D) {

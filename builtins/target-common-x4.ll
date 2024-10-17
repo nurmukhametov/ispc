@@ -333,13 +333,6 @@ define <$1 x $2> @__atomic_compare_exchange_$3_global(i8* %ptr, <$1 x $2> %cmp,
    ret <$1 x $2> %r
 }
 
-define $2 @__atomic_compare_exchange_uniform_$3_global(i8* %ptr, $2 %cmp,
-                                                       $2 %val) nounwind alwaysinline {
-   %ptr_typed = bitcast i8* %ptr to $2*
-   %r_t = cmpxchg $2 * %ptr_typed, $2 %cmp, $2 %val seq_cst seq_cst
-   %r = extractvalue { $2, i1 } %r_t, 0
-   ret $2 %r
-}
 ')
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -445,25 +438,6 @@ define <WIDTH x double> @__atomic_compare_exchange_double_global(i8 * %ptr,
                                                                   <WIDTH x i64> %ival, <WIDTH x MASK> %mask)
   %ret = bitcast <WIDTH x i64> %iret to <WIDTH x double>
   ret <WIDTH x double> %ret
-}
-
-define float @__atomic_compare_exchange_uniform_float_global(i8 * %ptr, float %cmp,
-                                                             float %val) nounwind alwaysinline {
-  %icmp = bitcast float %cmp to i32
-  %ival = bitcast float %val to i32
-  %iret = call i32 @__atomic_compare_exchange_uniform_int32_global(i8 * %ptr, i32 %icmp,
-                                                                   i32 %ival)
-  %ret = bitcast i32 %iret to float
-  ret float %ret
-}
-
-define double @__atomic_compare_exchange_uniform_double_global(i8 * %ptr, double %cmp,
-                                                               double %val) nounwind alwaysinline {
-  %icmp = bitcast double %cmp to i64
-  %ival = bitcast double %val to i64
-  %iret = call i64 @__atomic_compare_exchange_uniform_int64_global(i8 * %ptr, i64 %icmp, i64 %ival)
-  %ret = bitcast i64 %iret to double
-  ret double %ret
 }
 
 ')

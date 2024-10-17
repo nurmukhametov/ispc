@@ -543,9 +543,10 @@ enum class ISPCIntrinsics : unsigned {
     not_intrinsic = 0,
     atomicrmw,
     bitcast,
-    insert,
-    extract,
     concat,
+    cmpxchg,
+    extract,
+    insert,
     stream_load,
     stream_store,
 };
@@ -554,9 +555,10 @@ const char *ISPCIntrinsicsNames[] = {
     "not_intrinsic",
     "llvm.ispc.atomicrmw",
     "llvm.ispc.bitcast",
-    "llvm.ispc.insert",
-    "llvm.ispc.extract",
     "llvm.ispc.concat",
+    "llvm.ispc.cmpxchg",
+    "llvm.ispc.extract",
+    "llvm.ispc.insert",
     "llvm.ispc.stream_load",
     "llvm.ispc.stream_store",
 };
@@ -564,6 +566,9 @@ const char *ISPCIntrinsicsNames[] = {
 static ISPCIntrinsics lLookupISPCInstrinsic(const std::string &name) {
     llvm::StringRef ref(name);
     if (ref.startswith("llvm.ispc.atomicrmw.")) {
+        return ISPCIntrinsics::atomicrmw;
+    }
+    if (ref.startswith("llvm.ispc.cmpxchg.")) {
         return ISPCIntrinsics::atomicrmw;
     }
     for (unsigned i = 1; i <= (unsigned)ISPCIntrinsics::stream_store; i++) {
@@ -607,12 +612,16 @@ static llvm::Function *lGetISPCIntrinsicsFuncDecl(llvm::Module *M, std::string o
         name += "." + lGetMangledTypeStr(TYs[0], hasUnnamedType) + "." + lGetMangledTypeStr(TYs[1], hasUnnamedType);
         break;
     }
-    case ISPCIntrinsics::insert: {
-        llvm::VectorType *vt = llvm::dyn_cast<llvm::VectorType>(TYs[0]);
-        Assert(vt);
-        retType = vt;
+    case ISPCIntrinsics::concat: {
+        assert(Type::Equal(argTypes[0], argTypes[1]));
+        retType = lGetDoubleVectorType(TYs[0]);
         name = ISPCIntrinsicsNames[(unsigned)ID];
-        name += "." + lGetMangledTypeStr(TYs[0], hasUnnamedType);
+        name += "." + lGetMangledTypeStr(retType, hasUnnamedType) + "." + lGetMangledTypeStr(TYs[1], hasUnnamedType);
+        break;
+    }
+    case ISPCIntrinsics::cmpxchg: {
+        retType = TYs[1];
+        name += origName + "." + lGetMangledTypeStr(TYs[1], hasUnnamedType);
         break;
     }
     case ISPCIntrinsics::extract: {
@@ -626,11 +635,12 @@ static llvm::Function *lGetISPCIntrinsicsFuncDecl(llvm::Module *M, std::string o
         }
         break;
     }
-    case ISPCIntrinsics::concat: {
-        assert(Type::Equal(argTypes[0], argTypes[1]));
-        retType = lGetDoubleVectorType(TYs[0]);
+    case ISPCIntrinsics::insert: {
+        llvm::VectorType *vt = llvm::dyn_cast<llvm::VectorType>(TYs[0]);
+        Assert(vt);
+        retType = vt;
         name = ISPCIntrinsicsNames[(unsigned)ID];
-        name += "." + lGetMangledTypeStr(retType, hasUnnamedType) + "." + lGetMangledTypeStr(TYs[1], hasUnnamedType);
+        name += "." + lGetMangledTypeStr(TYs[0], hasUnnamedType);
         break;
     }
     case ISPCIntrinsics::stream_load: {
