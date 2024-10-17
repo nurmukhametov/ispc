@@ -2045,6 +2045,39 @@ EXT uniform float __atomic_fmax_uniform_float_global(uniform int8 *uniform ptr, 
     return @llvm.ispc.atomicrmw.fmax.seq_cst(ptr, val);
 }
 
+UNMANGLED CDECL varying double __atomic_fadd_double_global(uniform int8 *uniform ptr, varying double val) {
+    varying double res;
+    foreach_active(i) {
+        uniform double r = __atomic_fadd_uniform_double_global(ptr, __extract(val, i));
+        res = __insert(res, i, r);
+    }
+    return res;
+}
+UNMANGLED CDECL varying float __atomic_fadd_float_global(uniform int8 *uniform ptr, varying float val) {
+    varying float res;
+    foreach_active(i) {
+        uniform float r = __atomic_fadd_uniform_float_global(ptr, __extract(val, i));
+        res = __insert(res, i, r);
+    }
+    return res;
+}
+UNMANGLED CDECL varying double __atomic_fsub_double_global(uniform int8 *uniform ptr, varying double val) {
+    varying double res;
+    foreach_active(i) {
+        uniform double r = __atomic_fsub_uniform_double_global(ptr, __extract(val, i));
+        res = __insert(res, i, r);
+    }
+    return res;
+}
+UNMANGLED CDECL varying float __atomic_fsub_float_global(uniform int8 *uniform ptr, varying float val) {
+    varying float res;
+    foreach_active(i) {
+        uniform float r = __atomic_fsub_uniform_float_global(ptr, __extract(val, i));
+        res = __insert(res, i, r);
+    }
+    return res;
+}
+
 unmasked uniform int32 __cmpxchg(uniform int8 *uniform ptr, uniform int32 cmp, uniform int32 val) {
     return @llvm.ispc.cmpxchg.seq_cst.seq_cst(ptr, cmp, val);
 }
