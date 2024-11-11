@@ -1839,10 +1839,19 @@ EXT void __soa_to_aos2_double(varying double v0, varying double v1, NOALIAS unif
     *ptr = x;
 }
 
+// TODO!: rewise
+#if TARGET_WIDTH == 4
+#define DEINT2_FLOAT_RES_TYPE __ispcstub_unf_3C_8_3E_unf_3C_8_3E_
+#elif TARGET_WIDTH == 8
+#define DEINT2_FLOAT_RES_TYPE __ispcstub_unf_3C_16_3E_unf_3C_16_3E_
+#else
+#error Unknown value of TARGET_WIDTH
+#endif
+
 typedef struct {
     uniform float<DOUBLE_WIDTH> rb;
     uniform float<DOUBLE_WIDTH> ga;
-} __ispcstub_unf_3C_8_3E_unf_3C_8_3E_; // special mangled name generated in src/builtins.cpp(lLLVMTypeToISPCType)
+} DEINT2_FLOAT_RES_TYPE; // special mangled name generated in src/builtins.cpp(lLLVMTypeToISPCType)
 
 EXT void __aos_to_soa4_float(NOALIAS uniform int8 *uniform a, NOALIAS uniform int8 *uniform v0,
                              NOALIAS uniform int8 *uniform v1, NOALIAS uniform int8 *uniform v2,
@@ -1853,7 +1862,7 @@ EXT void __aos_to_soa4_float(NOALIAS uniform int8 *uniform a, NOALIAS uniform in
     uniform float<QUAD_WIDTH> *uniform ptr = (uniform float<QUAD_WIDTH> *uniform)a;
     // Deinterleave the 4 4-wide vectors into 2 8-wide vectors
     // { <r0 b0 r1 b1 r2 b2 r3 b3>, <g0 a0 g1 a1 g2 a2 g3 a3> }
-    uniform __ispcstub_unf_3C_8_3E_unf_3C_8_3E_ x = @llvm.experimental.vector.deinterleave2(*ptr);
+    uniform DEINT2_FLOAT_RES_TYPE x = @llvm.experimental.vector.deinterleave2(*ptr);
     uniform __ispcstub_vyfvyf rb = @llvm.experimental.vector.deinterleave2(x.rb);
     uniform __ispcstub_vyfvyf ga = @llvm.experimental.vector.deinterleave2(x.ga);
     varying float *uniform x0_ptr = (varying float *uniform)v0;
@@ -1866,16 +1875,25 @@ EXT void __aos_to_soa4_float(NOALIAS uniform int8 *uniform a, NOALIAS uniform in
     *x3_ptr = ga.even;
 }
 
+// TODO!: rewise
+#if TARGET_WIDTH == 4
+#define DEINT2_DOUBLE_RES_TYPE __ispcstub_und_3C_8_3E_und_3C_8_3E_
+#elif TARGET_WIDTH == 8
+#define DEINT2_DOUBLE_RES_TYPE __ispcstub_und_3C_16_3E_und_3C_16_3E_
+#else
+#error Unknown value of TARGET_WIDTH
+#endif
+
 typedef struct {
     uniform double<DOUBLE_WIDTH> rb;
     uniform double<DOUBLE_WIDTH> ga;
-} __ispcstub_und_3C_8_3E_und_3C_8_3E_; // special mangled name generated in src/builtins.cpp(lLLVMTypeToISPCType)
+} DEINT2_DOUBLE_RES_TYPE; // special mangled name generated in src/builtins.cpp(lLLVMTypeToISPCType)
 
 EXT void __aos_to_soa4_double(NOALIAS uniform int8 *uniform a, NOALIAS uniform int8 *uniform v0,
                               NOALIAS uniform int8 *uniform v1, NOALIAS uniform int8 *uniform v2,
                               NOALIAS uniform int8 *uniform v3) {
     uniform double<QUAD_WIDTH> *uniform ptr = (uniform double<QUAD_WIDTH> *uniform)a;
-    uniform __ispcstub_und_3C_8_3E_und_3C_8_3E_ x = @llvm.experimental.vector.deinterleave2(*ptr);
+    uniform DEINT2_DOUBLE_RES_TYPE x = @llvm.experimental.vector.deinterleave2(*ptr);
     uniform __ispcstub_vydvyd rb = @llvm.experimental.vector.deinterleave2(x.rb);
     uniform __ispcstub_vydvyd ga = @llvm.experimental.vector.deinterleave2(x.ga);
     varying double *uniform x0_ptr = (varying double *uniform)v0;
