@@ -446,6 +446,21 @@ EXT void __do_assert_varying(uniform int8 *uniform str, UIntMaskType test, UIntM
     }
 }
 
+EXT void __fastmath() { __not_supported(); }
+// FTZ/DAZ functions
+#if ISPC_TARGET_NEON
+EXT uniform SizeType __set_ftz_daz_flags() { __not_supported(); }
+EXT void __restore_ftz_daz_flags(uniform SizeType) { __not_supported(); }
+#else  // ISPC_TARGET_NEON
+EXT uniform int32 __set_ftz_daz_flags() { __not_supported(); }
+EXT void __restore_ftz_daz_flags(uniform int32) { __not_supported(); }
+#endif // ISPC_TARGET_NEON
+
+// rdrand
+EXT uniform bool __rdrand_i16(uniform int8 *uniform) { __not_supported(); }
+EXT uniform bool __rdrand_i32(uniform int8 *uniform) { __not_supported(); }
+EXT uniform bool __rdrand_i64(uniform int8 *uniform) { __not_supported(); }
+
 // sign extension
 EXT READNONE uniform int32 __sext_uniform_bool(uniform bool x) { return x ? -1 : 0; }
 EXT READNONE varying int32 __sext_varying_bool(bool x) { return x ? -1 : 0; }
