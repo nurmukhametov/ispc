@@ -69,7 +69,9 @@ ISPCTarget operator++(ISPCTarget &target, int dummy) {
                   "Enum ISPCTarget is not sequential");
     static_assert(static_cast<underlying>(ISPCTarget::common_x4) == static_cast<underlying>(ISPCTarget::host) + 1,
                   "Enum ISPCTarget is not sequential");
-    static_assert(static_cast<underlying>(ISPCTarget::sse2_i32x4) == static_cast<underlying>(ISPCTarget::common_x4) + 1,
+    static_assert(static_cast<underlying>(ISPCTarget::common_x8) == static_cast<underlying>(ISPCTarget::common_x4) + 1,
+                  "Enum ISPCTarget is not sequential");
+    static_assert(static_cast<underlying>(ISPCTarget::sse2_i32x4) == static_cast<underlying>(ISPCTarget::common_x8) + 1,
                   "Enum ISPCTarget is not sequential");
     static_assert(static_cast<underlying>(ISPCTarget::sse2_i32x8) ==
                       static_cast<underlying>(ISPCTarget::sse2_i32x4) + 1,
@@ -292,6 +294,8 @@ ISPCTarget ParseISPCTarget(std::string target) {
         return ISPCTarget::host;
     } else if (target == "common-x4") {
         return ISPCTarget::common_x4;
+    } else if (target == "common-x8") {
+        return ISPCTarget::common_x8;
     } else if (target == "sse2-i32x4" || target == "sse2") {
         return ISPCTarget::sse2_i32x4;
     } else if (target == "sse2-i32x8" || target == "sse2-x2") {
@@ -449,6 +453,8 @@ std::string ISPCTargetToString(ISPCTarget target) {
         return "host";
     case ISPCTarget::common_x4:
         return "common-x4";
+    case ISPCTarget::common_x8:
+        return "common-x8";
     case ISPCTarget::sse2_i32x4:
         return "sse2-i32x4";
     case ISPCTarget::sse2_i32x8:

@@ -88,6 +88,22 @@ function (generate_stdlibs_1 ispc_name)
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
     )
     list(APPEND STDLIB_BC_FILES ${bc})
+
+    # TODO: common_x8
+    set(name stdlib_common_x86_x8_64bit_unix)
+    set(target common-x8)
+    set(target_name common_x8)
+    set(bc ${BITCODE_FOLDER}/${name}.bc)
+    file(APPEND ${CMAKE_BINARY_DIR}/bitcode_libs_generated.cpp
+      "static BitcodeLib ${name}(BitcodeLib::BitcodeLibType::Stdlib, \"${name}.bc\", ISPCTarget::${target_name}, TargetOS::${fixed_os}, Arch::${fixed_arch});\n")
+
+    add_custom_command(
+        OUTPUT ${bc}
+        COMMAND ${ispc_name} -I ${INCLUDE_FOLDER} --nostdlib --gen-stdlib --target=${target} --arch=${canon_arch} --target-os=${canon_os} stdlib/stdlib.ispc --emit-llvm -o ${bc}
+        DEPENDS ${ispc_name} ${STDLIB_ISPC_FILES}
+        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+    )
+    list(APPEND STDLIB_BC_FILES ${bc})
     # TODO: end
 
     set(STDLIB_BC_FILES ${STDLIB_BC_FILES} PARENT_SCOPE)
@@ -197,7 +213,43 @@ function (generate_common_target_bcs ispc_name)
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
     )
 
-    add_custom_target(common-target-bc DEPENDS ${bc})
+    list(APPEND COMMON_TARGET_BC_FILE ${bc})
+
+    # TODO: common_x8
+    set(name builtins_target_common_x86_x8_64bit_unix)
+    set(target_ common_x8)
+    set(target common-x8)
+    set(input_ll builtins/target-common-x8.ll)
+    set(bc ${BITCODE_FOLDER}/${name}.bc)
+    set(bc_ll ${BITCODE_FOLDER}/${name}_ll.bc)
+    set(bc_ispc ${BITCODE_FOLDER}/${name}_ispc.bc)
+    file(APPEND ${CMAKE_BINARY_DIR}/bitcode_libs_generated.cpp
+      "static BitcodeLib ${name}(\"${name}.bc\", ISPCTarget::${target_}, TargetOS::${fixed_os}, Arch::${fixed_arch});\n")
+
+    add_custom_command(
+        OUTPUT ${bc_ll}
+        COMMAND ${M4_EXECUTABLE} -I${include} -DBUILD_OS=${OS_UP} -DRUNTIME=${bit} ${input_ll}
+            | \"${LLVM_AS_EXECUTABLE}\" ${LLVM_TOOLS_OPAQUE_FLAGS} -o ${bc_ll}
+        DEPENDS ${input_ll} ${M4_IMPLICIT_DEPENDENCIES}
+        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+    )
+
+    add_custom_command(
+        OUTPUT ${bc_ispc}
+        COMMAND ${ispc_name} -I ${INCLUDE_FOLDER} --enable-llvm-intrinsics --nostdlib --gen-stdlib --target=${target} --arch=${fixed_arch} --target-os=${fixed_os}  --emit-llvm -o ${bc_ispc} ${input_ispc} -DBUILD_OS=${OS_UP} -DRUNTIME=${bit}
+        DEPENDS ${ispc_name} ${input_ispc}
+        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+    )
+
+    add_custom_command(
+        OUTPUT ${bc}
+        COMMAND ${ispc_name} link --emit-llvm -o ${bc} ${bc_ll} ${bc_ispc}
+        DEPENDS ${bc_ll} ${bc_ispc}
+        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+    )
+
+    list(APPEND COMMON_TARGET_BC_FILE ${bc})
+    add_custom_target(common-target-bc DEPENDS ${COMMON_TARGET_BC_FILE})
     # list(APPEND TARGET_BUILTIN_BC_FILES ${bc})
     # TODO: end
 endfunction()
