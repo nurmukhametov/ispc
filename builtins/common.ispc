@@ -465,12 +465,10 @@ EXT uniform bool __rdrand_i64(uniform int8 *uniform) { __not_supported(); }
 EXT READNONE uniform int32 __sext_uniform_bool(uniform bool x) { return x ? -1 : 0; }
 EXT READNONE varying int32 __sext_varying_bool(bool x) { return x ? -1 : 0; }
 
-// // read hw clock
-// // Fix: generation of llvm.intrinsic here
-// // EXT uniform int64 __clock() {
-// //     uniform int64 c = @llvm.readcyclecounter();
-// //     return c;
-// // }
+// read hw clock
+EXT uniform int64 __clock() { return @llvm.readcyclecounter(); }
+
+EXT READNONE void __memory_barrier() { @llvm.ispc.fence.seq_cst(); }
 
 // stdlib transcendental functions
 // These functions provide entrypoints that call out to the libm

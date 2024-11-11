@@ -213,6 +213,19 @@ static llvm::Value *lLowerSelectIntrinsic(llvm::CallInst *CI) {
     return builder.CreateSelect(C, T, F);
 }
 
+static llvm::Value *lLowerFenceIntrinsic(llvm::CallInst *CI) {
+    // generate fence instruction
+    llvm::IRBuilder<> builder(CI);
+
+    std::string ordering = CI->getCalledFunction()->getName().str();
+    ordering = ordering.substr(ordering.find_last_of('.') + 1);
+
+    llvm::AtomicOrdering AO = lSetMemoryOrdering(ordering);
+    Assert(AO != llvm::AtomicOrdering::NotAtomic);
+
+    return builder.CreateFence(AO);
+}
+
 static bool lRunOnBasicBlock(llvm::BasicBlock &BB) {
     // TODO: add lit tests
     for (llvm::BasicBlock::iterator iter = BB.begin(), e = BB.end(); iter != e;) {
@@ -238,6 +251,8 @@ static bool lRunOnBasicBlock(llvm::BasicBlock &BB) {
                     D = lLowerCmpXchgIntrinsic(CI);
                 } else if (Callee->getName().startswith("llvm.ispc.select.")) {
                     D = lLowerSelectIntrinsic(CI);
+                } else if (Callee->getName().startswith("llvm.ispc.fence.")) {
+                    D = lLowerFenceIntrinsic(CI);
                 }
 
                 if (D) {
