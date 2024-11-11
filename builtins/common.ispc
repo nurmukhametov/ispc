@@ -1213,6 +1213,10 @@ EXT void __masked_store_blend_double(NOESCAPE varying double *uniform ptr, varyi
     @llvm.masked.store(val, (uniform int8 * uniform) ptr, 1, mask);
 }
 
+EXT uniform uint64 __cast_mask_to_i64(UIntMaskType mask) {
+    return @llvm.ispc.packmask(mask);
+}
+
 // mask operations
 EXT uniform int64 __movmsk(UIntMaskType mask) { return __cast_mask_to_i64(mask); }
 EXT uniform bool __any(UIntMaskType mask) { return __cast_mask_to_i64(mask) != 0; }

@@ -226,6 +226,31 @@ static llvm::Value *lLowerFenceIntrinsic(llvm::CallInst *CI) {
     return builder.CreateFence(AO);
 }
 
+static llvm::Value *lLowerPackMaskIntrinsic(llvm::CallInst *CI) {
+    // generate bitcast from <WIDTH x i1> to i`WIDTH if mask type is i1
+    // otherwise truncate the mask from <WIDTH x i32|i16|i8> to <WIDTH x i1> before
+    llvm::IRBuilder<> builder(CI);
+
+    llvm::Value *V = CI->getArgOperand(0);
+    llvm::VectorType *VT = llvm::dyn_cast<llvm::VectorType>(CI->getArgOperand(0)->getType());
+    Assert(VT);
+
+    // check if the vector element type is not i1
+    llvm::Type *ET = VT->getElementType();
+    if (!ET->isIntegerTy(1)) {
+        // truncate vector of i32/i16/i8 to vector of i1
+        llvm::Type *newVT = llvm::IntegerType::get(builder.getContext(), 1);
+        V = builder.CreateTrunc(V, newVT);
+    }
+
+    // get type with the same width as target width
+    llvm::Type *newVT = llvm::IntegerType::get(builder.getContext(), lGetVecNumElements(V));
+    llvm::Value *packed = builder.CreateBitCast(V, newVT);
+
+    // zero extend to i64
+    return builder.CreateZExt(packed, llvm::Type::getInt64Ty(builder.getContext()));
+}
+
 static bool lRunOnBasicBlock(llvm::BasicBlock &BB) {
     // TODO: add lit tests
     for (llvm::BasicBlock::iterator iter = BB.begin(), e = BB.end(); iter != e;) {
@@ -253,6 +278,8 @@ static bool lRunOnBasicBlock(llvm::BasicBlock &BB) {
                     D = lLowerSelectIntrinsic(CI);
                 } else if (Callee->getName().startswith("llvm.ispc.fence.")) {
                     D = lLowerFenceIntrinsic(CI);
+                } else if (Callee->getName().startswith("llvm.ispc.packmask.")) {
+                    D = lLowerPackMaskIntrinsic(CI);
                 }
 
                 if (D) {

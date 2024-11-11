@@ -548,6 +548,7 @@ enum class ISPCIntrinsics : unsigned {
     extract,
     fence,
     insert,
+    packmask,
     select,
     stream_load,
     stream_store,
@@ -562,6 +563,7 @@ const char *ISPCIntrinsicsNames[] = {
     "llvm.ispc.extract",
     "llvm.ispc.fence",
     "llvm.ispc.insert",
+    "llvm.ispc.packmask",
     "llvm.ispc.select",
     "llvm.ispc.stream_load",
     "llvm.ispc.stream_store",
@@ -651,6 +653,12 @@ static llvm::Function *lGetISPCIntrinsicsFuncDecl(llvm::Module *M, std::string o
         llvm::VectorType *vt = llvm::dyn_cast<llvm::VectorType>(TYs[0]);
         Assert(vt);
         retType = vt;
+        name = ISPCIntrinsicsNames[(unsigned)ID];
+        name += "." + lGetMangledTypeStr(TYs[0], hasUnnamedType);
+        break;
+    }
+    case ISPCIntrinsics::packmask: {
+        retType = llvm::Type::getInt64Ty(*g->ctx);
         name = ISPCIntrinsicsNames[(unsigned)ID];
         name += "." + lGetMangledTypeStr(TYs[0], hasUnnamedType);
         break;
