@@ -579,7 +579,7 @@ intrincall_expression
           FunctionSymbolExpr *fSym = nullptr;
           if (sym != nullptr)
               fSym = new FunctionSymbolExpr(fname, funcs, @1);
-          $$ = new FunctionCallExpr(fSym, nullptr, Union(@1,@3));
+          $$ = new FunctionCallExpr(fSym, new ExprList(Union(@1,@2)), Union(@1,@3));
           delete name;
       }
     | intrinsic_name '(' argument_expression_list ')'
