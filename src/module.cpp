@@ -571,13 +571,13 @@ const char *ISPCIntrinsicsNames[] = {
 
 static ISPCIntrinsics lLookupISPCInstrinsic(const std::string &name) {
     llvm::StringRef ref(name);
-    if (ref.startswith("llvm.ispc.atomicrmw.")) {
+    if (ref.starts_with("llvm.ispc.atomicrmw.")) {
         return ISPCIntrinsics::atomicrmw;
     }
-    if (ref.startswith("llvm.ispc.cmpxchg.")) {
+    if (ref.starts_with("llvm.ispc.cmpxchg.")) {
         return ISPCIntrinsics::atomicrmw;
     }
-    if (ref.startswith("llvm.ispc.fence.")) {
+    if (ref.starts_with("llvm.ispc.fence.")) {
         return ISPCIntrinsics::fence;
     }
     for (unsigned i = 1; i <= (unsigned)ISPCIntrinsics::stream_store; i++) {

@@ -258,27 +258,27 @@ static bool lRunOnBasicBlock(llvm::BasicBlock &BB) {
             llvm::Function *Callee = CI->getCalledFunction();
             if (Callee) {
                 llvm::Value *D = nullptr;
-                if (Callee->getName().startswith("llvm.ispc.concat.")) {
+                if (Callee->getName().starts_with("llvm.ispc.concat.")) {
                     D = lLowerConcatIntrinsic(CI);
-                } else if (Callee->getName().startswith("llvm.ispc.extract.")) {
+                } else if (Callee->getName().starts_with("llvm.ispc.extract.")) {
                     D = lLowerExtractIntrinsic(CI);
-                } else if (Callee->getName().startswith("llvm.ispc.insert.")) {
+                } else if (Callee->getName().starts_with("llvm.ispc.insert.")) {
                     D = lLowerInserIntrinsic(CI);
-                } else if (Callee->getName().startswith("llvm.ispc.bitcast.")) {
+                } else if (Callee->getName().starts_with("llvm.ispc.bitcast.")) {
                     D = lLowerBitcastIntrinsic(CI);
-                } else if (Callee->getName().startswith("llvm.ispc.stream_store.")) {
+                } else if (Callee->getName().starts_with("llvm.ispc.stream_store.")) {
                     D = lLowerStreamStoreIntrinsic(CI);
-                } else if (Callee->getName().startswith("llvm.ispc.stream_load.")) {
+                } else if (Callee->getName().starts_with("llvm.ispc.stream_load.")) {
                     D = lLowerStreamLoadIntrinsic(CI);
-                } else if (Callee->getName().startswith("llvm.ispc.atomicrmw.")) {
+                } else if (Callee->getName().starts_with("llvm.ispc.atomicrmw.")) {
                     D = lLowerAtomicRMWIntrinsic(CI);
-                } else if (Callee->getName().startswith("llvm.ispc.cmpxchg.")) {
+                } else if (Callee->getName().starts_with("llvm.ispc.cmpxchg.")) {
                     D = lLowerCmpXchgIntrinsic(CI);
-                } else if (Callee->getName().startswith("llvm.ispc.select.")) {
+                } else if (Callee->getName().starts_with("llvm.ispc.select.")) {
                     D = lLowerSelectIntrinsic(CI);
-                } else if (Callee->getName().startswith("llvm.ispc.fence.")) {
+                } else if (Callee->getName().starts_with("llvm.ispc.fence.")) {
                     D = lLowerFenceIntrinsic(CI);
-                } else if (Callee->getName().startswith("llvm.ispc.packmask.")) {
+                } else if (Callee->getName().starts_with("llvm.ispc.packmask.")) {
                     D = lLowerPackMaskIntrinsic(CI);
                 }
 
