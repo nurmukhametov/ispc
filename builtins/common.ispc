@@ -1782,6 +1782,14 @@ EXT uniform int32 __packed_load_activei64(uniform int8 *uniform from, uniform in
     return __popcnt_int64(__cast_mask_to_i64(mask));
 }
 
+#if LLVM_VERSION_MAJOR >= 19
+#define LLVM_INTRINSIC_DEINTERLEAVE2 llvm.vector.deinterleave2
+#define LLVM_INTRINSIC_INTERLEAVE2 llvm.vector.interleave2
+#else
+#define LLVM_INTRINSIC_DEINTERLEAVE2 llvm.experimental.vector.deinterleave2
+#define LLVM_INTRINSIC_INTERLEAVE2 llvm.experimental.vector.interleave2
+#endif
+
 typedef struct {
     varying float odd;
     varying float even;
@@ -1797,12 +1805,12 @@ uniform __ispcstub_vyfvyf __deinterleave2(uniform int8 *uniform a,
                                           uniform __ispcstub_vyfvyf *uniform dummy) {
     // Unfortunately at the moment, declaring short vector inside template function leads to error
     uniform float<DOUBLE_WIDTH> *uniform ptr = (uniform float<DOUBLE_WIDTH> *uniform)a;
-    return @llvm.experimental.vector.deinterleave2(*ptr);
+    return @LLVM_INTRINSIC_DEINTERLEAVE2(*ptr);
 }
 uniform __ispcstub_vydvyd __deinterleave2(uniform int8 *uniform a,
                                           uniform __ispcstub_vydvyd *uniform dummy) {
     uniform double<DOUBLE_WIDTH> *uniform ptr = (uniform double<DOUBLE_WIDTH> *uniform)a;
-    return @llvm.experimental.vector.deinterleave2(*ptr);
+    return @LLVM_INTRINSIC_DEINTERLEAVE2(*ptr);
 }
 
 template <typename T, typename S>
@@ -1828,13 +1836,13 @@ EXT void __soa_to_aos2_float(varying float v0, varying float v1, NOALIAS uniform
     // E.g., given 2 4-vectors. The inverse of __aos_to_soa3_float4: convert 2 4-vectors
     // <x0 x1 x2 x3> <y0 y1 y2 y3>, to
     // <x0 y0 x1 y1 x2 y2 x3 y3>.
-    uniform float<DOUBLE_WIDTH> x = @llvm.experimental.vector.interleave2(v0, v1);
+    uniform float<DOUBLE_WIDTH> x = @LLVM_INTRINSIC_INTERLEAVE2(v0, v1);
     uniform float<DOUBLE_WIDTH> *uniform ptr = (uniform float<DOUBLE_WIDTH> *uniform)a;
     *ptr = x;
 }
 
 EXT void __soa_to_aos2_double(varying double v0, varying double v1, NOALIAS uniform int8 *uniform a) {
-    uniform double<DOUBLE_WIDTH> x = @llvm.experimental.vector.interleave2(v0, v1);
+    uniform double<DOUBLE_WIDTH> x = @LLVM_INTRINSIC_INTERLEAVE2(v0, v1);
     uniform double<DOUBLE_WIDTH> *uniform ptr = (uniform double<DOUBLE_WIDTH> *uniform)a;
     *ptr = x;
 }
@@ -1862,9 +1870,9 @@ EXT void __aos_to_soa4_float(NOALIAS uniform int8 *uniform a, NOALIAS uniform in
     uniform float<QUAD_WIDTH> *uniform ptr = (uniform float<QUAD_WIDTH> *uniform)a;
     // Deinterleave the 4 4-wide vectors into 2 8-wide vectors
     // { <r0 b0 r1 b1 r2 b2 r3 b3>, <g0 a0 g1 a1 g2 a2 g3 a3> }
-    uniform DEINT2_FLOAT_RES_TYPE x = @llvm.experimental.vector.deinterleave2(*ptr);
-    uniform __ispcstub_vyfvyf rb = @llvm.experimental.vector.deinterleave2(x.rb);
-    uniform __ispcstub_vyfvyf ga = @llvm.experimental.vector.deinterleave2(x.ga);
+    uniform DEINT2_FLOAT_RES_TYPE x = @LLVM_INTRINSIC_DEINTERLEAVE2(*ptr);
+    uniform __ispcstub_vyfvyf rb = @LLVM_INTRINSIC_DEINTERLEAVE2(x.rb);
+    uniform __ispcstub_vyfvyf ga = @LLVM_INTRINSIC_DEINTERLEAVE2(x.ga);
     varying float *uniform x0_ptr = (varying float *uniform)v0;
     varying float *uniform x1_ptr = (varying float *uniform)v1;
     varying float *uniform x2_ptr = (varying float *uniform)v2;
@@ -1893,9 +1901,9 @@ EXT void __aos_to_soa4_double(NOALIAS uniform int8 *uniform a, NOALIAS uniform i
                               NOALIAS uniform int8 *uniform v1, NOALIAS uniform int8 *uniform v2,
                               NOALIAS uniform int8 *uniform v3) {
     uniform double<QUAD_WIDTH> *uniform ptr = (uniform double<QUAD_WIDTH> *uniform)a;
-    uniform DEINT2_DOUBLE_RES_TYPE x = @llvm.experimental.vector.deinterleave2(*ptr);
-    uniform __ispcstub_vydvyd rb = @llvm.experimental.vector.deinterleave2(x.rb);
-    uniform __ispcstub_vydvyd ga = @llvm.experimental.vector.deinterleave2(x.ga);
+    uniform DEINT2_DOUBLE_RES_TYPE x = @LLVM_INTRINSIC_DEINTERLEAVE2(*ptr);
+    uniform __ispcstub_vydvyd rb = @LLVM_INTRINSIC_DEINTERLEAVE2(x.rb);
+    uniform __ispcstub_vydvyd ga = @LLVM_INTRINSIC_DEINTERLEAVE2(x.ga);
     varying double *uniform x0_ptr = (varying double *uniform)v0;
     varying double *uniform x1_ptr = (varying double *uniform)v1;
     varying double *uniform x2_ptr = (varying double *uniform)v2;
@@ -1911,19 +1919,19 @@ EXT void __soa_to_aos4_float(varying float v0, varying float v1, varying float v
     // For example, for 4-wide vectors:
     // take 4 4-wide vectors laid out like <r0 r1 r2 r3> <g0 g1 g2 g3> <b0 b1 b2 b3> <a0 a1 a2 a3>
     // and reorder them to 4 4-wide vectors laid out like <r0 g0 b0 a0> <r1 g1 b1 a1> <r2 g2 b2 a2> <r3 g3 b3 a3>
-    uniform float<DOUBLE_WIDTH> rb = @llvm.experimental.vector.interleave2(v0, v2);
-    uniform float<DOUBLE_WIDTH> ga = @llvm.experimental.vector.interleave2(v1, v3);
+    uniform float<DOUBLE_WIDTH> rb = @LLVM_INTRINSIC_INTERLEAVE2(v0, v2);
+    uniform float<DOUBLE_WIDTH> ga = @LLVM_INTRINSIC_INTERLEAVE2(v1, v3);
     // x = <r0 b0 r1 b1 r2 b2 r3 b3>, y = <g0 a0 g1 a1 g2 a2 g3 a3>
     uniform float<QUAD_WIDTH> *uniform ptr = (uniform float<QUAD_WIDTH> *uniform)a;
-    *ptr = @llvm.experimental.vector.interleave2(rb, ga);
+    *ptr = @LLVM_INTRINSIC_INTERLEAVE2(rb, ga);
 }
 
 EXT void __soa_to_aos4_double(varying double v0, varying double v1, varying double v2, varying double v3,
                               NOALIAS uniform int8 *uniform a) {
-    uniform double<DOUBLE_WIDTH> rb = @llvm.experimental.vector.interleave2(v0, v2);
-    uniform double<DOUBLE_WIDTH> ga = @llvm.experimental.vector.interleave2(v1, v3);
+    uniform double<DOUBLE_WIDTH> rb = @LLVM_INTRINSIC_INTERLEAVE2(v0, v2);
+    uniform double<DOUBLE_WIDTH> ga = @LLVM_INTRINSIC_INTERLEAVE2(v1, v3);
     uniform double<QUAD_WIDTH> *uniform ptr = (uniform double<QUAD_WIDTH> *uniform)a;
-    *ptr = @llvm.experimental.vector.interleave2(rb, ga);
+    *ptr = @LLVM_INTRINSIC_INTERLEAVE2(rb, ga);
 }
 
 EXT void __aos_to_soa3_float(NOALIAS uniform int8 *uniform a, uniform int8 *uniform v0, uniform int8 *uniform v1,

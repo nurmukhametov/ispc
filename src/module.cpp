@@ -691,6 +691,12 @@ static llvm::Function *lGetISPCIntrinsicsFuncDecl(llvm::Module *M, std::string o
     return p;
 }
 
+#if ISPC_LLVM_VERSION >= ISPC_LLVM_19_0
+#define LLVM_INTRINSIC_VECTOR_INTERLEAVE2 llvm::Intrinsic::vector_interleave2
+#else
+#define LLVM_INTRINSIC_VECTOR_INTERLEAVE2 llvm::Intrinsic::experimental_vector_interleave2
+#endif
+
 static std::vector<llvm::Type *> lDeductArgTypes(llvm::Intrinsic::ID ID, ExprList *args) {
     std::vector<llvm::Type *> exprType;
     // TODO: not all intrinsics are overloaded, so we need to handle them also?
@@ -750,7 +756,7 @@ static std::vector<llvm::Type *> lDeductArgTypes(llvm::Intrinsic::ID ID, ExprLis
         if (ID == llvm::Intrinsic::masked_expandload) {
             nInits = { 2 };
         }
-        if (ID == llvm::Intrinsic::experimental_vector_interleave2) {
+        if (ID == LLVM_INTRINSIC_VECTOR_INTERLEAVE2) {
             nInits = { 0 };
         }
         for (const int i : nInits) {
@@ -762,7 +768,7 @@ static std::vector<llvm::Type *> lDeductArgTypes(llvm::Intrinsic::ID ID, ExprLis
             } else if (ID == llvm::Intrinsic::masked_scatter && i == 1) {
                 // type with <TARGET_WIDTH x ptr> is expected
                 exprType.push_back(LLVMTypes::PtrVectorType);
-            } else if (ID == llvm::Intrinsic::experimental_vector_interleave2) {
+            } else if (ID == LLVM_INTRINSIC_VECTOR_INTERLEAVE2) {
                 // create a vector type twice wider that current one
                 llvm::VectorType *vt = llvm::dyn_cast<llvm::VectorType>(argType->LLVMType(g->ctx));
                 Assert(vt);
