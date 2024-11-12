@@ -24,22 +24,6 @@
 #endif
 
 #if TARGET_WIDTH == 2
-#define TRIPLE_WIDTH 6
-#elif TARGET_WIDTH == 4
-#define TRIPLE_WIDTH 12
-#elif TARGET_WIDTH == 8
-#define TRIPLE_WIDTH 24
-#elif TARGET_WIDTH == 16
-#define TRIPLE_WIDTH 48
-#elif TARGET_WIDTH == 32
-#define TRIPLE_WIDTH 96
-#elif TARGET_WIDTH == 64
-#define TRIPLE_WIDTH 192
-#else
-#error Unknown value of TARGET_WIDTH
-#endif
-
-#if TARGET_WIDTH == 2
 #define QUAD_WIDTH 8
 #elif TARGET_WIDTH == 4
 #define QUAD_WIDTH 16
@@ -1934,44 +1918,36 @@ EXT void __soa_to_aos4_double(varying double v0, varying double v1, varying doub
     *ptr = @LLVM_INTRINSIC_INTERLEAVE2(rb, ga);
 }
 
-EXT void __aos_to_soa3_float(NOALIAS uniform int8 *uniform a, uniform int8 *uniform v0, uniform int8 *uniform v1,
-                             uniform int8 *uniform v2) {
+template <typename T>
+unmasked void __aos_to_soa3(NOALIAS uniform int8 *uniform a, uniform int8 *uniform v0, uniform int8 *uniform v1,
+                            uniform int8 *uniform v2) {
     // For example, for 4-wide vectors:
     // Convert 3-wide AOS values to SOA--specifically, given 3 4-vectors
     // <x0 y0 z0 x1> <y1 z1 x2 y2> <z2 x3 y3 z3>, transpose to
     // <x0 x1 x2 x3> <y0 y1 y2 y3> <z0 z1 z2 z3>.
-    uniform float<TRIPLE_WIDTH> *uniform ptr = (uniform float<TRIPLE_WIDTH> *uniform)a;
-    uniform float<TRIPLE_WIDTH> x = *ptr;
-    varying float x0 = 0, x1 = 0, x2 = 0;
+    uniform T *uniform ptr = (uniform T *uniform)a;
+    varying T x = 0, y = 0, z = 0;
     for (uniform int i = 0; i < TARGET_WIDTH; i++) {
-        x0 = __insert(x0, i, x[0 + i * 3]);
-        x1 = __insert(x1, i, x[1 + i * 3]);
-        x2 = __insert(x2, i, x[2 + i * 3]);
+        x = __insert(x, i, ptr[0 + i * 3]);
+        y = __insert(y, i, ptr[1 + i * 3]);
+        z = __insert(z, i, ptr[2 + i * 3]);
     }
-    varying float *uniform x0_ptr = (varying float *uniform)v0;
-    varying float *uniform x1_ptr = (varying float *uniform)v1;
-    varying float *uniform x2_ptr = (varying float *uniform)v2;
-    *x0_ptr = x0;
-    *x1_ptr = x1;
-    *x2_ptr = x2;
+    varying T *uniform x_ptr = (varying T *uniform)v0;
+    varying T *uniform y_ptr = (varying T *uniform)v1;
+    varying T *uniform z_ptr = (varying T *uniform)v2;
+    *x_ptr = x;
+    *y_ptr = y;
+    *z_ptr = z;
+}
+
+EXT void __aos_to_soa3_float(NOALIAS uniform int8 *uniform a, uniform int8 *uniform v0, uniform int8 *uniform v1,
+                             uniform int8 *uniform v2) {
+    __aos_to_soa3<float>(a, v0, v1, v2);
 }
 
 EXT void __aos_to_soa3_double(NOALIAS uniform int8 *uniform a, uniform int8 *uniform v0, uniform int8 *uniform v1,
                               uniform int8 *uniform v2) {
-    uniform double<TRIPLE_WIDTH> *uniform ptr = (uniform double<TRIPLE_WIDTH> *uniform)a;
-    uniform double<TRIPLE_WIDTH> x = *ptr;
-    varying double x0 = 0, x1 = 0, x2 = 0;
-    for (uniform int i = 0; i < TARGET_WIDTH; i++) {
-        x0 = __insert(x0, i, x[0 + i * 3]);
-        x1 = __insert(x1, i, x[1 + i * 3]);
-        x2 = __insert(x2, i, x[2 + i * 3]);
-    }
-    varying double *uniform x0_ptr = (varying double *uniform)v0;
-    varying double *uniform x1_ptr = (varying double *uniform)v1;
-    varying double *uniform x2_ptr = (varying double *uniform)v2;
-    *x0_ptr = x0;
-    *x1_ptr = x1;
-    *x2_ptr = x2;
+    __aos_to_soa3<double>(a, v0, v1, v2);
 }
 
 template <typename T>
