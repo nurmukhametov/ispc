@@ -1996,7 +1996,7 @@ bool Target::checkIntrinsticSupport(llvm::StringRef name, SourcePos pos) {
     // x86 specific intrinsics are verified using 'CPUFeatures'.
     // TODO: Add relevant information to 'CPUFeatures' for non x86 targets.
     if (name.consume_front("x86.") == true) {
-        if (!ISPCTargetIsX86(m_ispc_target)) {
+        if (!ISPCTargetIsX86(m_ispc_target, m_arch)) {
             Error(pos, "LLVM intrinsic \"%s\" supported only on \"x86\" target architecture.", name.data());
             return false;
         }

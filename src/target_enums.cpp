@@ -581,6 +581,56 @@ std::string ISPCTargetToString(ISPCTarget target) {
     exit(1);
 }
 
+bool ISPCTargetIsX86(ISPCTarget target, Arch arch) {
+    switch (target) {
+    case ISPCTarget::common_x4:
+    case ISPCTarget::common_x8:
+        return arch == Arch::x86_64 || arch == Arch::x86;
+    case ISPCTarget::sse2_i32x4:
+    case ISPCTarget::sse2_i32x8:
+    case ISPCTarget::sse41_i8x16:
+    case ISPCTarget::sse41_i16x8:
+    case ISPCTarget::sse41_i32x4:
+    case ISPCTarget::sse41_i32x8:
+    case ISPCTarget::sse4_i8x16:
+    case ISPCTarget::sse4_i16x8:
+    case ISPCTarget::sse4_i32x4:
+    case ISPCTarget::sse4_i32x8:
+    case ISPCTarget::avx1_i32x4:
+    case ISPCTarget::avx1_i32x8:
+    case ISPCTarget::avx1_i32x16:
+    case ISPCTarget::avx1_i64x4:
+    case ISPCTarget::avx2_i8x32:
+    case ISPCTarget::avx2_i16x16:
+    case ISPCTarget::avx2_i32x4:
+    case ISPCTarget::avx2_i32x8:
+    case ISPCTarget::avx2_i32x16:
+    case ISPCTarget::avx2_i64x4:
+    case ISPCTarget::avx2vnni_i32x4:
+    case ISPCTarget::avx2vnni_i32x8:
+    case ISPCTarget::avx2vnni_i32x16:
+    case ISPCTarget::avx512knl_x16:
+    case ISPCTarget::avx512skx_x4:
+    case ISPCTarget::avx512skx_x8:
+    case ISPCTarget::avx512skx_x16:
+    case ISPCTarget::avx512skx_x32:
+    case ISPCTarget::avx512skx_x64:
+    case ISPCTarget::avx512icl_x4:
+    case ISPCTarget::avx512icl_x8:
+    case ISPCTarget::avx512icl_x16:
+    case ISPCTarget::avx512icl_x32:
+    case ISPCTarget::avx512icl_x64:
+    case ISPCTarget::avx512spr_x4:
+    case ISPCTarget::avx512spr_x8:
+    case ISPCTarget::avx512spr_x16:
+    case ISPCTarget::avx512spr_x32:
+    case ISPCTarget::avx512spr_x64:
+        return true;
+    default:
+        return false;
+    }
+}
+
 bool ISPCTargetIsX86(ISPCTarget target) {
     switch (target) {
     case ISPCTarget::sse2_i32x4:
