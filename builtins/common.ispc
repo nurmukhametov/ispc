@@ -1788,13 +1788,23 @@ typedef struct {
 uniform __ispcstub_vyfvyf __deinterleave2(uniform int8 *uniform a,
                                           uniform __ispcstub_vyfvyf *uniform dummy) {
     // Unfortunately at the moment, declaring short vector inside template function leads to error
-    uniform float<DOUBLE_WIDTH> *uniform ptr = (uniform float<DOUBLE_WIDTH> *uniform)a;
-    return @LLVM_INTRINSIC_DEINTERLEAVE2(*ptr);
+    uniform float *uniform ptr = (uniform float *uniform)a;
+    uniform float<DOUBLE_WIDTH> val = 0;
+    uniform float *uniform val_ptr = (uniform float *uniform)&val;
+    foreach(i = 0 ... QUAD_WIDTH) {
+        val_ptr[i] = ptr[i];
+    }
+    return @LLVM_INTRINSIC_DEINTERLEAVE2(val);
 }
 uniform __ispcstub_vydvyd __deinterleave2(uniform int8 *uniform a,
                                           uniform __ispcstub_vydvyd *uniform dummy) {
-    uniform double<DOUBLE_WIDTH> *uniform ptr = (uniform double<DOUBLE_WIDTH> *uniform)a;
-    return @LLVM_INTRINSIC_DEINTERLEAVE2(*ptr);
+    uniform double *uniform ptr = (uniform double *uniform)a;
+    uniform double<DOUBLE_WIDTH> val = 0;
+    uniform double *uniform val_ptr = (uniform double *uniform)&val;
+    foreach(i = 0 ... QUAD_WIDTH) {
+        val_ptr[i] = ptr[i];
+    }
+    return @LLVM_INTRINSIC_DEINTERLEAVE2(val);
 }
 
 template <typename T, typename S>
@@ -1851,10 +1861,15 @@ EXT void __aos_to_soa4_float(NOALIAS uniform int8 *uniform a, NOALIAS uniform in
     // For example, for 4-wide vectors:
     // take 4 4-wide vectors laid out like <r0 g0 b0 a0> <r1 g1 b1 a1> <r2 g2 b2 a2> <r3 g3 b3 a3>
     // and reorder them to <r0 r1 r2 r3> <g0 g1 g2 g3> ...
-    uniform float<QUAD_WIDTH> *uniform ptr = (uniform float<QUAD_WIDTH> *uniform)a;
     // Deinterleave the 4 4-wide vectors into 2 8-wide vectors
     // { <r0 b0 r1 b1 r2 b2 r3 b3>, <g0 a0 g1 a1 g2 a2 g3 a3> }
-    uniform DEINT2_FLOAT_RES_TYPE x = @LLVM_INTRINSIC_DEINTERLEAVE2(*ptr);
+    uniform float *uniform ptr = (uniform float *uniform)a;
+    uniform float<QUAD_WIDTH> val = 0;
+    uniform float *uniform val_ptr = (uniform float *uniform)&val;
+    foreach(i = 0 ... QUAD_WIDTH) {
+        val_ptr[i] = ptr[i];
+    }
+    uniform DEINT2_FLOAT_RES_TYPE x = @LLVM_INTRINSIC_DEINTERLEAVE2(val);
     uniform __ispcstub_vyfvyf rb = @LLVM_INTRINSIC_DEINTERLEAVE2(x.rb);
     uniform __ispcstub_vyfvyf ga = @LLVM_INTRINSIC_DEINTERLEAVE2(x.ga);
     varying float *uniform x0_ptr = (varying float *uniform)v0;
@@ -1884,8 +1899,13 @@ typedef struct {
 EXT void __aos_to_soa4_double(NOALIAS uniform int8 *uniform a, NOALIAS uniform int8 *uniform v0,
                               NOALIAS uniform int8 *uniform v1, NOALIAS uniform int8 *uniform v2,
                               NOALIAS uniform int8 *uniform v3) {
-    uniform double<QUAD_WIDTH> *uniform ptr = (uniform double<QUAD_WIDTH> *uniform)a;
-    uniform DEINT2_DOUBLE_RES_TYPE x = @LLVM_INTRINSIC_DEINTERLEAVE2(*ptr);
+    uniform double *uniform ptr = (uniform double *uniform)a;
+    uniform double<QUAD_WIDTH> val = 0;
+    uniform double *uniform val_ptr = (uniform double *uniform)&val;
+    foreach(i = 0 ... QUAD_WIDTH) {
+        val_ptr[i] = ptr[i];
+    }
+    uniform DEINT2_DOUBLE_RES_TYPE x = @LLVM_INTRINSIC_DEINTERLEAVE2(val);
     uniform __ispcstub_vydvyd rb = @LLVM_INTRINSIC_DEINTERLEAVE2(x.rb);
     uniform __ispcstub_vydvyd ga = @LLVM_INTRINSIC_DEINTERLEAVE2(x.ga);
     varying double *uniform x0_ptr = (varying double *uniform)v0;
@@ -1906,16 +1926,24 @@ EXT void __soa_to_aos4_float(varying float v0, varying float v1, varying float v
     uniform float<DOUBLE_WIDTH> rb = @LLVM_INTRINSIC_INTERLEAVE2(v0, v2);
     uniform float<DOUBLE_WIDTH> ga = @LLVM_INTRINSIC_INTERLEAVE2(v1, v3);
     // x = <r0 b0 r1 b1 r2 b2 r3 b3>, y = <g0 a0 g1 a1 g2 a2 g3 a3>
-    uniform float<QUAD_WIDTH> *uniform ptr = (uniform float<QUAD_WIDTH> *uniform)a;
-    *ptr = @LLVM_INTRINSIC_INTERLEAVE2(rb, ga);
+    uniform float<QUAD_WIDTH> res = @LLVM_INTRINSIC_INTERLEAVE2(rb, ga);
+    uniform float *uniform res_ptr = (uniform float *uniform)&res;
+    uniform float *uniform ptr = (uniform float *uniform)a;
+    foreach(i = 0 ... QUAD_WIDTH) {
+        ptr[i] = res_ptr[i];
+    }
 }
 
 EXT void __soa_to_aos4_double(varying double v0, varying double v1, varying double v2, varying double v3,
                               NOALIAS uniform int8 *uniform a) {
     uniform double<DOUBLE_WIDTH> rb = @LLVM_INTRINSIC_INTERLEAVE2(v0, v2);
     uniform double<DOUBLE_WIDTH> ga = @LLVM_INTRINSIC_INTERLEAVE2(v1, v3);
-    uniform double<QUAD_WIDTH> *uniform ptr = (uniform double<QUAD_WIDTH> *uniform)a;
-    *ptr = @LLVM_INTRINSIC_INTERLEAVE2(rb, ga);
+    uniform double<QUAD_WIDTH> res = @LLVM_INTRINSIC_INTERLEAVE2(rb, ga);
+    uniform double *uniform res_ptr = (uniform double *uniform)&res;
+    uniform double *uniform ptr = (uniform double *uniform)a;
+    foreach(i = 0 ... QUAD_WIDTH) {
+        ptr[i] = res_ptr[i];
+    }
 }
 
 template <typename T>
