@@ -210,6 +210,21 @@ static llvm::Value *lLowerSelectIntrinsic(llvm::CallInst *CI) {
     llvm::Value *T = CI->getArgOperand(1);
     llvm::Value *F = CI->getArgOperand(2);
 
+    // when C is not a vector of i1, we need to truncate it to i1
+    // This is ugly hack due to the fact that varying bool is represented as
+    // vector of i32/i16/i8 for some targets
+    llvm::VectorType *VT = llvm::dyn_cast<llvm::VectorType>(C->getType());
+    if (VT) {
+        // check if the vector element type is not i1
+        llvm::Type *ET = VT->getElementType();
+        if (!ET->isIntegerTy(1)) {
+            // truncate vector of i32/i16/i8 to vector of i1
+            llvm::Type *i1 = llvm::IntegerType::get(builder.getContext(), 1);
+            llvm::Type *newVT = llvm::VectorType::get(i1, lGetVecNumElements(C), false);
+            C = builder.CreateTrunc(C, newVT);
+        }
+    }
+
     return builder.CreateSelect(C, T, F);
 }
 
