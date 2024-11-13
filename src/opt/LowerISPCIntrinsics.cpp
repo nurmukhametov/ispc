@@ -239,7 +239,8 @@ static llvm::Value *lLowerPackMaskIntrinsic(llvm::CallInst *CI) {
     llvm::Type *ET = VT->getElementType();
     if (!ET->isIntegerTy(1)) {
         // truncate vector of i32/i16/i8 to vector of i1
-        llvm::Type *newVT = llvm::IntegerType::get(builder.getContext(), 1);
+        llvm::Type *i1 = llvm::IntegerType::get(builder.getContext(), 1);
+        llvm::Type *newVT = llvm::VectorType::get(i1, lGetVecNumElements(V), false);
         V = builder.CreateTrunc(V, newVT);
     }
 
