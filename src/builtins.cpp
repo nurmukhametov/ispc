@@ -1695,7 +1695,8 @@ void ispc::LinkStandardLibraries(llvm::Module *module, int &debug_num) {
         // cannot be used) in module.
         lAddPersistentToLLVMUsed(*module);
         lRemoveUnused(module);
-        lRemoveUnusedPersistentFunctions(module);
+        // debugDumpModule(module, "PreRemove", debug_num++);
+        // lRemoveUnusedPersistentFunctions(module);
         debugDumpModule(module, "LinkStdlib", debug_num++);
     } else {
         lAddPersistentToLLVMUsed(*module);
@@ -1706,7 +1707,7 @@ void ispc::LinkStandardLibraries(llvm::Module *module, int &debug_num) {
     debugDumpModule(module, "LinkCommonBuiltins", debug_num++);
 
     lLinkTargetBuiltins(module, debug_num);
-    lRemoveUnused(module);
+    // lRemoveUnused(module);
     debugDumpModule(module, "LinkTargetBuiltins", debug_num++);
 
     lSetInternalLinkageGlobals(module);
