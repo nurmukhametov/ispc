@@ -57,7 +57,14 @@
 extern "C" void __not_supported();
 
 // Overloaded functions that are wrappers around insertelement and extractelement LLVM operations.
-unmasked bool __insert(bool v, uniform int32 i, uniform bool val) { return @llvm.ispc.insert(v, i, val); }
+unmasked bool __insert(bool v, uniform int32 i, uniform bool val) {
+#if (ISPC_MASK_BITS == 1)
+    return @llvm.ispc.insert(v, i, val);
+#elif (ISPC_MASK_BITS == 32)
+    // For mask != 1 bit, varying bool and uniform bool have different representations (<N x i32> and i1).
+    return @llvm.ispc.insert(v, i, val ? -1 : 0);
+#endif
+}
 unmasked int8 __insert(int8 v, uniform int32 i, uniform int8 val) { return @llvm.ispc.insert(v, i, val); }
 unmasked int16 __insert(int16 v, uniform int32 i, uniform int16 val) { return @llvm.ispc.insert(v, i, val); }
 unmasked int32 __insert(int32 v, uniform int32 i, uniform int32 val) { return @llvm.ispc.insert(v, i, val); }
@@ -181,7 +188,11 @@ EXT uniform int32 __extract_int32(int32 vec, uniform int32 lane) { return __extr
 EXT uniform int64 __extract_int64(int64 vec, uniform int32 lane) { return __extract(vec, lane); }
 EXT uniform int8 __extract_int8(int8 vec, uniform int32 lane) { return __extract(vec, lane); }
 EXT READNONE IntMaskType __insert_bool(IntMaskType vec, uniform int32 lane, uniform bool val) {
+#if (ISPC_MASK_BITS == 1)
     return __insert(vec, lane, val);
+#elif (ISPC_MASK_BITS == 32)
+    return @llvm.ispc.insert(vec, lane, val);
+#endif
 }
 EXT READNONE int16 __insert_int16(int16 vec, uniform int32 lane, uniform int16 val) { return __insert(vec, lane, val); }
 EXT READNONE int32 __insert_int32(int32 vec, uniform int32 lane, uniform int32 val) { return __insert(vec, lane, val); }
