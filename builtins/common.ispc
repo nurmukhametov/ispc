@@ -613,7 +613,7 @@ UNMANGLED CDECL uniform bool __reduce_equal_int64(varying int64 val, uniform int
 UNMANGLED CDECL uniform bool __reduce_equal_uint64(varying uint64 val, uniform uint64 *uniform ret) {
     return __reduce_equal<uint64>(val, ret);
 }
-UNMANGLED CDECL uniform bool _reduce_equal_half(varying float16 val, uniform float16 *uniform ret) {
+UNMANGLED CDECL uniform bool __reduce_equal_half(varying float16 val, uniform float16 *uniform ret) {
     return __reduce_equal<float16>(val, ret);
 }
 UNMANGLED CDECL uniform bool __reduce_equal_float(varying float val, uniform float *uniform ret) {
