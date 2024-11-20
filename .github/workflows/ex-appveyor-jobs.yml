@@ -1,0 +1,147 @@
+name: CI Build
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+env:
+  LLVM_LATEST: "18.1"
+
+jobs:
+  ubuntu:
+    runs-on: ubuntu:22.04
+    env:
+      ISPC_HOME: ${{ github.workspace }}
+      LLVM_HOME: ${{ github.workspace }}/llvm
+      WASM: "OFF"
+      LLVM_VERSION: "18.1"
+      LLVM_TAR: llvm-18.1.8-ubuntu22.04-Release+Asserts-x86.arm.wasm.tar.xz
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Install Dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y flex libc6-dev-i386 g++-multilib lib32stdc++6 libtbb-dev
+
+    - name: Setup WASM
+      run: |
+        source scripts/install_emscripten.sh && emcc --version
+
+    - name: Setup LLVM
+      run: |
+        mkdir $LLVM_HOME && cd $LLVM_HOME
+        wget https://github.com/ispc/ispc.dependencies/releases/download/llvm-$LLVM_VERSION-ispc-dev/$LLVM_TAR
+        tar xvf $LLVM_TAR
+        echo "$LLVM_HOME/bin-$LLVM_VERSION/bin" >> $GITHUB_PATH
+
+    - name: Configure
+      run: |
+        cd "$ISPC_HOME"
+        cmake -B build ../ -DISPC_PREPARE_PACKAGE=ON -DCMAKE_INSTALL_PREFIX=$ISPC_HOME/install -DISPC_CROSS=ON -DWASM_ENABLED=ON -DCMAKE_CXX_FLAGS="-Werror"
+
+    - name: Build
+      run: cd build && make package -j$(nproc)
+
+    - name: Test
+      run: |
+        cd build
+        bin/ispc --support-matrix
+        make check-all
+
+    - name: Upload Artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: ispc
+        path: build/ispc-*
+
+  windows:
+    runs-on: windows-2019
+    strategy:
+      matrix:
+        llvm: ['latest', '17.0']
+    env:
+      DOCKER_PATH: "ispc/test_repo"
+      ISPC_HOME: ${{ github.workspace }}
+      LLVM_HOME: C:\projects\llvm
+      CROSS_TOOLS: C:\projects\cross
+      LLVM_TAR: llvm-18.1.8-win.vs2019-Release+Asserts-x86.arm.wasm.tar.7z
+      WASM: ${{ matrix.llvm == 'latest' && 'ON' || 'OFF' }}
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set environment variables
+      shell: cmd
+      run: |
+        set LLVM_VERSION=${{ matrix.llvm == 'latest' && env.LLVM_LATEST || matrix.llvm }}
+        set LLVM_SHORT_VER=%LLVM_VERSION:.=%
+        if "%LLVM_VERSION%"=="17.0" set LLVM_TAR=llvm-17.0.6-win.vs2019-Release+Asserts-x86.arm.wasm.tar.7z
+        echo "Using LLVM version: %LLVM_VERSION%"
+
+    - name: Install dependencies
+      run: |
+        choco install winflexbison3 wget 7zip --no-progress
+
+    - name: Setup LLVM
+      shell: cmd
+      run: |
+        mkdir %LLVM_HOME% && cd %LLVM_HOME%
+        wget -q https://github.com/ispc/ispc.dependencies/releases/download/llvm-%LLVM_VERSION%-%LLVM_TAR%
+        7z x -t7z %LLVM_TAR%
+        7z x -ttar llvm*tar
+        echo "${{ env.LLVM_HOME }}\bin-%LLVM_VERSION%\bin" >> $GITHUB_PATH
+
+    - name: Install Emscripten
+      if: matrix.llvm == 'latest'
+      shell: cmd
+      run: |
+        call scripts\install_emscripten.bat
+        emcc --version
+
+    - name: Setup Docker tools
+      shell: cmd
+      run: |
+        docker pull %DOCKER_PATH%:win_llvm100
+        docker run -d %DOCKER_PATH%:win_llvm100 > container_id.txt
+        set /p CONTAINER=<container_id.txt
+        docker cp %CONTAINER%:%CROSS_TOOLS% %CROSS_TOOLS%
+
+    - name: Configure
+      shell: cmd
+      run: |
+        call "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
+        mkdir build && cd build
+        cmake .. -Thost=x64 -G "Visual Studio 16" -DCMAKE_BUILD_TYPE=Release ^
+          -DCMAKE_INSTALL_PREFIX=%ISPC_HOME%\install ^
+          -DISPC_PREPARE_PACKAGE=ON ^
+          -DM4_EXECUTABLE=C:\cygwin64\bin\m4.exe ^
+          -DISPC_CROSS=ON ^
+          -DISPC_GNUWIN32_PATH=%CROSS_TOOLS%\gnuwin32 ^
+          -DWASM_ENABLED=%WASM% ^
+          -DISPC_INCLUDE_BENCHMARKS=ON
+
+    - name: Build
+      shell: cmd
+      run: msbuild %ISPC_HOME%\build\PACKAGE.vcxproj /p:Platform=x64 /p:Configuration=Release
+
+    - name: Test
+      shell: cmd
+      run: |
+        set PATH=%ISPC_HOME%\build\bin\Release;%PATH%
+        cd %ISPC_HOME%
+        check_isa.exe
+        ispc --support-matrix
+        python scripts\perf.py -n 1 -g "Visual Studio 16" && ^
+        msbuild %ISPC_HOME%\build\tests\check-all.vcxproj /t:Build /p:Platform=x64 /p:Configuration=Release && ^
+        msbuild %ISPC_HOME%\build\RUN_TESTS.vcxproj /t:Build /p:Platform=x64 /p:Configuration=Release
+
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: ispc-windows
+        path: build/ispc-*
