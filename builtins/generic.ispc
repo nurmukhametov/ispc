@@ -1520,6 +1520,150 @@ EXT noinline void __pseudo_masked_store_double(NOESCAPE varying double *uniform 
     __masked_store_blend_double(ptr, val, mask);
 }
 
+EXT READONLY varying int8 __pseudo_gather32_i8(varying int32 addr, UIntMaskType mask){
+    __not_supported();
+    uniform int8 *uniform ptr;
+    uniform int32 x;
+    __pseudo_gather_base_offsets32_i8(ptr, x, addr, mask);
+    __pseudo_gather_factored_base_offsets32_i8(ptr, addr, x, addr, mask);
+}
+EXT READONLY varying int16 __pseudo_gather32_i16(varying int32 addr, UIntMaskType mask){
+    __not_supported();
+    uniform int8 *uniform ptr;
+    uniform int32 x;
+    __pseudo_gather_base_offsets32_i16(ptr, x, addr, mask);
+    __pseudo_gather_factored_base_offsets32_i16(ptr, addr, x, addr, mask);
+}
+EXT READONLY varying float16 __pseudo_gather32_half(varying int32 addr, UIntMaskType mask){
+    __not_supported();
+    uniform int8 *uniform ptr;
+    uniform int32 x;
+    __pseudo_gather_base_offsets32_half(ptr, x, addr, mask);
+    __pseudo_gather_factored_base_offsets32_half(ptr, addr, x, addr, mask);
+}
+EXT READONLY varying int32 __pseudo_gather32_i32(varying int32 addr, UIntMaskType mask){
+    __not_supported();
+    uniform int8 *uniform ptr;
+    uniform int32 x;
+    __pseudo_gather_base_offsets32_i32(ptr, x, addr, mask);
+    __pseudo_gather_factored_base_offsets32_i32(ptr, addr, x, addr, mask);
+}
+EXT READONLY varying float __pseudo_gather32_float(varying int32 addr, UIntMaskType mask){
+    __not_supported();
+    uniform int8 *uniform ptr;
+    uniform int32 x;
+    __pseudo_gather_base_offsets32_float(ptr, x, addr, mask);
+    __pseudo_gather_factored_base_offsets32_float(ptr, addr, x, addr, mask);
+}
+EXT READONLY varying int64 __pseudo_gather32_i64(varying int32 addr, UIntMaskType mask){
+    __not_supported();
+    uniform int8 *uniform ptr;
+    uniform int32 x;
+    __pseudo_gather_base_offsets32_i64(ptr, x, addr, mask);
+    __pseudo_gather_factored_base_offsets32_i64(ptr, addr, x, addr, mask);
+}
+EXT READONLY varying double __pseudo_gather32_double(varying int32 addr, UIntMaskType mask){
+    __not_supported();
+    uniform int8 *uniform ptr;
+    uniform int32 x;
+    __pseudo_gather_base_offsets32_double(ptr, x, addr, mask);
+    __pseudo_gather_factored_base_offsets32_double(ptr, addr, x, addr, mask);
+}
+EXT READONLY varying int8 __pseudo_gather64_i8(varying int64 addr, UIntMaskType mask){
+    uniform int8 *uniform ptr;
+    uniform int32 x;
+    __not_supported();
+    __pseudo_gather_base_offsets64_i8(ptr, x, addr, mask);
+    __pseudo_gather_base_offsets32_i8(ptr, x, addr, mask);
+    __pseudo_gather_factored_base_offsets64_i8(ptr, addr, x, addr, mask);
+    __pseudo_gather_factored_base_offsets32_i8(ptr, addr, x, addr, mask);
+}
+EXT READONLY varying int16 __pseudo_gather64_i16(varying int64 addr, UIntMaskType mask) {
+    uniform int8 *uniform ptr;
+    uniform int32 x;
+    __not_supported();
+    __pseudo_gather_base_offsets64_i16(ptr, x, addr, mask);
+    __pseudo_gather_base_offsets32_i16(ptr, x, addr, mask);
+    __pseudo_gather_factored_base_offsets64_i16(ptr, addr, x, addr, mask);
+    __pseudo_gather_factored_base_offsets32_i16(ptr, addr, x, addr, mask);
+}
+EXT READONLY varying float16 __pseudo_gather64_half(varying int64 addr, UIntMaskType mask){
+    uniform int8 *uniform ptr;
+    uniform int32 x;
+    __not_supported();
+    __pseudo_gather_base_offsets64_half(ptr, x, addr, mask);
+    __pseudo_gather_base_offsets32_half(ptr, x, addr, mask);
+    __pseudo_gather_factored_base_offsets64_half(ptr, addr, x, addr, mask);
+    __pseudo_gather_factored_base_offsets32_half(ptr, addr, x, addr, mask);
+}
+EXT READONLY varying int32 __pseudo_gather64_i32(varying int64 addr, UIntMaskType mask){
+    uniform int8 *uniform ptr;
+    uniform int32 x;
+    __not_supported();
+    __pseudo_gather_base_offsets64_i32(ptr, x, addr, mask);
+    __pseudo_gather_base_offsets32_i32(ptr, x, addr, mask);
+    __pseudo_gather_factored_base_offsets64_i32(ptr, addr, x, addr, mask);
+    __pseudo_gather_factored_base_offsets32_i32(ptr, addr, x, addr, mask);
+}
+EXT READONLY varying float __pseudo_gather64_float(varying int64 addr, UIntMaskType mask){
+    uniform int8 *uniform ptr;
+    uniform int32 x;
+    __not_supported();
+    __pseudo_gather_base_offsets64_float(ptr, x, addr, mask);
+    __pseudo_gather_base_offsets32_float(ptr, x, addr, mask);
+    __pseudo_gather_factored_base_offsets64_float(ptr, addr, x, addr, mask);
+    __pseudo_gather_factored_base_offsets32_float(ptr, addr, x, addr, mask);
+}
+EXT READONLY varying int64 __pseudo_gather64_i64(varying int64 addr, UIntMaskType mask){
+    uniform int8 *uniform ptr;
+    uniform int32 x;
+    __not_supported();
+    __pseudo_gather_base_offsets64_i64(ptr, x, addr, mask);
+    __pseudo_gather_base_offsets32_i64(ptr, x, addr, mask);
+    __pseudo_gather_factored_base_offsets64_i64(ptr, addr, x, addr, mask);
+    __pseudo_gather_factored_base_offsets32_i64(ptr, addr, x, addr, mask);
+}
+EXT READONLY varying double __pseudo_gather64_double(varying int64 addr, UIntMaskType mask){
+    uniform int8 *uniform ptr;
+    uniform int32 x;
+    __not_supported();
+    __pseudo_gather_base_offsets64_double(ptr, x, addr, mask);
+    __pseudo_gather_base_offsets32_double(ptr, x, addr, mask);
+    __pseudo_gather_factored_base_offsets64_double(ptr, addr, x, addr, mask);
+    __pseudo_gather_factored_base_offsets32_double(ptr, addr, x, addr, mask);
+}
+
+EXT void __pseudo_scatter32_i8(varying int32 a, varying int8 val, UIntMaskType mask) {}
+EXT void __pseudo_scatter32_i16(varying int32 a, varying int16 val, UIntMaskType mask) {}
+EXT void __pseudo_scatter32_half(varying int32 a, varying float16 val, UIntMaskType mask) {}
+EXT void __pseudo_scatter32_i32(varying int32 a, varying int32 val, UIntMaskType mask) {}
+EXT void __pseudo_scatter32_float(varying int32 a, varying float val, UIntMaskType mask) {}
+EXT void __pseudo_scatter32_i64(varying int32 a, varying int64 val, UIntMaskType mask) {}
+EXT void __pseudo_scatter32_double(varying int32 a, varying double val, UIntMaskType mask) {}
+EXT void __pseudo_scatter64_i8(varying int64 a, varying int8 val, UIntMaskType mask) {}
+EXT void __pseudo_scatter64_i16(varying int64 a, varying int16 val, UIntMaskType mask) {}
+EXT void __pseudo_scatter64_half(varying int64 a, varying float16 val, UIntMaskType mask) {}
+EXT void __pseudo_scatter64_i32(varying int64 a, varying int32 val, UIntMaskType mask) {}
+EXT void __pseudo_scatter64_float(varying int64 a, varying float val, UIntMaskType mask) {
+    __not_supported();
+    uniform int8 *uniform base;
+    uniform int32 x;
+    __pseudo_scatter_base_offsets64_float(base, x, a, val, mask);
+    __pseudo_scatter_base_offsets32_float(base, x, a, val, mask);
+    __pseudo_scatter_factored_base_offsets64_float(base, a, x, a, val, mask);
+    __pseudo_scatter_factored_base_offsets32_float(base, a, x, a, val, mask);
+}
+EXT void __pseudo_scatter64_i64(varying int64 a, varying int64 val, UIntMaskType mask) {
+    __not_supported();
+    uniform int8 *uniform base;
+    uniform int32 x;
+    __pseudo_scatter_base_offsets64_i64(base, x, a, val, mask);
+    __pseudo_scatter_base_offsets32_i64(base, x, a, val, mask);
+    __pseudo_scatter_factored_base_offsets64_i64(base, a, x, a, val, mask);
+    __pseudo_scatter_factored_base_offsets32_i64(base, a, x, a, val, mask);
+}
+EXT void __pseudo_scatter64_double(varying int64 ptr, varying double val, UIntMaskType mask) {}
+
 // scatter generic functions
 // For the targets which have scatters but --disable-scatters is requested
 template <typename T, typename ADDRi, typename ADDRu> void __scatter_generic(varying ADDRu addrs, varying T val) {
