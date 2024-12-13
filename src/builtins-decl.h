@@ -32,22 +32,15 @@ namespace builtin {
 
 // Groups of persistent functions.
 enum class PersistentGroup {
-    GATHER_DOUBLE = 0,
-    GATHER_FLOAT,
-    GATHER_HALF,
-    GATHER_I16,
-    GATHER_I32,
-    GATHER_I64,
-    GATHER_I8,
+    DOUBLE = 0,
+    FLOAT,
+    HALF,
+    I16,
+    I32,
+    I64,
+    I8,
     PREFETCH_READ,
     PREFETCH_WRITE,
-    SCATTER_DOUBLE,
-    SCATTER_FLOAT,
-    SCATTER_HALF,
-    SCATTER_I16,
-    SCATTER_I32,
-    SCATTER_I64,
-    SCATTER_I8,
 };
 
 // Functions that should be preserved across optimization pipeline unconditionally.
