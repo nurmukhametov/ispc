@@ -991,8 +991,7 @@ UNMANGLED CDECL void __delete_varying_32rt(varying int64 addr) {
 }
 #endif // BUILD_OS == WINDOWS && RUNTIME == 32
 
-#if BUILD_OS == WINDOWS
-#error "Not implemented"
+#if BUILD_OS == WINDOWS && RUNTIME == 64
 EXT uniform int8 *uniform __new_uniform_64rt(uniform int64 size) { return _aligned_malloc(size, __memory_alignment); }
 UNMANGLED CDECL varying int64 __new_varying32_64rt(varying int32 size) {
     varying int64 addr = 0;
