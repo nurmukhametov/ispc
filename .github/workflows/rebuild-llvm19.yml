@@ -23,7 +23,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        lto: ['ON', 'OFF']
+        lto: ['ON']
     uses: ./.github/workflows/reusable.rebuild.yml
     with:
       version: '19.1'
