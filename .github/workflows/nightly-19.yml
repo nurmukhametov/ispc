@@ -192,7 +192,7 @@ jobs:
     needs: [win-build-ispc-llvm-19]
     env:
       LLVM_HOME: "C:\\projects\\llvm"
-    runs-on: windows-2022
+    runs-on: windows-2019
     continue-on-error: false
     strategy:
       fail-fast: false
