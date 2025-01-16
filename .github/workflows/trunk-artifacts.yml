@@ -1,13 +1,14 @@
-# Copyright 2020-2024, Intel Corporation
+# Copyright 2025, Intel Corporation
 # SPDX-License-Identifier: BSD-3-Clause
 
-# These jobs test builds with WASM targets on Ubuntu and Windows.
-# Windows job also runs perf.py and RUN_TESTS tests.
-name: Ex Appveyor
+# These jobs build ISPC for trunk on every push to main pushing artifacts to
+# pre-release.
+name: Trunk Artifacts
 
 on:
+  push:
+    branches: [ main ]
   workflow_dispatch:
-  pull_request:
 
 env:
   LLVM_REPO: https://github.com/ispc/ispc.dependencies
@@ -18,6 +19,9 @@ env:
 jobs:
   ubuntu:
     runs-on: ubuntu-22.04
+    permissions:
+      contents: write  # Needed for release creation/update
+
     env:
       LLVM_TAR: llvm-18.1.8-ubuntu22.04-Release+Asserts-x86.arm.wasm.tar.xz
 
@@ -39,17 +43,24 @@ jobs:
     - name: Build
       run: cd build && make package -j"$(nproc)"
 
-    - name: Test
-      run: |
-        cd build
-        bin/ispc --support-matrix
-        make check-all
-
     - name: Upload Artifacts
       uses: actions/upload-artifact@50769540e7f4bd5e21e526ee35c689e35e0d6874 # v4.4.0
       with:
-        name: ispc
+        name: ispc-linux
         path: build/ispc-*
+      
+    - name: Release
+      uses: softprops/action-gh-release@c95fe1489396fe8a9eb87c0abf8aa5b2ef267fda # 2.2.1
+      with:
+        name: trunk-artifacts
+        tag_name: trunk-artifacts
+        files: build/ispc-*.tar.gz
+        draft: false
+        prerelease: true
+        body: "Automatically updated trunk artifacts"
+        fail_on_unmatched_files: true
+        generate_release_notes: false
+        append_body: false
 
   windows:
     runs-on: windows-2019
@@ -74,16 +85,22 @@ jobs:
         call %VSVARS%
         cmake . -B build -Thost=x64 -G "Visual Studio 16" -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=%ISPC_HOME%\install -DISPC_PREPARE_PACKAGE=ON -DISPC_CROSS=ON -DISPC_GNUWIN32_PATH=%CROSS_TOOLS_GNUWIN32% -DWASM_ENABLED=ON -DISPC_INCLUDE_BENCHMARKS=ON
         cmake --build build --config Release --target package --verbose
-        set PATH=%ISPC_HOME%\build\bin\Release;%PATH%
-        cd %ISPC_HOME%
-        check_isa.exe
-        ispc --support-matrix
-        python scripts\perf.py -n 1 -g "Visual Studio 16" && ^
-        cmake --build build --config Release --target check-all
-        cmake --build build --config Release --target RUN_TESTS
 
     - name: Upload artifacts
       uses: actions/upload-artifact@50769540e7f4bd5e21e526ee35c689e35e0d6874 # v4.4.0
       with:
         name: ispc-windows
         path: build/ispc-*-windows.zip
+
+    - name: Release
+      uses: softprops/action-gh-release@c95fe1489396fe8a9eb87c0abf8aa5b2ef267fda # 2.2.1
+      with:
+        name: trunk-artifacts
+        tag_name: trunk-artifacts
+        files: build/ispc-*.windows.zip
+        draft: false
+        prerelease: true
+        body: "Automatically updated trunk artifacts"
+        fail_on_unmatched_files: true
+        generate_release_notes: false
+        append_body: false
