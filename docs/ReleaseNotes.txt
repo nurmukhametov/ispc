@@ -4,6 +4,26 @@ ISPC release featuring improved ARM support, better code generation
 across x86 and ARM targets, and multiple stability fixes. This release is
 based on patched LLVM 18.1.8.
 
+Generic Targets:
+
+In this release, generic targets were introduced in ISPC. Their main goal is to
+simplify ISPC target management and serve as the root implementation of
+internal builtins for hierarchical target linking. ARM targets were refactored
+to use generic targets as well, resulting in cleaner code and improved
+performance. This change also makes it easier to add support for new targets
+and architectures, such as RISC-V or any other LLVM-supported target.
+
+Generic targets can also be used as standalone targets in cases where there is
+no native target with the required width for a particular CPU (e.g., a 32-wide
+target for SSE4). This can be done by specifying the following options to ISPC:
+
+`--target=generic-i1x32 --cpu=penryn`
+
+A complete list of all generic targets and the architectures they support can
+be found in the output of:
+
+`ispc --support-matrix`
+
 ARM Support Changes:
 
  - The `--arch=arm` flag, which previously mapped to ARMv7 (32-bit), now maps to
