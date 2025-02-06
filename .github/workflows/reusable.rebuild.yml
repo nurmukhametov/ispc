@@ -213,7 +213,7 @@ jobs:
         path: docker/ubuntu/${{ inputs.ubuntu }}/cpu_ispc_build/llvm-${{ inputs.full_version }}-ubuntu${{ inputs.ubuntu }}aarch64-Release${{ inputs.lto == 'ON' && '-lto' || '' }}-x86.arm.wasm.tar.xz
 
   win-build:
-    runs-on: windows-2019
+    runs-on: windows-2022
 
     steps:
     - uses: actions/checkout@eef61447b9ff4aafe5dcd4e0bbf5d482be7e7871 # v4.2.1
@@ -257,7 +257,7 @@ jobs:
         path: llvm/llvm-${{ inputs.full_version }}-win.${{ inputs.vs_version_str }}-Release+Asserts${{ inputs.lto == 'ON' && '-lto' || '' }}-x86.arm.wasm.tar.7z
 
   win-build-release:
-    runs-on: windows-2019
+    runs-on: windows-2022
 
     steps:
     - uses: actions/checkout@eef61447b9ff4aafe5dcd4e0bbf5d482be7e7871 # v4.2.1
