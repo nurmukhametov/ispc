@@ -44,6 +44,8 @@
 #include <llvm/Support/Path.h>
 
 #ifdef _LIBCPP_VERSION
+// Some XCode SDK defines this symbol, so avoid redefining it.
+#ifndef _LIBCPP___VERBOSE_ABORT
 // Provide own definition of std::__libcpp_verbose_abort to avoid missing symbols error on macOS with old
 // system libc++.1.dylib. The symbol is there for macOS 13 Ventura and later, but not macOS 12 and earlier.
 // See #3071 for more details.
@@ -59,6 +61,7 @@ void std::__libcpp_verbose_abort(char const *format, ...)
 
     abort();
 }
+#endif // _LIBCPP___VERBOSE_ABORT
 #endif // _LIBCPP_VERSION
 
 using namespace ispc;
