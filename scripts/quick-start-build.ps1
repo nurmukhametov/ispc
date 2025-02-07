@@ -1,114 +1,94 @@
 # Copyright (c) 2025, Intel Corporation
-#
 # SPDX-License-Identifier: BSD-3-Clause
+
 # This script builds ISPC using a pre-built LLVM release from the ispc.dependencies repository.
 # It has one optional argument, which is the LLVM version to use (default is 18).
 
 param(
-    [string]$LLVMVersion = "18"
+    [string]$LLVM_VERSION = "18"
 )
 
-# Initialize environment variables with defaults
-$env:LLVM_HOME = if ($env:LLVM_HOME) { $env:LLVM_HOME } else { Get-Location }
-$NPROC = [int](Get-CimInstance Win32_ComputerSystem).NumberOfLogicalProcessors
+$LLVM_HOME = if ($env:LLVM_HOME) { $env:LLVM_HOME } else { (Get-Location).Path }
 
-# Get script and root directories
-$SCRIPTS_DIR = Split-Path -Parent $MyInvocation.MyCommand.Path
-$ISPC_ROOT = Resolve-Path (Join-Path $SCRIPTS_DIR "..")
-$env:ISPC_HOME = if ($env:ISPC_HOME) { $env:ISPC_HOME } else { $ISPC_ROOT }
-$BUILD_DIR = Join-Path $env:ISPC_HOME "build-$LLVMVersion"
-$LLVM_DIR = Join-Path $env:LLVM_HOME "llvm-$LLVMVersion"
+# Detect number of processors
+$NPROC = [System.Environment]::ProcessorCount
 
-Write-Host "LLVM_HOME: $env:LLVM_HOME"
-Write-Host "ISPC_HOME: $env:ISPC_HOME"
+$SCRIPTS_DIR = Split-Path -Parent $MyInvocation.MyCommand.Definition
+$ISPC_ROOT = Resolve-Path "$SCRIPTS_DIR\.."
+$ISPC_HOME = if ($env:ISPC_HOME) { $env:ISPC_HOME } else { $ISPC_ROOT }
+$BUILD_DIR = "$ISPC_HOME\build-$LLVM_VERSION"
+$LLVM_DIR = "$LLVM_HOME\llvm-$LLVM_VERSION"
 
-Set-Location $env:LLVM_HOME
+Write-Output "LLVM_HOME: $LLVM_HOME"
+Write-Output "ISPC_HOME: $ISPC_HOME"
+
+Set-Location -Path $LLVM_HOME
 
 if (Test-Path $LLVM_DIR) {
-    Write-Host "$LLVM_DIR already exists"
-}
-else {
+    Write-Output "$LLVM_DIR already exists"
+} else {
     # Detect OS and architecture
-    $OS = if ($IsWindows) { "windows" } elseif ($IsMacOS) { "macos" } elseif ($IsLinux) { "ubuntu22.04" } else { throw "Unsupported OS" }
-    $ARCH = if ([System.Environment]::Is64BitOperatingSystem) {
-        $proc = Get-CimInstance Win32_Processor
-        if ($proc.Architecture -eq 9) { "aarch64" } else { "" }
-    } else { throw "Unsupported architecture" }
+    $OS = "win.*"
+    $ARCH = ""
 
-    # If on macOS and ARM, set ARCH to empty string as per original script
-    if ($IsMacOS -and $ARCH -eq "aarch64") { $ARCH = "" }
+    # Fetch GitHub releases JSON and Extract matching release name
+    $RELEASES = Invoke-RestMethod -Uri "https://api.github.com/repos/ispc/ispc.dependencies/releases"
+    $MATCHING_RELEASE = $RELEASES | Where-Object { $_.tag_name -match "^llvm-$LLVM_VERSION\." } | Select-Object -First 1
+    $MATCHING_RELEASE_TAG = $MATCHING_RELEASE.tag_name
 
-    # Fetch GitHub releases
-    $Headers = @{
-        "Accept" = "application/vnd.github.v3+json"
-    }
-    
-    $ReleasesJson = Invoke-RestMethod -Uri "https://api.github.com/repos/ispc/ispc.dependencies/releases" -Headers $Headers
-    
-    # Find matching release
-    $MatchingRelease = $ReleasesJson | 
-        Where-Object { $_.tag_name -match "^llvm-$LLVMVersion\." } | 
-        Select-Object -First 1
-    
-    if (-not $MatchingRelease) {
-        throw "No matching release found for llvm-$LLVMVersion.*"
-    }
-    
-    $Version = $MatchingRelease.tag_name -replace "^llvm-",""
-    $Version = $Version.Split("-")[0]
-    Write-Host "Found release: $($MatchingRelease.tag_name)"
-    
-    # Find matching asset
-    $AssetPattern = "llvm-$LLVMVersion.*-$OS$ARCH-Release.*Asserts-.*\.tar\.xz"
-    $Asset = $MatchingRelease.assets | 
-        Where-Object { $_.name -match $AssetPattern -and $_.name -notmatch "lto" } |
-        Select-Object -First 1
-    
-    if (-not $Asset) {
-        throw "No matching assets found for release $($MatchingRelease.tag_name) and pattern $AssetPattern"
-    }
-    
-    Write-Host "Asset Name: $($Asset.name)"
-    Write-Host "Download URL: $($Asset.browser_download_url)"
-    
-    # Download and extract the asset
-    $OutFile = Join-Path $env:LLVM_HOME $Asset.name
-    if (Test-Path $OutFile) {
-        Remove-Item $OutFile -Force
-    }
-    
-    Invoke-WebRequest -Uri $Asset.browser_download_url -OutFile $OutFile
-    Write-Host "Extracting $($Asset.name)"
-    
-    # Use 7zip if available, otherwise try tar
-    if (Get-Command "7z" -ErrorAction SilentlyContinue) {
-        7z x $OutFile
-        7z x ($OutFile -replace '\.xz$','')
-    }
-    else {
-        tar xf $OutFile
-    }
-    
-    Move-Item "bin-$Version" $LLVM_DIR
-}
+    # Get specific version like 18.1, removing prefix llvm- and suffix
+    $VERSION = $MATCHING_RELEASE_TAG -replace "^llvm-",""
+    $VERSION = $VERSION -replace "-.*$",""
 
-if (-not (Test-Path $BUILD_DIR)) {
-    $env:PATH = "$LLVM_DIR\bin;$env:PATH"
-    cmake -B $BUILD_DIR $ISPC_ROOT -DISPC_SLIM_BINARY=ON
-    if ($LASTEXITCODE -ne 0) {
-        Write-Host "CMake failed, cleaning up build directory $BUILD_DIR"
-        Remove-Item $BUILD_DIR -Recurse -Force
+    if (-not $MATCHING_RELEASE_TAG) {
+        Write-Output "No matching release found for llvm-$LLVM_VERSION.*"
         exit 1
     }
-}
-else {
-    Write-Host "$BUILD_DIR already exists"
+    Write-Output "Matching release found: $MATCHING_RELEASE_TAG"
+    
+    # Fetch assets for the matching release
+    $ASSETS_JSON = Invoke-RestMethod -Uri "https://api.github.com/repos/ispc/ispc.dependencies/releases/tags/$MATCHING_RELEASE_TAG"
+    $ASSET_PATTERN = "llvm-$LLVM_VERSION.*-$OS$ARCH-Release.*Asserts-.*\.tar\.7z"
+
+    # Extract asset name and URL matching the OS+ARCH pattern
+    $ASSET = $ASSETS_JSON.assets | Where-Object { $_.name -match "$ASSET_PATTERN" -and $_.name -notmatch "lto" } | Select-Object -First 1
+
+    if (-not $ASSET) {
+        Write-Output "No matching assets found for release $MATCHING_RELEASE_TAG and pattern $ASSET_PATTERN"
+        exit 1
+    }
+    Write-Output "Asset Name: $($ASSET.name)"
+    Write-Output "Download URL: $($ASSET.browser_download_url)"
+    
+    # Download and extract the asset
+    $ASSET_PATH = "$LLVM_HOME\$($ASSET.name)"
+    if (Test-Path $ASSET_PATH) { Remove-Item $ASSET_PATH -Force }
+    Start-BitsTransfer -Source $ASSET.browser_download_url -Destination $ASSET_PATH
+    
+    Write-Output "Extracting $($ASSET.name)"
+    7z x -t7z $ASSET_PATH
+    7z x -ttar llvm*tar
+    Rename-Item "bin-$VERSION" $LLVM_DIR
 }
 
-cmake --build $BUILD_DIR -j $NPROC
+# Build ISPC
+if (-not (Test-Path $BUILD_DIR)) {
+    $env:PATH = "$LLVM_DIR\bin;" + $env:PATH
+    cmake -B $BUILD_DIR -S $ISPC_ROOT -DISPC_SLIM_BINARY=ON
+    if ($LASTEXITCODE -ne 0) {
+        Write-Output "CMake failed, cleaning up build directory $BUILD_DIR"
+        Remove-Item -Recurse -Force $BUILD_DIR
+        exit 1
+    }
+} else {
+    Write-Output "$BUILD_DIR already exists"
+}
 
-Write-Host "Run ispc --support-matrix"
+cmake --build $BUILD_DIR --config RelWithDebInfo --parallel $NPROC
+
+Write-Output "Run ispc --support-matrix"
 & "$BUILD_DIR\bin\ispc" --support-matrix
 
-Write-Host "Run check-all"
-cmake --build $BUILD_DIR --target check-all
+Write-Output "Run check-all"
+cmake --build $BUILD_DIR --config RelWithDebInfo --target check-all
+
