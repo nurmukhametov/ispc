@@ -132,7 +132,7 @@ if (-not (Test-Path $BUILD_DIR)) {
 cmake --build $BUILD_DIR --config RelWithDebInfo --parallel $NPROC
 
 Write-Output "Run ispc --support-matrix"
-& "$BUILD_DIR\bin\ispc" --support-matrix
+& "$BUILD_DIR\bin\RelWithDebInfo\ispc" --support-matrix
 
 Write-Output "Run check-all"
 cmake --build $BUILD_DIR --config RelWithDebInfo --target check-all
