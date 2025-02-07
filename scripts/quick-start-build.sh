@@ -8,23 +8,7 @@
 # This script builds ISPC using a pre-built LLVM release from the ispc.dependencies repository.
 # It has one optional argument, which is the LLVM version to use (default is 18).
 
-LLVM_HOME="${LLVM_HOME:-$(pwd)}"
-LLVM_VERSION="${1:-18}"
-NPROC=$(command -v nproc >/dev/null && nproc || echo 8)
-SCRIPTS_DIR=$(cd "$(dirname "$0")" && pwd)
-ISPC_ROOT=$(realpath "$SCRIPTS_DIR/..")
-ISPC_HOME="${ISPC_HOME:-$ISPC_ROOT}"
-BUILD_DIR="$ISPC_HOME/build-$LLVM_VERSION"
-LLVM_DIR="$LLVM_HOME/llvm-$LLVM_VERSION"
-
-echo "LLVM_HOME: $LLVM_HOME"
-echo "ISPC_HOME: $ISPC_HOME"
-
-cd "$LLVM_HOME"
-
-if [ -d "$LLVM_DIR" ]; then
-    echo "$LLVM_DIR already exists"
-else
+llvm_asset() {
     # Detect OS/architecture and normalize them to match the expected format in filenames.
     OS=$(uname -s)
     ARCH=$(uname -m)
@@ -42,6 +26,10 @@ else
     
     # Fetch GitHub releases JSON
     RELEASES_JSON=$(curl -s "https://api.github.com/repos/ispc/ispc.dependencies/releases")
+    if echo "$RELEASES_JSON" | grep "API rate limit exceeded" -q; then
+        echo "GitHub API rate limit exceeded."
+        return 2
+    fi
     
     # Extract matching release name
     MATCHING_RELEASE=$(echo "$RELEASES_JSON" | grep -o '"tag_name": *"llvm-[^"]*' | sed -E 's/"tag_name": *"//' | grep "^llvm-$LLVM_VERSION\." | head -n 1)
@@ -53,13 +41,17 @@ else
     # Check if a matching release was found
     if [[ -z "$MATCHING_RELEASE" ]]; then
         echo "No matching release found for llvm-$LLVM_VERSION.*"
-        exit 1
+        exit 2
     fi
     echo "Found release: $MATCHING_RELEASE"
     
     # Fetch assets for the matching release
-    ASSETS_JSON=$(curl -s "https://api.github.com/repos/ispc/ispc.dependencies/releases/tags/$MATCHING_RELEASE")
     ASSET_PATTERN="llvm-$LLVM_VERSION.*-$OS$ARCH-Release.*Asserts-.*\.tar\.xz"
+    ASSETS_JSON=$(curl -s "https://api.github.com/repos/ispc/ispc.dependencies/releases/tags/$MATCHING_RELEASE")
+    if echo "$ASSETS_JSON" | grep "API rate limit exceeded" -q; then
+        echo "GitHub API rate limit exceeded."
+        return 2
+    fi
     
     # Extract asset name and URL matching the OS+ARCH pattern
     ASSET_NAME=$(echo "$ASSETS_JSON" | grep -o '"name": *"llvm-[^"]*' | sed -E 's/"name": *"//' | grep -E "$ASSET_PATTERN" | grep -v "lto" | head -n 1)
@@ -68,8 +60,41 @@ else
     # Check if a matching asset was found
     if [[ -z "$ASSET_NAME" || -z "$ASSET_URL" ]]; then
         echo "No matching assets found for release $MATCHING_RELEASE and pattern $ASSET_PATTERN"
-        exit 1
+        exit 2
     fi
+}
+
+LLVM_HOME="${LLVM_HOME:-$(pwd)}"
+LLVM_VERSION="${1:-18}"
+NPROC=$(command -v nproc >/dev/null && nproc || echo 8)
+SCRIPTS_DIR=$(cd "$(dirname "$0")" && pwd)
+ISPC_ROOT=$(realpath "$SCRIPTS_DIR/..")
+ISPC_HOME="${ISPC_HOME:-$ISPC_ROOT}"
+BUILD_DIR="$ISPC_HOME/build-$LLVM_VERSION"
+LLVM_DIR="$LLVM_HOME/llvm-$LLVM_VERSION"
+
+echo "LLVM_HOME: $LLVM_HOME"
+echo "ISPC_HOME: $ISPC_HOME"
+
+cd "$LLVM_HOME"
+
+if [ -d "$LLVM_DIR" ]; then
+    echo "$LLVM_DIR already exists"
+else
+    llvm_asset
+    if [ $? -ne 0 ]; then
+        if [ -n "$ARCHIVE_URL" ]; then
+            ASSET_NAME=$(basename "$ARCHIVE_URL")
+            ASSET_URL="$ARCHIVE_URL"
+            VERSION=$(echo "$ASSET_NAME" | grep -o "$LLVM_VERSION\.[0-9]*" | head -n 1)
+        else
+            echo "Error: Failed to deduct and fetch LLVM archives from Github API."
+            echo "Please set ARCHIVE_URL environment variable to the direct download URL of the LLVM package."
+            echo "Example: export ARCHIVE_URL='https://github.com/ispc/ispc.dependencies/releases/download/...'"
+            exit 1
+        fi
+    fi
+
     echo "Asset Name: $ASSET_NAME"
     echo "Download URL: $ASSET_URL"
 
