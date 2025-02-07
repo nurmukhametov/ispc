@@ -108,7 +108,7 @@ else
 fi
 
 if [ ! -d "$BUILD_DIR" ]; then
-    PATH="$LLVM_DIR/bin":$PATH cmake -B "$BUILD_DIR" "$ISPC_ROOT" -DISPC_SLIM_BINARY=ON
+    PATH="$LLVM_DIR/bin":$PATH cmake -B "$BUILD_DIR" "$ISPC_ROOT" -DCMAKE_BUILD_TYPE=Debug -DISPC_SLIM_BINARY=ON
     if [ $? -ne 0 ]; then
         echo "CMake failed, cleaning up build directory $BUILD_DIR"
         rm -rf "$BUILD_DIR"
