@@ -9,17 +9,8 @@
 # It has one optional argument, which is the LLVM version to use (default is 18).
 
 LLVM_HOME="${LLVM_HOME:-$(pwd)}"
-
-# Default LLVM version is LLVM 18
 LLVM_VERSION="${1:-18}"
-
-NPROC=8
-
-# Check if nproc command is available
-if command -v nproc &> /dev/null; then
-    NPROC=$(nproc)
-fi
-
+NPROC=$(command -v nproc >/dev/null && nproc || echo 8)
 SCRIPTS_DIR=$(cd "$(dirname "$0")" && pwd)
 ISPC_ROOT=$(realpath "$SCRIPTS_DIR/..")
 ISPC_HOME="${ISPC_HOME:-$ISPC_ROOT}"
@@ -34,18 +25,14 @@ cd "$LLVM_HOME"
 if [ -d "$LLVM_DIR" ]; then
     echo "$LLVM_DIR already exists"
 else
-    # Detect OS and architecture
+    # Detect OS/architecture and normalize them to match the expected format in filenames.
     OS=$(uname -s)
     ARCH=$(uname -m)
-    
-    # Normalize OS names to match the expected format in filenames
     case "$OS" in
         Linux) OS="ubuntu22.04" ;;
         Darwin) OS="macos" ;;
         *) echo "Unsupported OS: $OS"; exit 1 ;;
     esac
-    
-    # Normalize architecture names to match the expected format in filenames
     case "$ARCH" in
         x86_64) ARCH="" ;;
         aarch64) ARCH="aarch64" ;; # linux tarball contains aarch64 after $OS
