@@ -30,5 +30,4 @@ jobs:
       full_version: '20.1.1'
       lto: ${{ matrix.lto }}
       ubuntu: '22.04'
-      vs_version_str: 'vs2019'
       win_sdk: '10.0.18362.0'
