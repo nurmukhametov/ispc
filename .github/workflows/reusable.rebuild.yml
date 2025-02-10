@@ -26,6 +26,12 @@ on:
         required: false # Not required since there is a default value
         type: string
         default: 'ON'
+      # arch inputs is used only for linux-build jobs, macos and win just ignore it and skip aarch64 builds
+      arch:
+        description: Target architecture ('x86' or 'aarch64').
+        required: false # Not required since there is a default value
+        type: string
+        default: 'x86'
       ubuntu:
         description: Version of Ubuntu Dockerfile to use. For example '22.04'.
         required: true
@@ -56,6 +62,11 @@ on:
         required: true
         type: string
         default: 'ON'
+      arch:
+        description: Target architecture.
+        required: true
+        type: string
+        default: 'x86'
       ubuntu:
         description: Version of Ubuntu Dockerfile to use. For example '22.04'.
         required: true
@@ -73,11 +84,11 @@ concurrency:
 
 jobs:
   linux-build:
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.arch == 'aarch64' && 'ubuntu-arm-22.04' || 'ubuntu-latest' }}
     env:
-      TAR_NAME: llvm-${{ inputs.full_version }}-ubuntu${{ inputs.ubuntu }}-Release${{ inputs.asserts == 'ON' && '+Asserts' || '' }}${{ inputs.lto == 'ON' && '-lto' || '' }}-x86.arm.wasm.tar.xz
+      TAR_NAME: llvm-${{ inputs.full_version }}-ubuntu${{ inputs.ubuntu }}${{ inputs.arch == 'aarch64' && 'aarch64' || '' }}-Release${{ inputs.asserts == 'ON' && '+Asserts' || '' }}${{ inputs.lto == 'ON' && '-lto' || '' }}-x86.arm.wasm.tar.xz
       DOCKER_DIR: docker/ubuntu/${{ inputs.ubuntu }}/cpu_ispc_build
-      ARTIFACT_NAME: llvm${{ inputs.asserts == 'ON' && '' || 'rel' }}_linux_x86_lto_${{ inputs.lto }}
+      ARTIFACT_NAME: llvm${{ inputs.asserts == 'ON' && '' || 'rel' }}_linux_${{ inputs.arch }}_lto_${{ inputs.lto }}
 
     steps:
     - name: Print inputs and environment
@@ -119,65 +130,6 @@ jobs:
         mv usr/local/src/llvm/bin-${{ inputs.version }} .
         export XZ_DEFAULTS="-T0" # run zx in all threads
         tar cJvf ${{ env.TAR_NAME }} bin-${{ inputs.version }}
-
-    - name: Upload package
-      uses: actions/upload-artifact@65c4c4a1ddee5b72f698fdd19549f0f0fb45cf08 # v4.6.0
-      with:
-        name: ${{ env.ARTIFACT_NAME }}
-        path: ${{ env.DOCKER_DIR }}/${{ env.TAR_NAME }}
-
-  linux-arm-build:
-    runs-on: [self-hosted, linux, ARM64]
-    # Disabling this rebuild for non ispc/ispc repo, as it requires self-hosted runner
-    if: github.repository == 'ispc/ispc'
-
-    env:
-      TAR_NAME: llvm-${{ inputs.full_version }}-ubuntu${{ inputs.ubuntu }}aarch64-Release+Asserts${{ inputs.lto == 'ON' && '-lto' || '' }}-x86.arm.wasm.tar.xz
-      DOCKER_DIR: docker/ubuntu/${{ inputs.ubuntu }}/cpu_ispc_build
-      ARTIFACT_NAME: llvm${{ inputs.asserts == 'ON' && '' || 'rel' }}_linux_aarch64_lto_${{ inputs.lto }}
-
-    steps:
-    - name: Print inputs and environment
-      run: |
-        echo "version: ${{ inputs.version }}"
-        echo "full_version: ${{ inputs.full_version }}"
-        echo "lto: ${{ inputs.lto }}"
-        echo "asserts: ${{ inputs.asserts }}"
-        echo "ubuntu: ${{ inputs.ubuntu }}"
-        echo "TAR_NAME: ${{ env.TAR_NAME }}"
-
-    - uses: actions/checkout@eef61447b9ff4aafe5dcd4e0bbf5d482be7e7871 # v4.2.1
-      with:
-        submodules: true
-
-    - name: Check environment
-      run: |
-        cat /proc/cpuinfo
-
-    - name: Build LLVM
-      run: |
-        cd ${{ env.DOCKER_DIR }}
-        docker buildx create --use
-        docker buildx build \
-          --tag ispc/ubuntu${{ inputs.ubuntu }} \
-          --target=llvm_build \
-          --build-arg REPO="${GITHUB_REPOSITORY}" \
-          --build-arg SHA="${GITHUB_SHA}" \
-          --build-arg LTO="${{ inputs.lto }}" \
-          --build-arg LLVM_VERSION="${{ inputs.version }}" \
-          --build-arg LLVM_DISABLE_ASSERTIONS=${{ inputs.asserts == 'ON' && 'OFF' || 'ON' }} \
-          --output=type=tar,dest=result.tar .
-        docker buildx rm
-
-    - name: Pack LLVM
-      run: |
-        cd ${{ env.DOCKER_DIR }}
-        rm -rf cache.local
-        tar xvf result.tar usr/local/src/llvm
-        mv usr/local/src/llvm/bin-${{ inputs.version }} .
-        export XZ_DEFAULTS="-T0" # run zx in all threads
-        tar cJvf ${{ env.TAR_NAME }} bin-${{ inputs.version }}
-        rm -rf result.tar usr bin-${{ inputs.version }}
 
     - name: Upload package
       uses: actions/upload-artifact@65c4c4a1ddee5b72f698fdd19549f0f0fb45cf08 # v4.6.0
@@ -187,6 +139,7 @@ jobs:
 
   win-build:
     runs-on: windows-2022
+    if: inputs.architecture != 'aarch64'
     env:
       TAR_BASE_NAME: llvm-${{ inputs.full_version }}-win.vs2022-Release+Asserts${{ inputs.lto == 'ON' && '-lto' || '' }}-x86.arm.wasm
       ARTIFACT_NAME: llvm${{ inputs.asserts == 'ON' && '' || 'rel' }}_win_x86_lto_${{ inputs.lto }}
@@ -254,8 +207,9 @@ jobs:
         path: llvm/${{ env.TAR_BASE_NAME }}.tar.7z
 
   mac-build:
-    # This job is not capable to build on a shared runner, so need to use self-hosted.
-    runs-on: [self-hosted, macOS]
+    # This job is not capable to build on a shared runner with LTO=on, so need to use self-hosted.
+    runs-on: ${{ inputs.lto == 'ON' && '[self-hosted, macOS]' || 'macos-14' }}
+    if: inputs.architecture != 'aarch64'
 
     env:
       TAR_NAME: llvm-${{ inputs.full_version }}-macos-Release+Asserts${{ inputs.lto == 'ON' && '-lto' || '' }}-universal-x86.arm.wasm.tar.xz
@@ -277,7 +231,7 @@ jobs:
 
     - name: Install dependencies
       run: |
-        .github/workflows/scripts/install-llvm-deps-mac-hosted.sh
+        ${{ inputs.lto == 'ON' && '.github/workflows/scripts/install-llvm-deps-mac-hosted.sh' || '.github/workflows/scripts/install-llvm-deps-mac.sh' }}
 
     - name: Check environment
       run: |
