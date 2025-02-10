@@ -25,10 +25,6 @@ on:
         description: Version of Ubuntu Dockerfile to use. For example '22.04'.
         required: true
         type: string
-      vs_generator:
-        description: VS generator to use. For example 'Visual Studio 16 2019'.
-        required: true
-        type: string
       vs_version_str:
         description: VS version string to use in artifact naming. For example, 'vs2019'.
         required: true
@@ -59,11 +55,6 @@ on:
         required: true
         type: string
         default: '22.04'
-      vs_generator:
-        description: VS generator to use. For example 'Visual Studio 16 2019'.
-        required: true
-        type: string
-        default: 'Visual Studio 16 2019'
       vs_version_str:
         description: VS version string to use in artifact naming. For example, 'vs2019'.
         required: true
