@@ -280,15 +280,64 @@ def extract_archive(archive_path, is_windows):
         tar.extractall()
 
 
-def run_command(cmd, env=None):
+def run_command(cmd, on_error=None, env=None):
     """Execute a shell command and handle any failures.
-    
+
     Runs a subprocess with the given command and checks its return code.
-    If the command fails, prints an error message and exits with the same code.
+    If the command fails, executes an optional error callback and exits with
+    the same return code.
+
+    Args:
+        cmd (list): Command to execute as a list of strings or Path objects.
+            Example: ['cmake', '--build', 'path/to/build', '--target', 'all']
+        on_error (callable, optional): Function to call if command fails.
+            Will be called with no arguments before program exit.
+            Default: None
+        env (dict, optional): Environment variables for the subprocess.
+            Passed directly to subprocess.run().
+            If None, uses current environment.
+            Default: None
+
+    Returns:
+        subprocess.CompletedProcess: If command executes successfully
+
+    Raises:
+        SystemExit: If command returns non-zero exit code, exits with same code
+        TypeError: If cmd is not a list or if on_error is not callable
+        FileNotFoundError: If executable is not found
+
+    Examples:
+        >>> # Basic usage
+        >>> run_command(['echo', 'test'])
+        test
+        <CompletedProcess(args=['echo', 'test'], returncode=0)>
+
+        >>> # With error callback
+        >>> def cleanup(): print("Cleaning up...")
+        >>> run_command(['false'], on_error=cleanup)
+        Command failed with exit code 1: false
+        Cleaning up...
+        # Exits program with code 1
+
+        >>> # With custom environment
+        >>> run_command(['printenv', 'CUSTOM'], env={'CUSTOM': 'value'})
+        value
+
+    Notes:
+        - Uses subprocess.run with default settings (no shell, no output capture)
+        - Command output goes directly to stdout/stderr
+        - All arguments are converted to strings using str()
+        - Error callback runs before program termination
+
+    Warning:
+        This function will terminate the entire program if the command fails.
+        Use subprocess.run directly if you need to handle command failures differently.
     """
     result = subprocess.run(cmd, env=env) if env else subprocess.run(cmd)
-    if result.returncode != 0:
+    if result.returncode:
         print(f"Command failed with exit code {result.returncode}: {' '.join(map(str, cmd))}")
+        if on_error:
+            on_error()
         sys.exit(result.returncode)
 
 
@@ -430,12 +479,12 @@ def main():
             f"-DCMAKE_BUILD_TYPE={build_type}",
             "-DISPC_SLIM_BINARY=ON"
         ]
-        result = run_command(configure_cmd, env=env)
-
-        if result.returncode != 0:
-            print(f"CMake failed, cleaning up build directory {build_dir}")
-            shutil.rmtree(build_dir)
-            sys.exit(1)
+        run_command(configure_cmd,
+                    lambda: (
+                        print(f"CMake failed, cleaning up build directory {build_dir}"),
+                        shutil.rmtree(build_dir)
+                        ),
+                    env=env)
     else:
         print(f"{build_dir} already exists")
 
