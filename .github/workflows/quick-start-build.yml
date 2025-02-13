@@ -82,6 +82,7 @@ jobs:
       run: |
         Install-ChocoPackage winflexbison3
         Install-ChocoPackage gnuwin32-m4
+        pip install py7zr
 
     - name: Build ISPC
       run: python ./scripts/quick-start-build.py

@@ -92,7 +92,7 @@ def get_llvm_asset(llvm_version, os_name, arch):
         with urlopen(req) as response:
             releases_json = json.loads(response.read())
     except HTTPError as e:
-        if "API rate limit exceeded" in str(e):
+        if "rate limit exceeded" in str(e):
             print("GitHub API rate limit exceeded.")
             return None, None, None
         raise
@@ -117,7 +117,7 @@ def get_llvm_asset(llvm_version, os_name, arch):
         with urlopen(req) as response:
             assets_json = json.loads(response.read())
     except HTTPError as e:
-        if "API rate limit exceeded" in str(e):
+        if "rate limit exceeded" in str(e):
             print("GitHub API rate limit exceeded.")
             return None, None, None
         raise
@@ -175,6 +175,33 @@ def download_file(url, filename):
         Ensure you have write permissions in the target directory and sufficient
         disk space before downloading large files.
     """
+    headers = {'User-Agent': 'Python'}
+    req = Request(url, headers=headers)
+    with urlopen(req) as response, open(filename, 'wb') as out_file:
+        content_length = response.headers.get('Content-Length')
+        if content_length:
+            total_size = int(content_length)
+            downloaded = 0
+            chunk_size = 8192
+            last_progress = -1  # Track the last printed progress
+
+            while True:
+                chunk = response.read(chunk_size)
+                if not chunk:
+                    break
+                downloaded += len(chunk)
+                out_file.write(chunk)
+
+                # Calculate progress as an integer percentage
+                progress = int((downloaded / total_size) * 100)
+                if progress != last_progress:
+                    print(f"\rDownloading: {progress}%", end='', flush=True)
+                    last_progress = progress
+            print()  # New line after finishing
+        else:
+            # Fallback for streams with unknown content length
+            shutil.copyfileobj(response, out_file)
+
     headers = {'User-Agent': 'Python'}
     req = Request(url, headers=headers)
     with urlopen(req) as response, open(filename, 'wb') as out_file:
