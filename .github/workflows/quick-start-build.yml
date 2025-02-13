@@ -31,7 +31,7 @@ jobs:
         sudo apt-get install -y git curl cmake xz-utils m4 flex bison python3 libtbb-dev g++-multilib
 
     - name: Build ISPC
-      run: ./scripts/quick-start-build.sh
+      run: ./scripts/quick-start-build.py
 
   archlinux:
     runs-on: ubuntu-latest
@@ -51,7 +51,7 @@ jobs:
         pacman -S --noconfirm git cmake make gcc-libs glibc lib32-glibc gcc m4 flex bison python onetbb
 
     - name: Build ISPC
-      run: ./scripts/quick-start-build.sh
+      run: ./scripts/quick-start-build.py
 
   macos:
     runs-on: macos-latest
@@ -68,7 +68,7 @@ jobs:
         echo "/opt/homebrew/opt/flex/bin" >> "$GITHUB_PATH"
 
     - name: Build ISPC
-      run: ./scripts/quick-start-build.sh
+      run: ./scripts/quick-start-build.py
 
   windows:
     runs-on: windows-latest
@@ -81,8 +81,7 @@ jobs:
     - name: Install prerequisites
       run: |
         Install-ChocoPackage winflexbison3
-        Install-ChocoPackage 7zip
         Install-ChocoPackage gnuwin32-m4
 
     - name: Build ISPC
-      run: ./scripts/quick-start-build.ps1
+      run: ./scripts/quick-start-build.py
