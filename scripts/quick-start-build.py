@@ -14,7 +14,7 @@ from pathlib import Path
 import re
 import tarfile
 from urllib.request import urlopen, Request
-from urllib.error import URLError
+from urllib.error import HTTPError
 from multiprocessing import cpu_count
 
 
@@ -91,7 +91,7 @@ def get_llvm_asset(llvm_version, os_name, arch):
         req = Request("https://api.github.com/repos/ispc/ispc.dependencies/releases", headers=headers)
         with urlopen(req) as response:
             releases_json = json.loads(response.read())
-    except URLError as e:
+    except HTTPError as e:
         if "API rate limit exceeded" in str(e):
             print("GitHub API rate limit exceeded.")
             return None, None, None
@@ -116,7 +116,7 @@ def get_llvm_asset(llvm_version, os_name, arch):
         req = Request(f"https://api.github.com/repos/ispc/ispc.dependencies/releases/tags/{matching_release}", headers=headers)
         with urlopen(req) as response:
             assets_json = json.loads(response.read())
-    except URLError as e:
+    except HTTPError as e:
         if "API rate limit exceeded" in str(e):
             print("GitHub API rate limit exceeded.")
             return None, None, None
@@ -275,6 +275,18 @@ def extract_archive(archive_path, is_windows):
     print(f"Extracting {archive_path}")
     with tarfile.open(archive_path) as tar:
         tar.extractall()
+
+
+def run_command(cmd):
+    """Execute a shell command and handle any failures.
+    
+    Runs a subprocess with the given command and checks its return code.
+    If the command fails, prints an error message and exits with the same code.
+    """
+    result = subprocess.run(cmd)
+    if result.returncode != 0:
+        print(f"Command failed with exit code {result.returncode}: {' '.join(map(str, cmd))}")
+        sys.exit(result.returncode)
 
 
 def main():

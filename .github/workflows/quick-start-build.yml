@@ -84,4 +84,4 @@ jobs:
         Install-ChocoPackage gnuwin32-m4
 
     - name: Build ISPC
-      run: ./scripts/quick-start-build.py
+      run: python ./scripts/quick-start-build.py
