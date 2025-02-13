@@ -333,6 +333,7 @@ def run_command(cmd, on_error=None, env=None):
         This function will terminate the entire program if the command fails.
         Use subprocess.run directly if you need to handle command failures differently.
     """
+    sys.stdout.flush()
     result = subprocess.run(cmd, env=env) if env else subprocess.run(cmd)
     if result.returncode:
         print(f"Command failed with exit code {result.returncode}: {' '.join(map(str, cmd))}")
@@ -434,8 +435,8 @@ def main():
     os_name = platform.system()
     is_windows = os_name == 'Windows'
 
-    print(f"LLVM_HOME: {llvm_home}", flush=True)
-    print(f"ISPC_HOME: {ispc_home}", flush=True)
+    print(f"LLVM_HOME: {llvm_home}")
+    print(f"ISPC_HOME: {ispc_home}")
 
     os.chdir(llvm_home)
 
@@ -454,8 +455,8 @@ def main():
                 print("Example: export ARCHIVE_URL='https://github.com/ispc/ispc.dependencies/releases/download/...'")
                 sys.exit(1)
 
-        print(f"Asset Name: {asset_name}", flush=True)
-        print(f"Download URL: {asset_url}", flush=True)
+        print(f"Asset Name: {asset_name}")
+        print(f"Download URL: {asset_url}")
 
         if Path(asset_name).exists():
             Path(asset_name).unlink()
@@ -465,7 +466,7 @@ def main():
 
         Path(f"bin-{version}").rename(llvm_dir)
     else:
-        print(f"{llvm_dir} already exists", flush=True)
+        print(f"{llvm_dir} already exists")
 
     if not build_dir.exists():
         env = os.environ.copy()
@@ -481,25 +482,25 @@ def main():
         ]
         run_command(configure_cmd,
                     lambda: (
-                        print(f"CMake failed, cleaning up build directory {build_dir}", flush=True),
+                        print(f"CMake failed, cleaning up build directory {build_dir}"),
                         shutil.rmtree(build_dir)
                         ),
                     env=env)
     else:
-        print(f"{build_dir} already exists", flush=True)
+        print(f"{build_dir} already exists")
 
-    print("Configure build of ISPC", flush=True)
+    print("Configure build of ISPC")
     build_cmd = ["cmake", "--build", str(build_dir), "--parallel", str(nproc)]
     if is_windows:
         build_cmd.extend(["--config", build_type])
     run_command(build_cmd)
 
-    print("Run ispc --support-matrix", flush=True)
+    print("Run ispc --support-matrix")
     ispc_bin = build_dir / "bin"
     ispc_exe = ispc_bin / build_type / "ispc" if is_windows else ispc_bin / "ispc"
     run_command([str(ispc_exe), "--support-matrix"])
 
-    print("Run check-all", flush=True)
+    print("Run check-all")
     check_all_cmd = ["cmake", "--build", str(build_dir), "--target", "check-all"]
     if is_windows:
         check_all_cmd.extend(["--config", build_type])
