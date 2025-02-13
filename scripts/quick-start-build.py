@@ -182,7 +182,7 @@ def download_file(url, filename):
         if content_length:
             total_size = int(content_length)
             downloaded = 0
-            chunk_size = 8192
+            chunk_size = 64 * 1024
             last_progress = -1  # Track the last printed progress
 
             while True:
@@ -200,30 +200,6 @@ def download_file(url, filename):
             print()  # New line after finishing
         else:
             # Fallback for streams with unknown content length
-            shutil.copyfileobj(response, out_file)
-
-    headers = {'User-Agent': 'Python'}
-    req = Request(url, headers=headers)
-    with urlopen(req) as response, open(filename, 'wb') as out_file:
-        content_length = response.headers.get('Content-Length')
-        if content_length:
-            total_size = int(content_length)
-            downloaded = 0
-            chunk_size = 8192
-
-            while True:
-                chunk = response.read(chunk_size)
-                if not chunk:
-                    break
-                downloaded += len(chunk)
-                out_file.write(chunk)
-
-                # Print progress
-                progress = int((downloaded / total_size) * 100)
-                print(f"\rDownloading: {progress}%", end='', flush=True)
-            print()  # New line after progress
-        else:
-            # If content length is unknown, just download without progress
             shutil.copyfileobj(response, out_file)
 
 
@@ -304,13 +280,13 @@ def extract_archive(archive_path, is_windows):
         tar.extractall()
 
 
-def run_command(cmd):
+def run_command(cmd, env=None):
     """Execute a shell command and handle any failures.
     
     Runs a subprocess with the given command and checks its return code.
     If the command fails, prints an error message and exits with the same code.
     """
-    result = subprocess.run(cmd)
+    result = subprocess.run(cmd, env=env) if env else subprocess.run(cmd)
     if result.returncode != 0:
         print(f"Command failed with exit code {result.returncode}: {' '.join(map(str, cmd))}")
         sys.exit(result.returncode)
@@ -454,7 +430,7 @@ def main():
             f"-DCMAKE_BUILD_TYPE={build_type}",
             "-DISPC_SLIM_BINARY=ON"
         ]
-        result = subprocess.run(configure_cmd, env=env)
+        result = run_command(configure_cmd, env=env)
 
         if result.returncode != 0:
             print(f"CMake failed, cleaning up build directory {build_dir}")
@@ -467,18 +443,18 @@ def main():
     build_cmd = ["cmake", "--build", str(build_dir), "--parallel", str(nproc)]
     if is_windows:
         build_cmd.extend(["--config", build_type])
-    subprocess.run(build_cmd)
+    run_command(build_cmd)
 
     print("Run ispc --support-matrix")
     ispc_bin = build_dir / "bin"
     ispc_exe = ispc_bin / build_type / "ispc" if is_windows else ispc_bin / "ispc"
-    subprocess.run([str(ispc_exe), "--support-matrix"])
+    run_command([str(ispc_exe), "--support-matrix"])
 
     print("Run check-all")
     check_all_cmd = ["cmake", "--build", str(build_dir), "--target", "check-all"]
     if is_windows:
         check_all_cmd.extend(["--config", build_type])
-    subprocess.run(check_all_cmd)
+    run_command(check_all_cmd)
 
 if __name__ == "__main__":
     main()
