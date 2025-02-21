@@ -5152,11 +5152,12 @@ Expr *IndexExpr::TypeCheck() {
         // 64-bit target with 64-bit addressing, convert the index to an int32
         // type.
         //    The range of varying index is limited to [0,2^31) as a result.
+        // TODO!: update comments
         if (!(Type::EqualIgnoringConst(indexType->GetAsUniformType(), AtomicType::UniformUInt64) ||
               Type::EqualIgnoringConst(indexType->GetAsUniformType(), AtomicType::UniformInt64)) ||
             g->target->is32Bit() || g->opt.force32BitAddressing) {
-            const Type *indexType = AtomicType::VaryingInt32;
-            index = TypeConvertExpr(index, indexType, "array index");
+            const Type *indexType32 = indexType->IsSignedType() ? AtomicType::VaryingInt32 : AtomicType::VaryingUInt32;
+            index = TypeConvertExpr(index, indexType32, "array index");
             if (index == nullptr) {
                 return nullptr;
             }
@@ -5171,11 +5172,14 @@ Expr *IndexExpr::TypeCheck() {
         //
         //   However, the index can be still truncated to signed int32 if
         //   the index type is 64 bit and --addressing=32.
+        // TODO!: update comments
         bool force_32bit =
             g->target->is32Bit() || (g->opt.force32BitAddressing &&
                                      Type::EqualIgnoringConst(indexType->GetAsUniformType(), AtomicType::UniformInt64));
-        const Type *indexType = force_32bit ? AtomicType::UniformInt32 : AtomicType::UniformInt64;
-        index = TypeConvertExpr(index, indexType, "array index");
+        const Type *indexTypeForced =
+            force_32bit ? (indexType->IsSignedType() ? AtomicType::UniformInt32 : AtomicType::UniformUInt32)
+                        : (indexType->IsSignedType() ? AtomicType::UniformInt64 : AtomicType::UniformUInt64);
+        index = TypeConvertExpr(index, indexTypeForced, "array index");
         if (index == nullptr) {
             return nullptr;
         }
