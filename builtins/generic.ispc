@@ -280,6 +280,9 @@ template <> unmasked varying double __bitcast<varying double, varying int64>(var
     return @llvm.ispc.bitcast(x, (varying double)0);
 }
 
+EXT READNONE uniform uint8 __bitcast_uniform_uint8_uint8(uniform uint8 x) {
+    return __bitcast<uniform uint8, uniform uint8>(x);
+}
 // vector ops
 EXT uniform bool __extract_bool(IntMaskType vec, uniform int32 lane) { return __extract(vec, lane); }
 EXT uniform int16 __extract_int16(int16 vec, uniform int32 lane) { return __extract(vec, lane); }

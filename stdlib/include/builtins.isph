@@ -339,6 +339,11 @@ EXT inline READNONE varying int16 __intbits_varying_half(varying float16);
 EXT uniform float __undef_uniform();
 EXT varying float __undef_varying();
 
+//template <typename L, typename R> unmasked inline uniform R __bitcast(uniform L x);
+
+EXT inline READNONE uniform uint8 __bitcast_uniform_uint8_uint8(uniform uint8 x);
+
+
 // fast math function
 EXT inline void __fastmath();
 EXT void __scatter_elt32_double(uniform int8 *uniform, varying int32, uniform int32, varying int32, varying double,
