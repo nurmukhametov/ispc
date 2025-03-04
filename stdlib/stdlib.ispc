@@ -23,8 +23,6 @@
 ///////////////////////////////////////////////////////////////////////////
 // Low level primitives
 
-__declspec(safe, cost0) static inline uniform uint8 bitcast(uniform uint8 a) { return @llvm.ispc.bitcast(a, (uniform uint8) 0); }
-
 __declspec(safe, cost0) static inline float16 float16bits(unsigned int16 a) { return __halfbits_varying_int16(a); }
 
 __declspec(safe, cost0) static inline uniform float16 float16bits(uniform unsigned int16 a) {
