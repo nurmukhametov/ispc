@@ -14,6 +14,8 @@
 ///////////////////////////////////////////////////////////////////////////
 // Low level primitives
 
+__declspec(safe, cost0) static inline uniform uint8 bitcast(uniform uint8 a);
+
 __declspec(safe, cost0) inline float16 float16bits(unsigned int16 a);
 __declspec(safe, cost0) inline uniform float16 float16bits(uniform unsigned int16 a);
 __declspec(safe, cost0) inline float16 float16bits(int16 a);
@@ -1235,10 +1237,10 @@ __declspec(safe) inline varying int32 dot2add_i16packed_sat(varying uint32 a, va
 /*template <typename L, typename R> inline uniform R bitcast(uniform L x) {
     return __bitcast<L, R>(x);
 }*/
-template <typename L, typename R> __declspec(safe) inline R bitcast(L x) {
-    //should not be called
-}
-template <> __declspec(safe) inline uniform uint8 bitcast<uniform uint8, uniform uint8>(uniform uint8 x) {
-    return __bitcast_uniform_uint8_uint8(x);
-}
+// template <typename L, typename R> __declspec(safe) inline R bitcast(L x) {
+//     //should not be called
+// }
+// template <> __declspec(safe) inline uniform uint8 bitcast<uniform uint8, uniform uint8>(uniform uint8 x) {
+//     return __bitcast_uniform_uint8_uint8(x);
+// }
 

@@ -50,7 +50,7 @@ function (stdlib_to_cpp ispc_name target bit os CPP_LIST BC_LIST)
 
     add_custom_command(
         OUTPUT ${bc}
-        COMMAND ${ispc_name} -I ${INCLUDE_FOLDER} --nostdlib --gen-stdlib --target=${target} --arch=${canon_arch} --target-os=${canon_os} stdlib/stdlib.ispc --emit-llvm -o ${bc}
+        COMMAND ${ispc_name} -I ${INCLUDE_FOLDER} --enable-llvm-intrinsics --nostdlib --gen-stdlib --target=${target} --arch=${canon_arch} --target-os=${canon_os} stdlib/stdlib.ispc --emit-llvm -o ${bc}
         DEPENDS ${ispc_name} ${STDLIB_ISPC_FILES}
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
     )
