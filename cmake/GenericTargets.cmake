@@ -84,13 +84,6 @@ function (generate_generic_builtins ispc_name)
     #    endif()
     # endif()
 
-    if (WASM_ENABLED)
-        list(APPEND ARCH_LIST
-            "wasm64,64"
-            "wasm32,32"
-        )
-    endif()
-
     foreach(os ${os_list})
         foreach(target ${TARGET_LIST})
             foreach(pair ${ARCH_LIST})
@@ -106,6 +99,13 @@ function (generate_generic_builtins ispc_name)
             endforeach()
         endforeach()
     endforeach()
+
+    if (WASM_ENABLED)
+        foreach(target ${TARGET_LIST})
+            generate_generic_target_builtin(${ispc_name} ${target} wasm64 64 web)
+            generate_generic_target_stdlib(${ispc_name} ${target} wasm64 64 web)
+        endforeach()
+    endif()
 
     add_custom_target(generic-target-bc DEPENDS ${GENERIC_TARGET_BC_FILE})
     add_custom_target(generic-target-cpp DEPENDS ${GENERIC_TARGET_CPP_FILE})
