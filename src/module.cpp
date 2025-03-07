@@ -3809,7 +3809,7 @@ int Module::CompileMultipleTargets(const char *srcFile, Arch arch, const char *c
         return false;
     }
 
-    std::vector<Module *> modules(targets.size());
+    std::vector<std::unique_ptr<Module>> modules;
     for (unsigned int i = 0; i < targets.size(); ++i) {
         g->target =
             new Target(arch, cpu, targets[i], outputFlags.getPICLevel(), outputFlags.getMCModel(), g->printTarget);
@@ -3828,8 +3828,12 @@ int Module::CompileMultipleTargets(const char *srcFile, Arch arch, const char *c
         }
         compiledTargets[targetISA] = true;
 
-        m = new Module(srcFile);
-        modules.push_back(m);
+        auto modulePtr = std::make_unique<Module>(srcFile);
+        m = modulePtr.get();
+        // Transfer the ownership of the module to the vector, i.e., the
+        // lifetime of the module objects is tied to the function scope.
+        modules.push_back(std::move(modulePtr));
+
         const int compileResult = m->CompileFile();
 
         llvm::TimeTraceScope TimeScope("Backend");
@@ -3893,6 +3897,7 @@ int Module::CompileMultipleTargets(const char *srcFile, Arch arch, const char *c
         // Important: Don't delete the llvm::Module *m here; we need to
         // keep it around so the llvm::Functions *s stay valid for when
         // we generate the dispatch module's functions...
+        m = nullptr;
     }
 
     // Find the first initialized target machine from the targets we
@@ -3966,10 +3971,6 @@ int Module::CompileMultipleTargets(const char *srcFile, Arch arch, const char *c
         if (!m->writeOutput(Module::Deps, outputFlags, depsFileName, targetName.c_str(), srcFile)) {
             return 1;
         }
-    }
-
-    for (auto module : modules) {
-        delete module;
     }
 
     delete g->target;
