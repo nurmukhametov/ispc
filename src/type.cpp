@@ -1521,6 +1521,23 @@ ArrayType::ArrayType(const Type *c, Symbol *num) : SequentialType(ARRAY_TYPE), c
 ArrayType::ArrayType(const Type *c, ElementCount elCount)
     : SequentialType(ARRAY_TYPE), child(c), elementCount(elCount) {}
 
+template <> const ArrayType *ArrayType::CloneWith<const Type *>(const Type *newChildType) const {
+    return new ArrayType(newChildType, elementCount);
+}
+
+template <>
+const ArrayType *
+ArrayType::CloneWith<SequentialType::ElementCount>(SequentialType::ElementCount newElementCount) const {
+    return new ArrayType(child, newElementCount);
+}
+
+template <>
+const ArrayType *
+ArrayType::CloneWith<const Type *, SequentialType::ElementCount>(const Type *newChildType,
+                                                                 SequentialType::ElementCount newElementCount) const {
+    return new ArrayType(newChildType, newElementCount);
+}
+
 llvm::ArrayType *ArrayType::LLVMType(llvm::LLVMContext *ctx) const {
     if (child == nullptr) {
         Assert(m->errorCount > 0);
@@ -1572,7 +1589,7 @@ const ArrayType *ArrayType::GetAsVaryingType() const {
         Assert(m->errorCount > 0);
         return nullptr;
     }
-    return new ArrayType(child->GetAsVaryingType(), elementCount);
+    return CloneWith(child->GetAsVaryingType());
 }
 
 const ArrayType *ArrayType::GetAsUniformType() const {
@@ -1583,7 +1600,7 @@ const ArrayType *ArrayType::GetAsUniformType() const {
         Assert(m->errorCount > 0);
         return nullptr;
     }
-    return new ArrayType(child->GetAsUniformType(), elementCount);
+    return CloneWith(child->GetAsUniformType());
 }
 
 const ArrayType *ArrayType::GetAsUnboundVariabilityType() const {
@@ -1591,7 +1608,7 @@ const ArrayType *ArrayType::GetAsUnboundVariabilityType() const {
         Assert(m->errorCount > 0);
         return nullptr;
     }
-    return new ArrayType(child->GetAsUnboundVariabilityType(), elementCount);
+    return CloneWith(child->GetAsUnboundVariabilityType());
 }
 
 const ArrayType *ArrayType::GetAsSOAType(int width) const {
@@ -1599,7 +1616,7 @@ const ArrayType *ArrayType::GetAsSOAType(int width) const {
         Assert(m->errorCount > 0);
         return nullptr;
     }
-    return new ArrayType(child->GetAsSOAType(width), elementCount);
+    return CloneWith(child->GetAsSOAType(width));
 }
 
 const ArrayType *ArrayType::ResolveDependence(TemplateInstantiation &templInst) const {
@@ -1612,8 +1629,9 @@ const ArrayType *ArrayType::ResolveDependence(TemplateInstantiation &templInst) 
     if (resType == child && resolvedCount == elementCount.fixedCount) {
         return this;
     }
-    return (resolvedCount > 0) ? new ArrayType(resType, resolvedCount)
-                               : new ArrayType(resType, elementCount.symbolCount);
+    // TODO!: if element.symbolCount is 0 ?
+    ElementCount elemCount = resolvedCount > 0 ? ElementCount(resolvedCount) : ElementCount(elementCount.symbolCount);
+    return CloneWith(resType, elemCount);
 }
 
 const ArrayType *ArrayType::ResolveUnboundVariability(Variability v) const {
@@ -1621,7 +1639,7 @@ const ArrayType *ArrayType::ResolveUnboundVariability(Variability v) const {
         Assert(m->errorCount > 0);
         return nullptr;
     }
-    return new ArrayType(child->ResolveUnboundVariability(v), elementCount);
+    return CloneWith(child->ResolveUnboundVariability(v));
 }
 
 const ArrayType *ArrayType::GetAsUnsignedType() const {
@@ -1629,7 +1647,7 @@ const ArrayType *ArrayType::GetAsUnsignedType() const {
         Assert(m->errorCount > 0);
         return nullptr;
     }
-    return new ArrayType(child->GetAsUnsignedType(), elementCount);
+    return CloneWith(child->GetAsUnsignedType());
 }
 
 const ArrayType *ArrayType::GetAsSignedType() const {
@@ -1637,7 +1655,7 @@ const ArrayType *ArrayType::GetAsSignedType() const {
         Assert(m->errorCount > 0);
         return nullptr;
     }
-    return new ArrayType(child->GetAsSignedType(), elementCount);
+    return CloneWith(child->GetAsSignedType());
 }
 
 const ArrayType *ArrayType::GetAsConstType() const {
@@ -1645,7 +1663,7 @@ const ArrayType *ArrayType::GetAsConstType() const {
         Assert(m->errorCount > 0);
         return nullptr;
     }
-    return new ArrayType(child->GetAsConstType(), elementCount);
+    return CloneWith(child->GetAsConstType());
 }
 
 const ArrayType *ArrayType::GetAsNonConstType() const {
@@ -1653,7 +1671,7 @@ const ArrayType *ArrayType::GetAsNonConstType() const {
         Assert(m->errorCount > 0);
         return nullptr;
     }
-    return new ArrayType(child->GetAsNonConstType(), elementCount);
+    return CloneWith(child->GetAsNonConstType());
 }
 
 int ArrayType::GetElementCount() const { return elementCount.fixedCount; }
@@ -1764,9 +1782,10 @@ llvm::DIType *ArrayType::GetDIType(llvm::DIScope *scope) const {
 
 bool ArrayType::IsUnsized() const { return (elementCount.fixedCount == 0 && elementCount.symbolCount == nullptr); }
 
-ArrayType *ArrayType::GetSizedArray(int sz) const {
+const ArrayType *ArrayType::GetSizedArray(int sz) const {
     Assert(elementCount.fixedCount == 0);
-    return new ArrayType(child, sz);
+    // TODO!: if sz is 0, we should issue an error here?
+    return CloneWith(ElementCount(sz));
 }
 
 const Type *ArrayType::SizeUnsizedArrays(const Type *type, Expr *initExpr) {

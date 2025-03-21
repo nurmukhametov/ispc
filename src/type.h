@@ -735,7 +735,7 @@ class ArrayType : public SequentialType {
     bool IsUnsized() const;
     /** Returns a new array of the same child type, but with the given
         length. */
-    virtual ArrayType *GetSizedArray(int length) const;
+    const ArrayType *GetSizedArray(int length) const;
 
     /** If the given type is a (possibly multi-dimensional) array type and
         the initializer expression is an expression list, set the size of
@@ -752,6 +752,9 @@ class ArrayType : public SequentialType {
     ElementCount elementCount;
     /** Resolves the total number of elements in the array in template instantiation. */
     virtual int ResolveElementCount(TemplateInstantiation &templInst) const;
+
+    template <typename T> const ArrayType *CloneWith(T param) const;
+    template <typename T, typename F> const ArrayType *CloneWith(T param1, F param2) const;
 };
 
 /** @brief A (short) vector of atomic types.
