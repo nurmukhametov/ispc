@@ -152,7 +152,7 @@ class Type : public Traceable {
     bool IsTypeDependent() const;
 
     /** Returns the variability of the type. */
-    virtual Variability GetVariability() const = 0;
+    virtual Variability GetVariability() const { return variability; }
 
     /** Returns true if the underlying type is uniform */
     bool IsUniformType() const { return GetVariability() == Variability::Uniform; }
@@ -293,8 +293,18 @@ class Type : public Traceable {
         using dynamic_cast. */
     const TypeId typeId;
 
+    // Specialized version for Variability
+    template <typename B> static const B *CloneWithVariability(const B *ptr, Variability newVariability) {
+        B *ins = new B(*ptr);
+        ins->variability = newVariability;
+        return ins;
+    }
+
   protected:
-    Type(TypeId id) : typeId(id) {}
+    Variability variability = {};
+
+    // Type(TypeId id) : typeId(id) {}
+    Type(TypeId id, Variability v) : typeId(id), variability(v) {}
 };
 
 /** @brief AtomicType represents basic types like floats, ints, etc.
@@ -307,8 +317,13 @@ class Type : public Traceable {
  */
 class AtomicType : public Type {
   public:
-    Variability GetVariability() const;
-
+    AtomicType(const AtomicType &other)
+        : Type(ATOMIC_TYPE, other.variability), basicType(other.basicType), isConst(other.isConst),
+          asOtherConstType(nullptr), asUniformType(nullptr), asVaryingType(nullptr) {
+        // The mutable pointers (asOtherConstType, asUniformType, asVaryingType) are
+        // initialized to nullptr instead of copying the pointers from 'other'
+        // since these are cached values that will be recomputed when needed
+    }
     bool IsBoolType() const;
     bool IsFloatType() const;
     bool IsIntType() const;
@@ -388,7 +403,6 @@ class AtomicType : public Type {
     static const AtomicType *VaryingInt1;
 
   private:
-    const Variability variability;
     const bool isConst;
     AtomicType(BasicType basicType, Variability v, bool isConst);
 
@@ -404,8 +418,9 @@ class AtomicType : public Type {
 class TemplateTypeParmType : public Type {
   public:
     TemplateTypeParmType(std::string, Variability v, bool ic, SourcePos pos);
-
-    Variability GetVariability() const;
+    TemplateTypeParmType(const TemplateTypeParmType &other)
+        : Type(TEMPLATE_TYPE_PARM_TYPE, other.variability), name(other.name), isConst(other.isConst), pos(other.pos),
+          asOtherConstType(nullptr), asUniformType(nullptr), asVaryingType(nullptr) {}
 
     bool IsBoolType() const;
     bool IsFloatType() const;
@@ -438,7 +453,6 @@ class TemplateTypeParmType : public Type {
 
   private:
     const std::string name;
-    const Variability variability;
     const bool isConst;
     const SourcePos pos;
     mutable const TemplateTypeParmType *asOtherConstType, *asUniformType, *asVaryingType;
@@ -457,7 +471,9 @@ class EnumType : public Type {
     /** Constructor for named enumerated types */
     EnumType(const char *name, SourcePos pos);
 
-    Variability GetVariability() const;
+    EnumType(const EnumType &other)
+        : Type(ENUM_TYPE, other.variability), pos(other.pos), name(other.name), isConst(other.isConst),
+          enumerators(other.enumerators) {}
 
     bool IsBoolType() const;
     bool IsFloatType() const;
@@ -500,7 +516,6 @@ class EnumType : public Type {
 
   private:
     const std::string name;
-    Variability variability;
     bool isConst;
     std::vector<Symbol *> enumerators;
 
@@ -534,6 +549,9 @@ class PointerType : public Type {
   public:
     PointerType(const Type *t, Variability v, bool isConst, bool isSlice = false, bool frozen = false,
                 AddressSpace as = AddressSpace::ispc_default);
+    PointerType(const PointerType &other)
+        : Type(POINTER_TYPE, other.variability), isConst(other.isConst), isSlice(other.isSlice),
+          isFrozen(other.isFrozen), baseType(other.baseType), addrSpace(other.addrSpace) {}
 
     /** Helper method to return a uniform pointer to the given type. */
     static PointerType *GetUniform(const Type *t, bool isSlice = false);
@@ -542,8 +560,6 @@ class PointerType : public Type {
 
     /** Returns true if the given type is a void * type. */
     static bool IsVoidPointer(const Type *t);
-
-    Variability GetVariability() const;
 
     bool IsBoolType() const;
     bool IsFloatType() const;
@@ -583,7 +599,6 @@ class PointerType : public Type {
     static PointerType *Void;
 
   private:
-    const Variability variability;
     const bool isConst;
     const bool isSlice, isFrozen;
     const Type *baseType;
@@ -610,7 +625,8 @@ class CollectionType : public Type {
     virtual const Type *GetElementType(int index) const = 0;
 
   protected:
-    CollectionType(TypeId id) : Type(id) {}
+    // CollectionType(TypeId id) : Type(id) {}
+    CollectionType(TypeId id, Variability v) : Type(id, v) {}
 };
 
 /** @brief Abstract base class for types that represent sequences
@@ -645,7 +661,7 @@ class SequentialType : public CollectionType {
     virtual bool IsCountDependent() const = 0;
 
   protected:
-    SequentialType(TypeId id) : CollectionType(id) {}
+    SequentialType(TypeId id, Variability v) : CollectionType(id, v) {}
 
     /** Resolves the total number of elements in the collection in template instantiation. */
     virtual int ResolveElementCount(TemplateInstantiation &templInst) const = 0;
@@ -688,8 +704,6 @@ class ArrayType : public SequentialType {
         @param elCount An ElementCount structure representing the number of elements.
     */
     ArrayType(const Type *elementType, ElementCount elCount);
-
-    Variability GetVariability() const;
 
     bool IsBoolType() const;
     bool IsFloatType() const;
@@ -774,8 +788,6 @@ class VectorType : public SequentialType {
     VectorType(const Type *base, Symbol *num);
     VectorType(const Type *base, ElementCount elCount);
 
-    Variability GetVariability() const;
-
     bool IsBoolType() const;
     bool IsFloatType() const;
     bool IsIntType() const;
@@ -838,8 +850,10 @@ class StructType : public CollectionType {
     StructType(const std::string &name, const llvm::SmallVector<const Type *, 8> &elts,
                const llvm::SmallVector<std::string, 8> &eltNames, const llvm::SmallVector<SourcePos, 8> &eltPositions,
                bool isConst, Variability variability, bool isAnonymous, SourcePos pos);
-
-    Variability GetVariability() const;
+    StructType(const StructType &other)
+        : CollectionType(STRUCT_TYPE, other.variability), name(other.name), elementTypes(other.elementTypes),
+          elementNames(other.elementNames), elementPositions(other.elementPositions), isConst(other.isConst),
+          isAnonymous(other.isAnonymous), pos(other.pos), finalElementTypes(), oppositeConstStructType(nullptr) {}
 
     bool IsBoolType() const;
     bool IsFloatType() const;
@@ -918,7 +932,6 @@ class StructType : public CollectionType {
     /** Source file position at which each structure element declaration
         appeared. */
     const llvm::SmallVector<SourcePos, 8> elementPositions;
-    const Variability variability;
     const bool isConst;
     const bool isAnonymous;
     const SourcePos pos;
@@ -928,6 +941,16 @@ class StructType : public CollectionType {
     mutable const StructType *oppositeConstStructType;
 
     template <typename T> const StructType *CloneWith(T param) const;
+
+    template <typename B> static const B *CloneWithVariability(B *ptr, Variability newVariability) {
+        // This is a bit of a hack, but it's the easiest way to get the correct
+        // m->structTypeMap entry. It is created inside constructor depending
+        // on the new variability value.
+        // TODO!: I don't think constructor needs to create m->structTypeMap entry
+        B *ins = new B(ptr->name, ptr->elementTypes, ptr->elementNames, ptr->elementPositions, ptr->isConst,
+                       newVariability, ptr->isAnonymous, ptr->pos);
+        return ins;
+    }
 };
 
 /** Type implementation representing a struct name that has been declared
@@ -938,8 +961,8 @@ class StructType : public CollectionType {
 class UndefinedStructType : public Type {
   public:
     UndefinedStructType(const std::string &name, const Variability variability, bool isConst, SourcePos pos);
-
-    Variability GetVariability() const;
+    UndefinedStructType(const UndefinedStructType &other)
+        : Type(UNDEFINED_STRUCT_TYPE, other.variability), name(other.name), isConst(other.isConst), pos(other.pos) {}
 
     bool IsBoolType() const;
     bool IsFloatType() const;
@@ -974,11 +997,19 @@ class UndefinedStructType : public Type {
 
   private:
     const std::string name;
-    const Variability variability;
     const bool isConst;
     const SourcePos pos;
 
     template <typename T> const UndefinedStructType *CloneWith(T param) const;
+
+    template <typename B> static const B *CloneWithVariability(B *ptr, Variability newVariability) {
+        // This is a bit of a hack, but it's the easiest way to get the correct
+        // m->structTypeMap entry. It is created inside constructor depending
+        // on the new variability value.
+        // TODO!: I don't think constructor needs to create m->structTypeMap entry
+        B *ins = new B(ptr->name, newVariability, ptr->isConst, ptr->pos);
+        return ins;
+    }
 };
 
 /** @brief Type representing a reference to another (non-reference) type.
@@ -986,8 +1017,11 @@ class UndefinedStructType : public Type {
 class ReferenceType : public Type {
   public:
     ReferenceType(const Type *targetType, AddressSpace as = AddressSpace::ispc_default);
-
-    Variability GetVariability() const;
+    ReferenceType(const ReferenceType &other) : ReferenceType(other.targetType, other.addrSpace) {
+        // The base constructor handles all member initialization
+        // except for asOtherConstType which should be reset
+        this->asOtherConstType = nullptr;
+    }
 
     bool IsBoolType() const;
     bool IsFloatType() const;
@@ -1046,13 +1080,25 @@ class FunctionType : public Type {
                  const llvm::SmallVector<SourcePos, 8> &argPos, bool isTask, bool isExported, bool isExternalOnly,
                  bool isExternC, bool isExternSYCL, bool isUnmasked, bool isUnmangled, bool isVectorCall,
                  bool isRegCall, bool isCdecl, SourcePos p);
+    FunctionType(const FunctionType &other)
+        : FunctionType(other.returnType, other.paramTypes, other.paramNames, other.paramDefaults, other.paramPositions,
+                       other.isTask, other.isExported, other.isExternalOnly, other.isExternC, other.isExternSYCL,
+                       other.isUnmasked, other.isUnmangled, other.isVectorCall, other.isRegCall, other.isCdecl,
+                       other.pos) {
+        // Copy any additional state that isn't passed to the constructor
+        this->isSafe = other.isSafe;
+        this->costOverride = other.costOverride;
+
+        // Reset any cached values
+        this->asMaskedType = nullptr;
+        this->asUnmaskedType = nullptr;
+    }
     // Structure holding the mangling suffix and prefix for function
     struct FunctionMangledName {
         std::string prefix;
         std::string suffix;
     };
 
-    Variability GetVariability() const;
     bool IsBoolType() const;
     bool IsFloatType() const;
     bool IsIntType() const;

@@ -141,7 +141,7 @@ const AtomicType *AtomicType::Dependent = new AtomicType(AtomicType::TYPE_DEPEND
 const AtomicType *AtomicType::Void = new AtomicType(TYPE_VOID, Variability::Uniform, false);
 
 AtomicType::AtomicType(BasicType bt, Variability v, bool ic)
-    : Type(ATOMIC_TYPE), basicType(bt), variability(v), isConst(ic) {
+    : Type(ATOMIC_TYPE, v), basicType(bt), isConst(ic) {
     asOtherConstType = nullptr;
     asUniformType = asVaryingType = nullptr;
 }
@@ -150,15 +150,9 @@ template <> const AtomicType *AtomicType::CloneWith<AtomicType::BasicType>(Atomi
     return new AtomicType(newBasicType, variability, isConst);
 }
 
-template <> const AtomicType *AtomicType::CloneWith<Variability>(Variability newVariability) const {
-    return new AtomicType(basicType, newVariability, isConst);
-}
-
 template <> const AtomicType *AtomicType::CloneWith<bool>(bool newIsConst) const {
     return new AtomicType(basicType, variability, newIsConst);
 }
-
-Variability AtomicType::GetVariability() const { return variability; }
 
 bool Type::IsPointerType() const { return (CastType<PointerType>(this) != nullptr); }
 
@@ -363,7 +357,7 @@ const AtomicType *AtomicType::GetAsVaryingType() const {
     }
 
     if (asVaryingType == nullptr) {
-        asVaryingType = CloneWith(Variability(Variability::Varying));
+        asVaryingType = CloneWithVariability(this, Variability(Variability::Varying));
         if (variability == Variability::Uniform) {
             asVaryingType->asUniformType = this;
         }
@@ -378,7 +372,7 @@ const AtomicType *AtomicType::GetAsUniformType() const {
     }
 
     if (asUniformType == nullptr) {
-        asUniformType = CloneWith(Variability(Variability::Uniform));
+        asUniformType = CloneWithVariability(this, Variability(Variability::Uniform));
         if (variability == Variability::Varying) {
             asUniformType->asVaryingType = this;
         }
@@ -391,7 +385,7 @@ const AtomicType *AtomicType::GetAsUnboundVariabilityType() const {
     if (variability == Variability::Unbound) {
         return this;
     }
-    return CloneWith(Variability(Variability::Unbound));
+    return CloneWithVariability(this, Variability(Variability::Unbound));
 }
 
 const AtomicType *AtomicType::GetAsSOAType(int width) const {
@@ -399,7 +393,7 @@ const AtomicType *AtomicType::GetAsSOAType(int width) const {
     if (variability == Variability(Variability::SOA, width)) {
         return this;
     }
-    return CloneWith(Variability(Variability::SOA, width));
+    return CloneWithVariability(this, Variability(Variability::SOA, width));
 }
 
 const AtomicType *AtomicType::ResolveDependence(TemplateInstantiation &templInst) const {
@@ -414,7 +408,7 @@ const AtomicType *AtomicType::ResolveUnboundVariability(Variability v) const {
     if (variability != Variability::Unbound) {
         return this;
     }
-    return CloneWith(v);
+    return CloneWithVariability(this, v);
 }
 
 std::string AtomicType::GetString() const {
@@ -737,20 +731,14 @@ llvm::DIType *AtomicType::GetDIType(llvm::DIScope *scope) const {
 // TemplateTypeParmType
 
 TemplateTypeParmType::TemplateTypeParmType(std::string n, Variability v, bool ic, SourcePos p)
-    : Type(TEMPLATE_TYPE_PARM_TYPE), name(n), variability(v), isConst(ic), pos(p) {
+    : Type(TEMPLATE_TYPE_PARM_TYPE, v), name(n), isConst(ic), pos(p) {
     asOtherConstType = nullptr;
     asUniformType = asVaryingType = nullptr;
-}
-
-template <> const TemplateTypeParmType *TemplateTypeParmType::CloneWith<Variability>(Variability newVariability) const {
-    return new TemplateTypeParmType(name, newVariability, isConst, pos);
 }
 
 template <> const TemplateTypeParmType *TemplateTypeParmType::CloneWith<bool>(bool newIsConst) const {
     return new TemplateTypeParmType(name, variability, newIsConst, pos);
 }
-
-Variability TemplateTypeParmType::GetVariability() const { return variability; }
 
 bool TemplateTypeParmType::IsBoolType() const { return false; }
 
@@ -773,7 +761,7 @@ const Type *TemplateTypeParmType::GetAsVaryingType() const {
         return this;
     }
     if (asVaryingType == nullptr) {
-        asVaryingType = CloneWith(Variability(Variability::Varying));
+        asVaryingType = CloneWithVariability(this, Variability(Variability::Varying));
         if (variability == Variability::Uniform) {
             asVaryingType->asUniformType = this;
         }
@@ -786,7 +774,7 @@ const Type *TemplateTypeParmType::GetAsUniformType() const {
         return this;
     }
     if (asUniformType == nullptr) {
-        asUniformType = CloneWith(Variability(Variability::Uniform));
+        asUniformType = CloneWithVariability(this, Variability(Variability::Uniform));
         if (variability == Variability::Varying) {
             asUniformType->asVaryingType = this;
         }
@@ -798,7 +786,7 @@ const Type *TemplateTypeParmType::GetAsUnboundVariabilityType() const {
     if (variability == Variability::Unbound) {
         return this;
     }
-    return CloneWith(Variability(Variability::Unbound));
+    return CloneWithVariability(this, Variability(Variability::Unbound));
 }
 
 // Revisit: Should soa type be supported for template type param?
@@ -837,7 +825,7 @@ const Type *TemplateTypeParmType::ResolveUnboundVariability(Variability v) const
     if (variability != Variability::Unbound) {
         return this;
     }
-    return CloneWith(v);
+    return CloneWithVariability(this, v);
 }
 
 const Type *TemplateTypeParmType::GetAsConstType() const {
@@ -916,29 +904,21 @@ llvm::DIType *TemplateTypeParmType::GetDIType(llvm::DIScope *scope) const { UNRE
 ///////////////////////////////////////////////////////////////////////////
 // EnumType
 
-EnumType::EnumType(SourcePos p) : Type(ENUM_TYPE), pos(p) {
+EnumType::EnumType(SourcePos p) : Type(ENUM_TYPE, Variability::Unbound), pos(p) {
     //    name = "/* (anonymous) */";
     isConst = false;
-    variability = Variability(Variability::Unbound);
 }
 
-EnumType::EnumType(const char *n, SourcePos p) : Type(ENUM_TYPE), pos(p), name(n) {
+EnumType::EnumType(const char *n, SourcePos p) : Type(ENUM_TYPE, Variability::Unbound), pos(p), name(n) {
     isConst = false;
-    variability = Variability(Variability::Unbound);
 }
 
 EnumType::EnumType(std::string n, Variability v, bool ic, SourcePos p, const std::vector<Symbol *> &enums)
-    : Type(ENUM_TYPE), pos(p), name(n), variability(v), isConst(ic), enumerators(enums) {}
-
-template <> const EnumType *EnumType::CloneWith<Variability>(Variability newVariability) const {
-    return new EnumType(name, newVariability, isConst, pos, enumerators);
-}
+    : Type(ENUM_TYPE, v), pos(p), name(n), isConst(ic), enumerators(enums) {}
 
 template <> const EnumType *EnumType::CloneWith<bool>(bool newIsConst) const {
     return new EnumType(name, variability, newIsConst, pos, enumerators);
 }
-
-Variability EnumType::GetVariability() const { return variability; }
 
 bool EnumType::IsBoolType() const { return false; }
 
@@ -960,7 +940,7 @@ const EnumType *EnumType::GetAsUniformType() const {
     if (IsUniformType()) {
         return this;
     } else {
-        return CloneWith(Variability(Variability::Uniform));
+        return CloneWithVariability(this, Variability(Variability::Uniform));
     }
 }
 
@@ -970,7 +950,7 @@ const EnumType *EnumType::ResolveUnboundVariability(Variability v) const {
     if (variability != Variability::Unbound) {
         return this;
     } else {
-        return CloneWith(v);
+        return CloneWithVariability(this, v);
     }
 }
 
@@ -978,7 +958,7 @@ const EnumType *EnumType::GetAsVaryingType() const {
     if (IsVaryingType()) {
         return this;
     } else {
-        return CloneWith(Variability(Variability::Varying));
+        return CloneWithVariability(this, Variability(Variability::Varying));
     }
 }
 
@@ -986,7 +966,7 @@ const EnumType *EnumType::GetAsUnboundVariabilityType() const {
     if (HasUnboundVariability()) {
         return this;
     } else {
-        return CloneWith(Variability(Variability::Unbound));
+        return CloneWithVariability(this, Variability(Variability::Unbound));
     }
 }
 
@@ -994,7 +974,7 @@ const EnumType *EnumType::GetAsSOAType(int width) const {
     if (GetSOAWidth() == width) {
         return this;
     } else {
-        return CloneWith(Variability(Variability::SOA, width));
+        return CloneWithVariability(this, Variability(Variability::SOA, width));
     }
 }
 
@@ -1147,16 +1127,12 @@ const Symbol *EnumType::GetEnumerator(int i) const { return enumerators[i]; }
 PointerType *PointerType::Void = new PointerType(AtomicType::Void, Variability(Variability::Uniform), false);
 
 PointerType::PointerType(const Type *t, Variability v, bool ic, bool is, bool fr, AddressSpace as)
-    : Type(POINTER_TYPE), variability(v), isConst(ic), isSlice(is), isFrozen(fr), addrSpace(as) {
+    : Type(POINTER_TYPE, v), isConst(ic), isSlice(is), isFrozen(fr), addrSpace(as) {
     baseType = t;
 }
 
 template <> const PointerType *PointerType::CloneWith<const Type *>(const Type *newBaseType) const {
     return new PointerType(newBaseType, variability, isConst, isSlice, isFrozen, addrSpace);
-}
-
-template <> const PointerType *PointerType::CloneWith<Variability>(Variability newVariability) const {
-    return new PointerType(baseType, newVariability, isConst, isSlice, isFrozen, addrSpace);
 }
 
 template <> const PointerType *PointerType::CloneWith<bool>(bool newIsConst) const {
@@ -1185,8 +1161,6 @@ bool PointerType::IsVoidPointer(const Type *t) {
     return Type::EqualIgnoringConst(t->GetAsUniformType(), PointerType::Void);
 }
 
-Variability PointerType::GetVariability() const { return variability; }
-
 bool PointerType::IsBoolType() const { return false; }
 
 bool PointerType::IsFloatType() const { return false; }
@@ -1207,7 +1181,7 @@ const PointerType *PointerType::GetAsVaryingType() const {
     if (variability == Variability::Varying) {
         return this;
     } else {
-        return CloneWith(Variability(Variability::Varying));
+        return CloneWithVariability(this, Variability(Variability::Varying));
     }
 }
 
@@ -1215,7 +1189,7 @@ const PointerType *PointerType::GetAsUniformType() const {
     if (variability == Variability::Uniform) {
         return this;
     } else {
-        return CloneWith(Variability(Variability::Uniform));
+        return CloneWithVariability(this, Variability(Variability::Uniform));
     }
 }
 
@@ -1223,7 +1197,7 @@ const PointerType *PointerType::GetAsUnboundVariabilityType() const {
     if (variability == Variability::Unbound) {
         return this;
     } else {
-        return CloneWith(Variability(Variability::Unbound));
+        return CloneWithVariability(this, Variability(Variability::Unbound));
     }
 }
 
@@ -1231,7 +1205,7 @@ const PointerType *PointerType::GetAsSOAType(int width) const {
     if (GetSOAWidth() == width) {
         return this;
     } else {
-        return CloneWith(Variability(Variability::SOA, width));
+        return CloneWithVariability(this, Variability(Variability::SOA, width));
     }
 }
 
@@ -1510,16 +1484,29 @@ const Type *SequentialType::GetElementType(int index) const { return GetElementT
 ///////////////////////////////////////////////////////////////////////////
 // ArrayType
 
-ArrayType::ArrayType(const Type *c, int a) : SequentialType(ARRAY_TYPE), child(c), elementCount(a) {
+ArrayType::ArrayType(const Type *c, int a)
+    : SequentialType(ARRAY_TYPE, Variability::Uniform), child(c), elementCount(a) {
     // 0 -> unsized array.
     Assert(elementCount.fixedCount >= 0);
     Assert(c->IsVoidType() == false);
+    if (child) {
+        variability = child->GetVariability();
+    }
 }
 
-ArrayType::ArrayType(const Type *c, Symbol *num) : SequentialType(ARRAY_TYPE), child(c), elementCount(num) {}
+ArrayType::ArrayType(const Type *c, Symbol *num)
+    : SequentialType(ARRAY_TYPE, Variability::Uniform), child(c), elementCount(num) {
+    if (child) {
+        variability = child->GetVariability();
+    }
+}
 
 ArrayType::ArrayType(const Type *c, ElementCount elCount)
-    : SequentialType(ARRAY_TYPE), child(c), elementCount(elCount) {}
+    : SequentialType(ARRAY_TYPE, Variability::Uniform), child(c), elementCount(elCount) {
+    if (child) {
+        variability = child->GetVariability();
+    }
+}
 
 template <> const ArrayType *ArrayType::CloneWith<const Type *>(const Type *newChildType) const {
     return new ArrayType(newChildType, elementCount);
@@ -1550,10 +1537,6 @@ llvm::ArrayType *ArrayType::LLVMType(llvm::LLVMContext *ctx) const {
         return nullptr;
     }
     return llvm::ArrayType::get(ct, elementCount.fixedCount);
-}
-
-Variability ArrayType::GetVariability() const {
-    return child ? child->GetVariability() : Variability(Variability::Uniform);
 }
 
 bool ArrayType::IsFloatType() const { return false; }
@@ -1867,15 +1850,24 @@ int ArrayType::ResolveElementCount(TemplateInstantiation &templInst) const {
 ///////////////////////////////////////////////////////////////////////////
 // VectorType
 
-VectorType::VectorType(const Type *b, int a) : SequentialType(VECTOR_TYPE), base(b), elementCount(a) {
+VectorType::VectorType(const Type *b, int a)
+    : SequentialType(VECTOR_TYPE, Variability::Unbound), base(b), elementCount(a) {
     Assert(elementCount.fixedCount > 0);
     Assert(base != nullptr);
+    variability = base->GetVariability();
 }
 
-VectorType::VectorType(const Type *b, Symbol *num) : SequentialType(VECTOR_TYPE), base(b), elementCount(num) {}
+VectorType::VectorType(const Type *b, Symbol *num)
+    : SequentialType(VECTOR_TYPE, Variability::Unbound), base(b), elementCount(num) {
+    Assert(base != nullptr);
+    variability = base->GetVariability();
+}
 
 VectorType::VectorType(const Type *b, ElementCount elCount)
-    : SequentialType(VECTOR_TYPE), base(b), elementCount(elCount) {}
+    : SequentialType(VECTOR_TYPE, Variability::Unbound), base(b), elementCount(elCount) {
+    Assert(base != nullptr);
+    variability = base->GetVariability();
+}
 
 template <> const VectorType *VectorType::CloneWith<const Type *>(const Type *newBaseType) const {
     return new VectorType(newBaseType, elementCount);
@@ -1893,8 +1885,6 @@ VectorType::CloneWith<const Type *, SequentialType::ElementCount>(const Type *ne
                                                                   SequentialType::ElementCount newElementCount) const {
     return new VectorType(newBaseType, newElementCount);
 }
-
-Variability VectorType::GetVariability() const { return base->GetVariability(); }
 
 bool VectorType::IsFloatType() const { return base->IsFloatType(); }
 
@@ -2162,8 +2152,8 @@ static std::string lMangleStructName(const std::string &name, Variability variab
 StructType::StructType(const std::string &n, const llvm::SmallVector<const Type *, 8> &elts,
                        const llvm::SmallVector<std::string, 8> &en, const llvm::SmallVector<SourcePos, 8> &ep, bool ic,
                        Variability v, bool ia, SourcePos p)
-    : CollectionType(STRUCT_TYPE), name(n), elementTypes(elts), elementNames(en), elementPositions(ep), variability(v),
-      isConst(ic), isAnonymous(ia), pos(p) {
+    : CollectionType(STRUCT_TYPE, v), name(n), elementTypes(elts), elementNames(en), elementPositions(ep), isConst(ic),
+      isAnonymous(ia), pos(p) {
     oppositeConstStructType = nullptr;
     finalElementTypes.resize(elts.size(), nullptr);
 
@@ -2224,11 +2214,6 @@ StructType::StructType(const std::string &n, const llvm::SmallVector<const Type 
     }
 }
 
-template <> const StructType *StructType::CloneWith<Variability>(Variability newVariability) const {
-    return new StructType(name, elementTypes, elementNames, elementPositions, isConst, newVariability, isAnonymous,
-                          pos);
-}
-
 template <> const StructType *StructType::CloneWith<bool>(bool newIsConst) const {
     return new StructType(name, elementTypes, elementNames, elementPositions, newIsConst, variability, isAnonymous,
                           pos);
@@ -2244,8 +2229,6 @@ const std::string StructType::GetCStructName() const {
         return GetStructName();
     }
 }
-
-Variability StructType::GetVariability() const { return variability; }
 
 bool StructType::IsBoolType() const { return false; }
 
@@ -2304,7 +2287,8 @@ const StructType *StructType::GetAsVaryingType() const {
     if (IsVaryingType()) {
         return this;
     } else {
-        return CloneWith(Variability(Variability::Varying));
+        auto *p = CloneWithVariability(this, Variability(Variability::Varying));
+        return p;
     }
 }
 
@@ -2312,7 +2296,7 @@ const StructType *StructType::GetAsUniformType() const {
     if (IsUniformType()) {
         return this;
     } else {
-        return CloneWith(Variability(Variability::Uniform));
+        return CloneWithVariability(this, Variability(Variability::Uniform));
     }
 }
 
@@ -2320,7 +2304,7 @@ const StructType *StructType::GetAsUnboundVariabilityType() const {
     if (HasUnboundVariability()) {
         return this;
     } else {
-        return CloneWith(Variability(Variability::Unbound));
+        return CloneWithVariability(this, Variability(Variability::Unbound));
     }
 }
 
@@ -2333,7 +2317,7 @@ const StructType *StructType::GetAsSOAType(int width) const {
         return nullptr;
     }
 
-    return CloneWith(Variability(Variability::SOA, width));
+    return CloneWithVariability(this, Variability(Variability::SOA, width));
 }
 
 const StructType *StructType::ResolveDependence(TemplateInstantiation &templInst) const { return this; }
@@ -2349,7 +2333,7 @@ const StructType *StructType::ResolveUnboundVariability(Variability v) const {
     // resolve to varying but later want to get the uniform version of this
     // type, for example, then we still have the information around about
     // which element types were originally unbound...
-    return CloneWith(v);
+    return CloneWithVariability(this, v);
 }
 
 const StructType *StructType::GetAsConstType() const {
@@ -2572,7 +2556,7 @@ bool StructType::checkIfCanBeSOA(const StructType *st) {
 // UndefinedStructType
 
 UndefinedStructType::UndefinedStructType(const std::string &n, const Variability var, bool ic, SourcePos p)
-    : Type(UNDEFINED_STRUCT_TYPE), name(n), variability(var), isConst(ic), pos(p) {
+    : Type(UNDEFINED_STRUCT_TYPE, var), name(n), isConst(ic), pos(p) {
     Assert(name != "");
     if (variability != Variability::Unbound) {
         // Create a new opaque LLVM struct type for this struct name
@@ -2583,15 +2567,9 @@ UndefinedStructType::UndefinedStructType(const std::string &n, const Variability
     }
 }
 
-template <> const UndefinedStructType *UndefinedStructType::CloneWith<Variability>(Variability newVariability) const {
-    return new UndefinedStructType(name, newVariability, isConst, pos);
-}
-
 template <> const UndefinedStructType *UndefinedStructType::CloneWith<bool>(bool newIsConst) const {
     return new UndefinedStructType(name, variability, newIsConst, pos);
 }
-
-Variability UndefinedStructType::GetVariability() const { return variability; }
 
 bool UndefinedStructType::IsBoolType() const { return false; }
 
@@ -2613,21 +2591,21 @@ const UndefinedStructType *UndefinedStructType::GetAsVaryingType() const {
     if (variability == Variability::Varying) {
         return this;
     }
-    return CloneWith(Variability(Variability::Varying));
+    return CloneWithVariability(this, Variability(Variability::Varying));
 }
 
 const UndefinedStructType *UndefinedStructType::GetAsUniformType() const {
     if (variability == Variability::Uniform) {
         return this;
     }
-    return CloneWith(Variability(Variability::Uniform));
+    return CloneWithVariability(this, Variability(Variability::Uniform));
 }
 
 const UndefinedStructType *UndefinedStructType::GetAsUnboundVariabilityType() const {
     if (variability == Variability::Unbound) {
         return this;
     }
-    return CloneWith(Variability(Variability::Unbound));
+    return CloneWithVariability(this, Variability(Variability::Unbound));
 }
 
 const UndefinedStructType *UndefinedStructType::GetAsSOAType(int width) const {
@@ -2643,7 +2621,7 @@ const UndefinedStructType *UndefinedStructType::ResolveUnboundVariability(Variab
     if (variability != Variability::Unbound) {
         return this;
     }
-    return CloneWith(v);
+    return CloneWithVariability(this, v);
 }
 
 const UndefinedStructType *UndefinedStructType::GetAsConstType() const {
@@ -2710,7 +2688,12 @@ llvm::DIType *UndefinedStructType::GetDIType(llvm::DIScope *scope) const {
 ///////////////////////////////////////////////////////////////////////////
 // ReferenceType
 
-ReferenceType::ReferenceType(const Type *t, AddressSpace as) : Type(REFERENCE_TYPE), targetType(t), addrSpace(as) {
+ReferenceType::ReferenceType(const Type *t, AddressSpace as)
+    : Type(REFERENCE_TYPE, Variability::Unbound), targetType(t), addrSpace(as) {
+    if (targetType == nullptr) {
+        Assert(m->errorCount > 0);
+    }
+    variability = targetType->GetVariability();
     asOtherConstType = nullptr;
 }
 
@@ -2720,14 +2703,6 @@ template <> const ReferenceType *ReferenceType::CloneWith<const Type *>(const Ty
 
 template <> const ReferenceType *ReferenceType::CloneWith<AddressSpace>(AddressSpace newAddrSpace) const {
     return new ReferenceType(targetType, newAddrSpace);
-}
-
-Variability ReferenceType::GetVariability() const {
-    if (targetType == nullptr) {
-        Assert(m->errorCount > 0);
-        return Variability(Variability::Unbound);
-    }
-    return targetType->GetVariability();
 }
 
 bool ReferenceType::IsBoolType() const {
@@ -2979,9 +2954,10 @@ llvm::DIType *ReferenceType::GetDIType(llvm::DIScope *scope) const {
 // FunctionType
 
 FunctionType::FunctionType(const Type *r, const llvm::SmallVector<const Type *, 8> &a, SourcePos p)
-    : Type(FUNCTION_TYPE), isTask(false), isExported(false), isExternalOnly(false), isExternC(false),
-      isExternSYCL(false), isUnmasked(false), isUnmangled(false), isVectorCall(false), isRegCall(false), isCdecl(false),
-      returnType(r), paramTypes(a), paramNames(llvm::SmallVector<std::string, 8>(a.size(), "")),
+    : Type(FUNCTION_TYPE, Variability::Uniform), isTask(false), isExported(false), isExternalOnly(false),
+      isExternC(false), isExternSYCL(false), isUnmasked(false), isUnmangled(false), isVectorCall(false),
+      isRegCall(false), isCdecl(false), returnType(r), paramTypes(a),
+      paramNames(llvm::SmallVector<std::string, 8>(a.size(), "")),
       paramDefaults(llvm::SmallVector<Expr *, 8>(a.size(), nullptr)),
       paramPositions(llvm::SmallVector<SourcePos, 8>(a.size(), p)), pos(p) {
     Assert(returnType != nullptr);
@@ -2994,7 +2970,7 @@ FunctionType::FunctionType(const Type *r, const llvm::SmallVector<const Type *, 
                            const llvm::SmallVector<std::string, 8> &an, const llvm::SmallVector<Expr *, 8> &ad,
                            const llvm::SmallVector<SourcePos, 8> &ap, bool it, bool is, bool ric, bool ec, bool esycl,
                            bool ium, bool imngl, bool ivc, bool irc, bool icl, SourcePos p)
-    : Type(FUNCTION_TYPE), isTask(it), isExported(is), isExternalOnly(ric), isExternC(ec), isExternSYCL(esycl),
+    : Type(FUNCTION_TYPE, Variability::Uniform), isTask(it), isExported(is), isExternalOnly(ric), isExternC(ec), isExternSYCL(esycl),
       isUnmasked(ium), isUnmangled(imngl), isVectorCall(ivc), isRegCall(irc), isCdecl(icl), returnType(r),
       paramTypes(a), paramNames(an), paramDefaults(ad), paramPositions(ap), pos(p) {
     Assert(paramTypes.size() == paramNames.size() && paramNames.size() == paramDefaults.size() &&
@@ -3015,8 +2991,6 @@ const FunctionType *FunctionType::CloneWith<const Type *, llvm::SmallVector<cons
     ret->costOverride = costOverride;
     return ret;
 }
-
-Variability FunctionType::GetVariability() const { return Variability(Variability::Uniform); }
 
 bool FunctionType::IsFloatType() const { return false; }
 
