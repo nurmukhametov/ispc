@@ -821,6 +821,9 @@ class VectorType : public SequentialType {
     /** Resolves the total number of elements in the vector in template instantiation. */
     virtual int ResolveElementCount(TemplateInstantiation &templInst) const;
 
+    template <typename T> const VectorType *CloneWith(T param) const;
+    template <typename T, typename F> const VectorType *CloneWith(T param1, F param2) const;
+
   public:
     /** Returns the number of elements stored in memory for the vector.
         For uniform vectors, this is rounded up so that the number of

@@ -1877,6 +1877,23 @@ VectorType::VectorType(const Type *b, Symbol *num) : SequentialType(VECTOR_TYPE)
 VectorType::VectorType(const Type *b, ElementCount elCount)
     : SequentialType(VECTOR_TYPE), base(b), elementCount(elCount) {}
 
+template <> const VectorType *VectorType::CloneWith<const Type *>(const Type *newBaseType) const {
+    return new VectorType(newBaseType, elementCount);
+}
+
+template <>
+const VectorType *
+VectorType::CloneWith<SequentialType::ElementCount>(SequentialType::ElementCount newElementCount) const {
+    return new VectorType(base, newElementCount);
+}
+
+template <>
+const VectorType *
+VectorType::CloneWith<const Type *, SequentialType::ElementCount>(const Type *newBaseType,
+                                                                  SequentialType::ElementCount newElementCount) const {
+    return new VectorType(newBaseType, newElementCount);
+}
+
 Variability VectorType::GetVariability() const { return base->GetVariability(); }
 
 bool VectorType::IsFloatType() const { return base->IsFloatType(); }
@@ -1903,7 +1920,7 @@ const VectorType *VectorType::GetAsVaryingType() const {
         Assert(m->errorCount > 0);
         return nullptr;
     }
-    return new VectorType(base->GetAsVaryingType(), elementCount);
+    return CloneWith(base->GetAsVaryingType());
 }
 
 const VectorType *VectorType::GetAsUniformType() const {
@@ -1914,26 +1931,27 @@ const VectorType *VectorType::GetAsUniformType() const {
         Assert(m->errorCount > 0);
         return nullptr;
     }
-    return new VectorType(base->GetAsUniformType(), elementCount);
+    return CloneWith(base->GetAsUniformType());
 }
 
 const VectorType *VectorType::GetAsUnboundVariabilityType() const {
-    return new VectorType(base->GetAsUnboundVariabilityType(), elementCount);
+    return CloneWith(base->GetAsUnboundVariabilityType());
 }
 
 const VectorType *VectorType::GetAsSOAType(int width) const {
-    return new VectorType(base->GetAsSOAType(width), elementCount);
+    return CloneWith(base->GetAsSOAType(width));
 }
 
 const VectorType *VectorType::ResolveDependence(TemplateInstantiation &templInst) const {
     int resolvedCount = ResolveElementCount(templInst);
     const Type *resolvedBase = base->ResolveDependence(templInst);
-    return (resolvedCount > 0) ? new VectorType(resolvedBase, resolvedCount)
-                               : new VectorType(resolvedBase, elementCount.symbolCount);
+    ElementCount elemCount =
+        (resolvedCount > 0) ? ElementCount(resolvedCount) : ElementCount(elementCount.symbolCount);
+    return CloneWith(resolvedBase, elemCount);
 }
 
 const VectorType *VectorType::ResolveUnboundVariability(Variability v) const {
-    return new VectorType(base->ResolveUnboundVariability(v), elementCount);
+    return CloneWith(base->ResolveUnboundVariability(v));
 }
 
 const VectorType *VectorType::GetAsUnsignedType() const {
@@ -1941,7 +1959,7 @@ const VectorType *VectorType::GetAsUnsignedType() const {
         Assert(m->errorCount > 0);
         return nullptr;
     }
-    return new VectorType(base->GetAsUnsignedType(), elementCount);
+    return CloneWith(base->GetAsUnsignedType());
 }
 
 const VectorType *VectorType::GetAsSignedType() const {
@@ -1949,13 +1967,15 @@ const VectorType *VectorType::GetAsSignedType() const {
         Assert(m->errorCount > 0);
         return nullptr;
     }
-    return new VectorType(base->GetAsSignedType(), elementCount);
+    return CloneWith(base->GetAsSignedType());
 }
 
-const VectorType *VectorType::GetAsConstType() const { return new VectorType(base->GetAsConstType(), elementCount); }
+const VectorType *VectorType::GetAsConstType() const {
+    return CloneWith(base->GetAsConstType());
+}
 
 const VectorType *VectorType::GetAsNonConstType() const {
-    return new VectorType(base->GetAsNonConstType(), elementCount);
+    return CloneWith(base->GetAsNonConstType());
 }
 
 std::string VectorType::GetCountString() const {
