@@ -503,6 +503,10 @@ class EnumType : public Type {
     Variability variability;
     bool isConst;
     std::vector<Symbol *> enumerators;
+
+    EnumType(std::string name, Variability v, bool ic, SourcePos pos, const std::vector<Symbol *> &enumerators);
+
+    template <typename T> const EnumType *CloneWith(T param) const;
 };
 
 /** @brief Type implementation for pointers to other types

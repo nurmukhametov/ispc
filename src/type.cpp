@@ -927,6 +927,17 @@ EnumType::EnumType(const char *n, SourcePos p) : Type(ENUM_TYPE), pos(p), name(n
     variability = Variability(Variability::Unbound);
 }
 
+EnumType::EnumType(std::string n, Variability v, bool ic, SourcePos p, const std::vector<Symbol *> &enums)
+    : Type(ENUM_TYPE), pos(p), name(n), variability(v), isConst(ic), enumerators(enums) {}
+
+template <> const EnumType *EnumType::CloneWith<Variability>(Variability newVariability) const {
+    return new EnumType(name, newVariability, isConst, pos, enumerators);
+}
+
+template <> const EnumType *EnumType::CloneWith<bool>(bool newIsConst) const {
+    return new EnumType(name, variability, newIsConst, pos, enumerators);
+}
+
 Variability EnumType::GetVariability() const { return variability; }
 
 bool EnumType::IsBoolType() const { return false; }
@@ -949,9 +960,7 @@ const EnumType *EnumType::GetAsUniformType() const {
     if (IsUniformType()) {
         return this;
     } else {
-        EnumType *enumType = new EnumType(*this);
-        enumType->variability = Variability::Uniform;
-        return enumType;
+        return CloneWith(Variability(Variability::Uniform));
     }
 }
 
@@ -961,9 +970,7 @@ const EnumType *EnumType::ResolveUnboundVariability(Variability v) const {
     if (variability != Variability::Unbound) {
         return this;
     } else {
-        EnumType *enumType = new EnumType(*this);
-        enumType->variability = v;
-        return enumType;
+        return CloneWith(v);
     }
 }
 
@@ -971,9 +978,7 @@ const EnumType *EnumType::GetAsVaryingType() const {
     if (IsVaryingType()) {
         return this;
     } else {
-        EnumType *enumType = new EnumType(*this);
-        enumType->variability = Variability(Variability::Varying);
-        return enumType;
+        return CloneWith(Variability(Variability::Varying));
     }
 }
 
@@ -981,9 +986,7 @@ const EnumType *EnumType::GetAsUnboundVariabilityType() const {
     if (HasUnboundVariability()) {
         return this;
     } else {
-        EnumType *enumType = new EnumType(*this);
-        enumType->variability = Variability(Variability::Unbound);
-        return enumType;
+        return CloneWith(Variability(Variability::Unbound));
     }
 }
 
@@ -991,9 +994,7 @@ const EnumType *EnumType::GetAsSOAType(int width) const {
     if (GetSOAWidth() == width) {
         return this;
     } else {
-        EnumType *enumType = new EnumType(*this);
-        enumType->variability = Variability(Variability::SOA, width);
-        return enumType;
+        return CloneWith(Variability(Variability::SOA, width));
     }
 }
 
@@ -1001,9 +1002,7 @@ const EnumType *EnumType::GetAsConstType() const {
     if (isConst) {
         return this;
     } else {
-        EnumType *enumType = new EnumType(*this);
-        enumType->isConst = true;
-        return enumType;
+        return CloneWith(true);
     }
 }
 
@@ -1011,9 +1010,7 @@ const EnumType *EnumType::GetAsNonConstType() const {
     if (!isConst) {
         return this;
     } else {
-        EnumType *enumType = new EnumType(*this);
-        enumType->isConst = false;
-        return enumType;
+        return CloneWith(false);
     }
 }
 
