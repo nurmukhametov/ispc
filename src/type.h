@@ -926,6 +926,8 @@ class StructType : public CollectionType {
     mutable llvm::SmallVector<const Type *, 8> finalElementTypes;
 
     mutable const StructType *oppositeConstStructType;
+
+    template <typename T> const StructType *CloneWith(T param) const;
 };
 
 /** Type implementation representing a struct name that has been declared

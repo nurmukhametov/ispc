@@ -2224,6 +2224,16 @@ StructType::StructType(const std::string &n, const llvm::SmallVector<const Type 
     }
 }
 
+template <> const StructType *StructType::CloneWith<Variability>(Variability newVariability) const {
+    return new StructType(name, elementTypes, elementNames, elementPositions, isConst, newVariability, isAnonymous,
+                          pos);
+}
+
+template <> const StructType *StructType::CloneWith<bool>(bool newIsConst) const {
+    return new StructType(name, elementTypes, elementNames, elementPositions, newIsConst, variability, isAnonymous,
+                          pos);
+}
+
 const std::string StructType::GetCStructName() const {
     // only return mangled name for varying structs for backwards
     // compatibility...
@@ -2294,8 +2304,7 @@ const StructType *StructType::GetAsVaryingType() const {
     if (IsVaryingType()) {
         return this;
     } else {
-        return new StructType(name, elementTypes, elementNames, elementPositions, isConst,
-                              Variability(Variability::Varying), isAnonymous, pos);
+        return CloneWith(Variability(Variability::Varying));
     }
 }
 
@@ -2303,8 +2312,7 @@ const StructType *StructType::GetAsUniformType() const {
     if (IsUniformType()) {
         return this;
     } else {
-        return new StructType(name, elementTypes, elementNames, elementPositions, isConst,
-                              Variability(Variability::Uniform), isAnonymous, pos);
+        return CloneWith(Variability(Variability::Uniform));
     }
 }
 
@@ -2312,8 +2320,7 @@ const StructType *StructType::GetAsUnboundVariabilityType() const {
     if (HasUnboundVariability()) {
         return this;
     } else {
-        return new StructType(name, elementTypes, elementNames, elementPositions, isConst,
-                              Variability(Variability::Unbound), isAnonymous, pos);
+        return CloneWith(Variability(Variability::Unbound));
     }
 }
 
@@ -2326,8 +2333,7 @@ const StructType *StructType::GetAsSOAType(int width) const {
         return nullptr;
     }
 
-    return new StructType(name, elementTypes, elementNames, elementPositions, isConst,
-                          Variability(Variability::SOA, width), isAnonymous, pos);
+    return CloneWith(Variability(Variability::SOA, width));
 }
 
 const StructType *StructType::ResolveDependence(TemplateInstantiation &templInst) const { return this; }
@@ -2343,7 +2349,7 @@ const StructType *StructType::ResolveUnboundVariability(Variability v) const {
     // resolve to varying but later want to get the uniform version of this
     // type, for example, then we still have the information around about
     // which element types were originally unbound...
-    return new StructType(name, elementTypes, elementNames, elementPositions, isConst, v, isAnonymous, pos);
+    return CloneWith(v);
 }
 
 const StructType *StructType::GetAsConstType() const {
@@ -2352,8 +2358,7 @@ const StructType *StructType::GetAsConstType() const {
     } else if (oppositeConstStructType != nullptr) {
         return oppositeConstStructType;
     } else {
-        oppositeConstStructType =
-            new StructType(name, elementTypes, elementNames, elementPositions, true, variability, isAnonymous, pos);
+        oppositeConstStructType = CloneWith(true);
         oppositeConstStructType->oppositeConstStructType = this;
         return oppositeConstStructType;
     }
@@ -2365,14 +2370,14 @@ const StructType *StructType::GetAsNonConstType() const {
     } else if (oppositeConstStructType != nullptr) {
         return oppositeConstStructType;
     } else {
-        oppositeConstStructType =
-            new StructType(name, elementTypes, elementNames, elementPositions, false, variability, isAnonymous, pos);
+        oppositeConstStructType = CloneWith(false);
         oppositeConstStructType->oppositeConstStructType = this;
         return oppositeConstStructType;
     }
 }
 
 const StructType *StructType::GetAsNamed(const std::string &n) const {
+    // TODO!: isNamed enum flag type?
     return new StructType(n, elementTypes, elementNames, elementPositions, isConst, variability, false, pos);
 }
 
