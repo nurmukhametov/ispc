@@ -742,6 +742,14 @@ TemplateTypeParmType::TemplateTypeParmType(std::string n, Variability v, bool ic
     asUniformType = asVaryingType = nullptr;
 }
 
+template <> const TemplateTypeParmType *TemplateTypeParmType::CloneWith<Variability>(Variability newVariability) const {
+    return new TemplateTypeParmType(name, newVariability, isConst, pos);
+}
+
+template <> const TemplateTypeParmType *TemplateTypeParmType::CloneWith<bool>(bool newIsConst) const {
+    return new TemplateTypeParmType(name, variability, newIsConst, pos);
+}
+
 Variability TemplateTypeParmType::GetVariability() const { return variability; }
 
 bool TemplateTypeParmType::IsBoolType() const { return false; }
@@ -765,7 +773,7 @@ const Type *TemplateTypeParmType::GetAsVaryingType() const {
         return this;
     }
     if (asVaryingType == nullptr) {
-        asVaryingType = new TemplateTypeParmType(name, Variability::Varying, isConst, pos);
+        asVaryingType = CloneWith(Variability(Variability::Varying));
         if (variability == Variability::Uniform) {
             asVaryingType->asUniformType = this;
         }
@@ -778,7 +786,7 @@ const Type *TemplateTypeParmType::GetAsUniformType() const {
         return this;
     }
     if (asUniformType == nullptr) {
-        asUniformType = new TemplateTypeParmType(name, Variability::Uniform, isConst, pos);
+        asUniformType = CloneWith(Variability(Variability::Uniform));
         if (variability == Variability::Varying) {
             asUniformType->asVaryingType = this;
         }
@@ -790,7 +798,7 @@ const Type *TemplateTypeParmType::GetAsUnboundVariabilityType() const {
     if (variability == Variability::Unbound) {
         return this;
     }
-    return new TemplateTypeParmType(name, Variability::Unbound, isConst, pos);
+    return CloneWith(Variability(Variability::Unbound));
 }
 
 // Revisit: Should soa type be supported for template type param?
@@ -829,7 +837,7 @@ const Type *TemplateTypeParmType::ResolveUnboundVariability(Variability v) const
     if (variability != Variability::Unbound) {
         return this;
     }
-    return new TemplateTypeParmType(name, v, isConst, pos);
+    return CloneWith(v);
 }
 
 const Type *TemplateTypeParmType::GetAsConstType() const {
@@ -838,7 +846,7 @@ const Type *TemplateTypeParmType::GetAsConstType() const {
     }
 
     if (asOtherConstType == nullptr) {
-        asOtherConstType = new TemplateTypeParmType(name, variability, true, pos);
+        asOtherConstType = CloneWith(true);
         asOtherConstType->asOtherConstType = this;
     }
     return asOtherConstType;
@@ -850,7 +858,7 @@ const Type *TemplateTypeParmType::GetAsNonConstType() const {
     }
 
     if (asOtherConstType == nullptr) {
-        asOtherConstType = new TemplateTypeParmType(name, variability, false, pos);
+        asOtherConstType = CloneWith(false);
         asOtherConstType->asOtherConstType = this;
     }
     return asOtherConstType;

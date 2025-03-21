@@ -443,7 +443,7 @@ class TemplateTypeParmType : public Type {
     const SourcePos pos;
     mutable const TemplateTypeParmType *asOtherConstType, *asUniformType, *asVaryingType;
 
-    template <typename T> const Type *CloneWith(T param) const;
+    template <typename T> const TemplateTypeParmType *CloneWith(T param) const;
 };
 
 /** @brief Type implementation for enumerated types
