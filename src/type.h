@@ -1195,6 +1195,8 @@ class FunctionType : public Type {
     mutable const FunctionType *asMaskedType, *asUnmaskedType;
 
     const SourcePos pos;
+
+    template <typename T, typename F> const FunctionType *CloneWith(T param1, F param2) const;
 };
 
 /* Efficient dynamic casting of Types.  First, we specify a default

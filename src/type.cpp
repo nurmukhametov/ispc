@@ -3005,6 +3005,17 @@ FunctionType::FunctionType(const Type *r, const llvm::SmallVector<const Type *, 
     asUnmaskedType = asMaskedType = nullptr;
 }
 
+template <>
+const FunctionType *FunctionType::CloneWith<const Type *, llvm::SmallVector<const Type *, 8>>(
+    const Type *newReturnType, llvm::SmallVector<const Type *, 8> newParamTypes) const {
+    FunctionType *ret = new FunctionType(newReturnType, newParamTypes, paramNames, paramDefaults, paramPositions,
+                                         isTask, isExported, isExternalOnly, isExternC, isExternSYCL, isUnmasked,
+                                         isUnmangled, isVectorCall, isRegCall, isCdecl, pos);
+    ret->isSafe = isSafe;
+    ret->costOverride = costOverride;
+    return ret;
+}
+
 Variability FunctionType::GetVariability() const { return Variability(Variability::Uniform); }
 
 bool FunctionType::IsFloatType() const { return false; }
@@ -3067,12 +3078,7 @@ const FunctionType *FunctionType::ResolveDependence(TemplateInstantiation &templ
         pt.push_back(argt);
     }
 
-    FunctionType *ret =
-        new FunctionType(rt, pt, paramNames, paramDefaults, paramPositions, isTask, isExported, isExternalOnly,
-                         isExternC, isExternSYCL, isUnmasked, isUnmangled, isVectorCall, isRegCall, isCdecl, pos);
-    ret->isSafe = isSafe;
-    ret->costOverride = costOverride;
-    return ret;
+    return CloneWith(rt, pt);
 }
 
 const FunctionType *FunctionType::ResolveUnboundVariability(Variability v) const {
@@ -3091,13 +3097,7 @@ const FunctionType *FunctionType::ResolveUnboundVariability(Variability v) const
         pt.push_back(paramTypes[i]->ResolveUnboundVariability(v));
     }
 
-    FunctionType *ret =
-        new FunctionType(rt, pt, paramNames, paramDefaults, paramPositions, isTask, isExported, isExternalOnly,
-                         isExternC, isExternSYCL, isUnmasked, isUnmangled, isVectorCall, isRegCall, isCdecl, pos);
-    ret->isSafe = isSafe;
-    ret->costOverride = costOverride;
-
-    return ret;
+    return CloneWith(rt, pt);
 }
 
 const Type *FunctionType::GetAsConstType() const { return this; }
@@ -3109,6 +3109,7 @@ const Type *FunctionType::GetAsUnmaskedType() const {
         return this;
     }
     if (asUnmaskedType == nullptr) {
+        // TODO!: compress all flags inside one integer and pass it to the constructor
         FunctionType *ft = new FunctionType(returnType, paramTypes, paramNames, paramDefaults, paramPositions, isTask,
                                             isExported, isExternalOnly, isExternC, isExternSYCL, true, isUnmangled,
                                             isVectorCall, isRegCall, isCdecl, pos);
@@ -3145,12 +3146,7 @@ const Type *FunctionType::GetWithReturnType(const Type *newReturnType) const {
         return this;
     }
 
-    FunctionType *ft = new FunctionType(newReturnType, paramTypes, paramNames, paramDefaults, paramPositions, isTask,
-                                        isExported, isExternalOnly, isExternC, isExternSYCL, isUnmasked, isUnmangled,
-                                        isVectorCall, isRegCall, isCdecl, pos);
-    ft->isSafe = isSafe;
-    ft->costOverride = costOverride;
-    return ft;
+    return CloneWith(newReturnType, paramTypes);
 }
 
 std::string FunctionType::GetString() const {
