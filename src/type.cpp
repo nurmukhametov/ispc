@@ -1151,6 +1151,28 @@ PointerType::PointerType(const Type *t, Variability v, bool ic, bool is, bool fr
     baseType = t;
 }
 
+template <> const PointerType *PointerType::CloneWith<const Type *>(const Type *newBaseType) const {
+    return new PointerType(newBaseType, variability, isConst, isSlice, isFrozen, addrSpace);
+}
+
+template <> const PointerType *PointerType::CloneWith<Variability>(Variability newVariability) const {
+    return new PointerType(baseType, newVariability, isConst, isSlice, isFrozen, addrSpace);
+}
+
+template <> const PointerType *PointerType::CloneWith<bool>(bool newIsConst) const {
+    return new PointerType(baseType, variability, newIsConst, isSlice, isFrozen, addrSpace);
+}
+
+template <> const PointerType *PointerType::CloneWith<AddressSpace>(AddressSpace newAddrSpace) const {
+    return new PointerType(baseType, variability, isConst, isSlice, isFrozen, newAddrSpace);
+}
+
+template <>
+const PointerType *PointerType::CloneWith<const Type *, Variability>(const Type *newBasicType,
+                                                                     Variability newVariability) const {
+    return new PointerType(newBasicType, newVariability, isConst, isSlice, isFrozen, addrSpace);
+}
+
 PointerType *PointerType::GetUniform(const Type *t, bool is) {
     return new PointerType(t, Variability(Variability::Uniform), false, is);
 }
@@ -1185,7 +1207,7 @@ const PointerType *PointerType::GetAsVaryingType() const {
     if (variability == Variability::Varying) {
         return this;
     } else {
-        return new PointerType(baseType, Variability(Variability::Varying), isConst, isSlice, isFrozen);
+        return CloneWith(Variability(Variability::Varying));
     }
 }
 
@@ -1193,7 +1215,7 @@ const PointerType *PointerType::GetAsUniformType() const {
     if (variability == Variability::Uniform) {
         return this;
     } else {
-        return new PointerType(baseType, Variability(Variability::Uniform), isConst, isSlice, isFrozen);
+        return CloneWith(Variability(Variability::Uniform));
     }
 }
 
@@ -1201,7 +1223,7 @@ const PointerType *PointerType::GetAsUnboundVariabilityType() const {
     if (variability == Variability::Unbound) {
         return this;
     } else {
-        return new PointerType(baseType, Variability(Variability::Unbound), isConst, isSlice, isFrozen);
+        return CloneWith(Variability(Variability::Unbound));
     }
 }
 
@@ -1209,7 +1231,7 @@ const PointerType *PointerType::GetAsSOAType(int width) const {
     if (GetSOAWidth() == width) {
         return this;
     } else {
-        return new PointerType(baseType, Variability(Variability::SOA, width), isConst, isSlice, isFrozen);
+        return CloneWith(Variability(Variability::SOA, width));
     }
 }
 
@@ -1231,6 +1253,7 @@ const PointerType *PointerType::GetAsFrozenSlice() const {
     if (isFrozen) {
         return this;
     }
+    // TODO! merge isSlice and isFrozen into a single field of enum type
     return new PointerType(baseType, variability, isConst, true, true);
 }
 
@@ -1238,7 +1261,7 @@ const PointerType *PointerType::GetWithAddrSpace(AddressSpace as) const {
     if (addrSpace == as) {
         return this;
     }
-    return new PointerType(baseType, variability, isConst, isSlice, isFrozen, as);
+    return CloneWith(as);
 }
 
 const PointerType *PointerType::ResolveDependence(TemplateInstantiation &templInst) const {
@@ -1252,7 +1275,7 @@ const PointerType *PointerType::ResolveDependence(TemplateInstantiation &templIn
         return this;
     }
 
-    const PointerType *pType = new PointerType(resType, variability, isConst, isSlice, isFrozen);
+    const PointerType *pType = CloneWith(resType);
     return pType;
 }
 
@@ -1265,14 +1288,14 @@ const PointerType *PointerType::ResolveUnboundVariability(Variability v) const {
     Assert(v != Variability::Unbound);
     Variability ptrVariability = (variability == Variability::Unbound) ? v : variability;
     const Type *resolvedBaseType = baseType->ResolveUnboundVariability(Variability::Uniform);
-    return new PointerType(resolvedBaseType, ptrVariability, isConst, isSlice, isFrozen, addrSpace);
+    return CloneWith(resolvedBaseType, ptrVariability);
 }
 
 const PointerType *PointerType::GetAsConstType() const {
     if (isConst == true) {
         return this;
     } else {
-        return new PointerType(baseType, variability, true, isSlice);
+        return CloneWith(true);
     }
 }
 
@@ -1280,7 +1303,7 @@ const PointerType *PointerType::GetAsNonConstType() const {
     if (isConst == false) {
         return this;
     } else {
-        return new PointerType(baseType, variability, false, isSlice);
+        return CloneWith(false);
     }
 }
 

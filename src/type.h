@@ -588,6 +588,9 @@ class PointerType : public Type {
     const bool isSlice, isFrozen;
     const Type *baseType;
     const AddressSpace addrSpace;
+
+    template <typename T> const PointerType *CloneWith(T param) const;
+    template <typename T, typename F> const PointerType *CloneWith(T param1, F param2) const;
 };
 
 /** @brief Abstract base class for types that represent collections of
