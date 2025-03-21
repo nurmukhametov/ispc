@@ -2583,6 +2583,14 @@ UndefinedStructType::UndefinedStructType(const std::string &n, const Variability
     }
 }
 
+template <> const UndefinedStructType *UndefinedStructType::CloneWith<Variability>(Variability newVariability) const {
+    return new UndefinedStructType(name, newVariability, isConst, pos);
+}
+
+template <> const UndefinedStructType *UndefinedStructType::CloneWith<bool>(bool newIsConst) const {
+    return new UndefinedStructType(name, variability, newIsConst, pos);
+}
+
 Variability UndefinedStructType::GetVariability() const { return variability; }
 
 bool UndefinedStructType::IsBoolType() const { return false; }
@@ -2605,21 +2613,21 @@ const UndefinedStructType *UndefinedStructType::GetAsVaryingType() const {
     if (variability == Variability::Varying) {
         return this;
     }
-    return new UndefinedStructType(name, Variability::Varying, isConst, pos);
+    return CloneWith(Variability(Variability::Varying));
 }
 
 const UndefinedStructType *UndefinedStructType::GetAsUniformType() const {
     if (variability == Variability::Uniform) {
         return this;
     }
-    return new UndefinedStructType(name, Variability::Uniform, isConst, pos);
+    return CloneWith(Variability(Variability::Uniform));
 }
 
 const UndefinedStructType *UndefinedStructType::GetAsUnboundVariabilityType() const {
     if (variability == Variability::Unbound) {
         return this;
     }
-    return new UndefinedStructType(name, Variability::Unbound, isConst, pos);
+    return CloneWith(Variability(Variability::Unbound));
 }
 
 const UndefinedStructType *UndefinedStructType::GetAsSOAType(int width) const {
@@ -2635,21 +2643,21 @@ const UndefinedStructType *UndefinedStructType::ResolveUnboundVariability(Variab
     if (variability != Variability::Unbound) {
         return this;
     }
-    return new UndefinedStructType(name, v, isConst, pos);
+    return CloneWith(v);
 }
 
 const UndefinedStructType *UndefinedStructType::GetAsConstType() const {
     if (isConst) {
         return this;
     }
-    return new UndefinedStructType(name, variability, true, pos);
+    return CloneWith(true);
 }
 
 const UndefinedStructType *UndefinedStructType::GetAsNonConstType() const {
     if (isConst == false) {
         return this;
     }
-    return new UndefinedStructType(name, variability, false, pos);
+    return CloneWith(false);
 }
 
 std::string UndefinedStructType::GetString() const {

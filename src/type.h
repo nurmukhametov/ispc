@@ -977,6 +977,8 @@ class UndefinedStructType : public Type {
     const Variability variability;
     const bool isConst;
     const SourcePos pos;
+
+    template <typename T> const UndefinedStructType *CloneWith(T param) const;
 };
 
 /** @brief Type representing a reference to another (non-reference) type.
