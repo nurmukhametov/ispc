@@ -1023,6 +1023,8 @@ class ReferenceType : public Type {
     const Type *const targetType;
     mutable const ReferenceType *asOtherConstType;
     const AddressSpace addrSpace;
+
+    template <typename T> const ReferenceType *CloneWith(T param) const;
 };
 
 /** @brief Type representing a function (return type + argument types)

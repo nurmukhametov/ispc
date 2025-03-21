@@ -2714,6 +2714,14 @@ ReferenceType::ReferenceType(const Type *t, AddressSpace as) : Type(REFERENCE_TY
     asOtherConstType = nullptr;
 }
 
+template <> const ReferenceType *ReferenceType::CloneWith<const Type *>(const Type *newTargetType) const {
+    return new ReferenceType(newTargetType, addrSpace);
+}
+
+template <> const ReferenceType *ReferenceType::CloneWith<AddressSpace>(AddressSpace newAddrSpace) const {
+    return new ReferenceType(targetType, newAddrSpace);
+}
+
 Variability ReferenceType::GetVariability() const {
     if (targetType == nullptr) {
         Assert(m->errorCount > 0);
@@ -2790,7 +2798,7 @@ const ReferenceType *ReferenceType::GetAsVaryingType() const {
     if (IsVaryingType()) {
         return this;
     }
-    return new ReferenceType(targetType->GetAsVaryingType());
+    return CloneWith(targetType->GetAsVaryingType());
 }
 
 const ReferenceType *ReferenceType::GetAsUniformType() const {
@@ -2801,7 +2809,7 @@ const ReferenceType *ReferenceType::GetAsUniformType() const {
     if (IsUniformType()) {
         return this;
     }
-    return new ReferenceType(targetType->GetAsUniformType());
+    return CloneWith(targetType->GetAsUniformType());
 }
 
 const ReferenceType *ReferenceType::GetAsUnboundVariabilityType() const {
@@ -2812,7 +2820,7 @@ const ReferenceType *ReferenceType::GetAsUnboundVariabilityType() const {
     if (HasUnboundVariability()) {
         return this;
     }
-    return new ReferenceType(targetType->GetAsUnboundVariabilityType());
+    return CloneWith(targetType->GetAsUnboundVariabilityType());
 }
 
 const Type *ReferenceType::GetAsSOAType(int width) const {
@@ -2825,7 +2833,7 @@ const ReferenceType *ReferenceType::ResolveDependence(TemplateInstantiation &tem
         Assert(m->errorCount > 0);
         return nullptr;
     }
-    return new ReferenceType(targetType->ResolveDependence(templInst));
+    return CloneWith(targetType->ResolveDependence(templInst));
 }
 
 const ReferenceType *ReferenceType::ResolveUnboundVariability(Variability v) const {
@@ -2833,7 +2841,7 @@ const ReferenceType *ReferenceType::ResolveUnboundVariability(Variability v) con
         Assert(m->errorCount > 0);
         return nullptr;
     }
-    return new ReferenceType(targetType->ResolveUnboundVariability(v), addrSpace);
+    return CloneWith(targetType->ResolveUnboundVariability(v));
 }
 
 const ReferenceType *ReferenceType::GetAsConstType() const {
@@ -2846,7 +2854,7 @@ const ReferenceType *ReferenceType::GetAsConstType() const {
     }
 
     if (asOtherConstType == nullptr) {
-        asOtherConstType = new ReferenceType(targetType->GetAsConstType());
+        asOtherConstType = CloneWith(targetType->GetAsConstType());
         asOtherConstType->asOtherConstType = this;
     }
     return asOtherConstType;
@@ -2862,7 +2870,7 @@ const ReferenceType *ReferenceType::GetAsNonConstType() const {
     }
 
     if (asOtherConstType == nullptr) {
-        asOtherConstType = new ReferenceType(targetType->GetAsNonConstType());
+        asOtherConstType = CloneWith(targetType->GetAsNonConstType());
         asOtherConstType->asOtherConstType = this;
     }
     return asOtherConstType;
@@ -2877,7 +2885,7 @@ const ReferenceType *ReferenceType::GetWithAddrSpace(AddressSpace as) const {
         return this;
     }
 
-    return new ReferenceType(targetType, as);
+    return CloneWith(as);
 }
 
 std::string ReferenceType::GetString() const {
