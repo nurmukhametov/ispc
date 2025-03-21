@@ -146,6 +146,18 @@ AtomicType::AtomicType(BasicType bt, Variability v, bool ic)
     asUniformType = asVaryingType = nullptr;
 }
 
+template <> const AtomicType *AtomicType::CloneWith<AtomicType::BasicType>(AtomicType::BasicType newBasicType) const {
+    return new AtomicType(newBasicType, variability, isConst);
+}
+
+template <> const AtomicType *AtomicType::CloneWith<Variability>(Variability newVariability) const {
+    return new AtomicType(basicType, newVariability, isConst);
+}
+
+template <> const AtomicType *AtomicType::CloneWith<bool>(bool newIsConst) const {
+    return new AtomicType(basicType, variability, newIsConst);
+}
+
 Variability AtomicType::GetVariability() const { return variability; }
 
 bool Type::IsPointerType() const { return (CastType<PointerType>(this) != nullptr); }
@@ -279,13 +291,13 @@ const AtomicType *AtomicType::GetAsUnsignedType() const {
 
     switch (basicType) {
     case TYPE_INT8:
-        return new AtomicType(TYPE_UINT8, variability, isConst);
+        return CloneWith(TYPE_UINT8);
     case TYPE_INT16:
-        return new AtomicType(TYPE_UINT16, variability, isConst);
+        return CloneWith(TYPE_UINT16);
     case TYPE_INT32:
-        return new AtomicType(TYPE_UINT32, variability, isConst);
+        return CloneWith(TYPE_UINT32);
     case TYPE_INT64:
-        return new AtomicType(TYPE_UINT64, variability, isConst);
+        return CloneWith(TYPE_UINT64);
     default:
         FATAL("Unexpected basicType in GetAsUnsignedType()");
         return nullptr;
@@ -303,13 +315,13 @@ const AtomicType *AtomicType::GetAsSignedType() const {
 
     switch (basicType) {
     case TYPE_UINT8:
-        return new AtomicType(TYPE_INT8, variability, isConst);
+        return CloneWith(TYPE_INT8);
     case TYPE_UINT16:
-        return new AtomicType(TYPE_INT16, variability, isConst);
+        return CloneWith(TYPE_INT16);
     case TYPE_UINT32:
-        return new AtomicType(TYPE_INT32, variability, isConst);
+        return CloneWith(TYPE_INT32);
     case TYPE_UINT64:
-        return new AtomicType(TYPE_INT64, variability, isConst);
+        return CloneWith(TYPE_INT64);
     default:
         FATAL("Unexpected basicType in GetAsSignedType()");
         return nullptr;
@@ -323,7 +335,7 @@ const AtomicType *AtomicType::GetAsConstType() const {
     }
 
     if (asOtherConstType == nullptr) {
-        asOtherConstType = new AtomicType(basicType, variability, true);
+        asOtherConstType = CloneWith(true);
         asOtherConstType->asOtherConstType = this;
     }
     return asOtherConstType;
@@ -336,7 +348,7 @@ const AtomicType *AtomicType::GetAsNonConstType() const {
     }
 
     if (asOtherConstType == nullptr) {
-        asOtherConstType = new AtomicType(basicType, variability, false);
+        asOtherConstType = CloneWith(false);
         asOtherConstType->asOtherConstType = this;
     }
     return asOtherConstType;
@@ -351,7 +363,7 @@ const AtomicType *AtomicType::GetAsVaryingType() const {
     }
 
     if (asVaryingType == nullptr) {
-        asVaryingType = new AtomicType(basicType, Variability::Varying, isConst);
+        asVaryingType = CloneWith(Variability(Variability::Varying));
         if (variability == Variability::Uniform) {
             asVaryingType->asUniformType = this;
         }
@@ -366,7 +378,7 @@ const AtomicType *AtomicType::GetAsUniformType() const {
     }
 
     if (asUniformType == nullptr) {
-        asUniformType = new AtomicType(basicType, Variability::Uniform, isConst);
+        asUniformType = CloneWith(Variability(Variability::Uniform));
         if (variability == Variability::Varying) {
             asUniformType->asVaryingType = this;
         }
@@ -379,7 +391,7 @@ const AtomicType *AtomicType::GetAsUnboundVariabilityType() const {
     if (variability == Variability::Unbound) {
         return this;
     }
-    return new AtomicType(basicType, Variability::Unbound, isConst);
+    return CloneWith(Variability(Variability::Unbound));
 }
 
 const AtomicType *AtomicType::GetAsSOAType(int width) const {
@@ -387,7 +399,7 @@ const AtomicType *AtomicType::GetAsSOAType(int width) const {
     if (variability == Variability(Variability::SOA, width)) {
         return this;
     }
-    return new AtomicType(basicType, Variability(Variability::SOA, width), isConst);
+    return CloneWith(Variability(Variability::SOA, width));
 }
 
 const AtomicType *AtomicType::ResolveDependence(TemplateInstantiation &templInst) const {
@@ -402,7 +414,7 @@ const AtomicType *AtomicType::ResolveUnboundVariability(Variability v) const {
     if (variability != Variability::Unbound) {
         return this;
     }
-    return new AtomicType(basicType, v, isConst);
+    return CloneWith(v);
 }
 
 std::string AtomicType::GetString() const {

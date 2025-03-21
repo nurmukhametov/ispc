@@ -392,6 +392,8 @@ class AtomicType : public Type {
     const bool isConst;
     AtomicType(BasicType basicType, Variability v, bool isConst);
 
+    template <typename T> const AtomicType *CloneWith(T param) const;
+
     mutable const AtomicType *asOtherConstType, *asUniformType, *asVaryingType;
 };
 
@@ -440,6 +442,8 @@ class TemplateTypeParmType : public Type {
     const bool isConst;
     const SourcePos pos;
     mutable const TemplateTypeParmType *asOtherConstType, *asUniformType, *asVaryingType;
+
+    template <typename T> const Type *CloneWith(T param) const;
 };
 
 /** @brief Type implementation for enumerated types
