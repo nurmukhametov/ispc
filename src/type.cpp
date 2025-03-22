@@ -141,7 +141,7 @@ const AtomicType *AtomicType::Dependent = new AtomicType(AtomicType::TYPE_DEPEND
 const AtomicType *AtomicType::Void = new AtomicType(TYPE_VOID, Variability::Uniform, false);
 
 AtomicType::AtomicType(BasicType bt, Variability v, bool ic)
-    : Type(ATOMIC_TYPE, v), basicType(bt), isConst(ic) {
+    : Type(ATOMIC_TYPE, v, ic ? IS_CONST : NON_CONST), basicType(bt) {
     asOtherConstType = nullptr;
     asUniformType = asVaryingType = nullptr;
 }
@@ -269,8 +269,6 @@ bool AtomicType::IsSignedType() const {
 }
 
 bool AtomicType::IsBoolType() const { return basicType == TYPE_BOOL || basicType == TYPE_INT1; }
-
-bool AtomicType::IsConstType() const { return isConst; }
 
 bool AtomicType::IsCompleteType() const { return true; }
 
@@ -731,7 +729,7 @@ llvm::DIType *AtomicType::GetDIType(llvm::DIScope *scope) const {
 // TemplateTypeParmType
 
 TemplateTypeParmType::TemplateTypeParmType(std::string n, Variability v, bool ic, SourcePos p)
-    : Type(TEMPLATE_TYPE_PARM_TYPE, v), name(n), isConst(ic), pos(p) {
+    : Type(TEMPLATE_TYPE_PARM_TYPE, v, ic ? IS_CONST : NON_CONST), name(n), pos(p) {
     asOtherConstType = nullptr;
     asUniformType = asVaryingType = nullptr;
 }
@@ -749,8 +747,6 @@ bool TemplateTypeParmType::IsIntType() const { return false; }
 bool TemplateTypeParmType::IsUnsignedType() const { return false; }
 
 bool TemplateTypeParmType::IsSignedType() const { return false; }
-
-bool TemplateTypeParmType::IsConstType() const { return isConst; }
 
 bool TemplateTypeParmType::IsCompleteType() const { return false; }
 
@@ -904,17 +900,14 @@ llvm::DIType *TemplateTypeParmType::GetDIType(llvm::DIScope *scope) const { UNRE
 ///////////////////////////////////////////////////////////////////////////
 // EnumType
 
-EnumType::EnumType(SourcePos p) : Type(ENUM_TYPE, Variability::Unbound), pos(p) {
+EnumType::EnumType(SourcePos p) : Type(ENUM_TYPE, Variability::Unbound, NON_CONST), pos(p) {
     //    name = "/* (anonymous) */";
-    isConst = false;
 }
 
-EnumType::EnumType(const char *n, SourcePos p) : Type(ENUM_TYPE, Variability::Unbound), pos(p), name(n) {
-    isConst = false;
-}
+EnumType::EnumType(const char *n, SourcePos p) : Type(ENUM_TYPE, Variability::Unbound, NON_CONST), pos(p), name(n) {}
 
 EnumType::EnumType(std::string n, Variability v, bool ic, SourcePos p, const std::vector<Symbol *> &enums)
-    : Type(ENUM_TYPE, v), pos(p), name(n), isConst(ic), enumerators(enums) {}
+    : Type(ENUM_TYPE, v, ic ? IS_CONST : NON_CONST), pos(p), name(n), enumerators(enums) {}
 
 template <> const EnumType *EnumType::CloneWith<bool>(bool newIsConst) const {
     return new EnumType(name, variability, newIsConst, pos, enumerators);
@@ -929,8 +922,6 @@ bool EnumType::IsIntType() const { return true; }
 bool EnumType::IsUnsignedType() const { return true; }
 
 bool EnumType::IsSignedType() const { return false; }
-
-bool EnumType::IsConstType() const { return isConst; }
 
 bool EnumType::IsCompleteType() const { return true; }
 
@@ -1127,7 +1118,7 @@ const Symbol *EnumType::GetEnumerator(int i) const { return enumerators[i]; }
 PointerType *PointerType::Void = new PointerType(AtomicType::Void, Variability(Variability::Uniform), false);
 
 PointerType::PointerType(const Type *t, Variability v, bool ic, bool is, bool fr, AddressSpace as)
-    : Type(POINTER_TYPE, v), isConst(ic), isSlice(is), isFrozen(fr), addrSpace(as) {
+    : Type(POINTER_TYPE, v, ic ? IS_CONST : NON_CONST), isSlice(is), isFrozen(fr), addrSpace(as) {
     baseType = t;
 }
 
@@ -1170,8 +1161,6 @@ bool PointerType::IsIntType() const { return false; }
 bool PointerType::IsUnsignedType() const { return false; }
 
 bool PointerType::IsSignedType() const { return false; }
-
-bool PointerType::IsConstType() const { return isConst; }
 
 bool PointerType::IsCompleteType() const { return true; }
 
@@ -1485,26 +1474,29 @@ const Type *SequentialType::GetElementType(int index) const { return GetElementT
 // ArrayType
 
 ArrayType::ArrayType(const Type *c, int a)
-    : SequentialType(ARRAY_TYPE, Variability::Uniform), child(c), elementCount(a) {
+    : SequentialType(ARRAY_TYPE, Variability::Uniform, NON_CONST), child(c), elementCount(a) {
     // 0 -> unsized array.
     Assert(elementCount.fixedCount >= 0);
     Assert(c->IsVoidType() == false);
     if (child) {
         variability = child->GetVariability();
+        isConst = child->IsConstType() ? IS_CONST : NON_CONST;
     }
 }
 
 ArrayType::ArrayType(const Type *c, Symbol *num)
-    : SequentialType(ARRAY_TYPE, Variability::Uniform), child(c), elementCount(num) {
+    : SequentialType(ARRAY_TYPE, Variability::Uniform, NON_CONST), child(c), elementCount(num) {
     if (child) {
         variability = child->GetVariability();
+        isConst = child->IsConstType() ? IS_CONST : NON_CONST;
     }
 }
 
 ArrayType::ArrayType(const Type *c, ElementCount elCount)
-    : SequentialType(ARRAY_TYPE, Variability::Uniform), child(c), elementCount(elCount) {
+    : SequentialType(ARRAY_TYPE, Variability::Uniform, NON_CONST), child(c), elementCount(elCount) {
     if (child) {
         variability = child->GetVariability();
+        isConst = child->IsConstType() ? IS_CONST : NON_CONST;
     }
 }
 
@@ -1548,8 +1540,6 @@ bool ArrayType::IsUnsignedType() const { return false; }
 bool ArrayType::IsSignedType() const { return false; }
 
 bool ArrayType::IsBoolType() const { return false; }
-
-bool ArrayType::IsConstType() const { return child ? child->IsConstType() : false; }
 
 bool ArrayType::IsCompleteType() const { return GetBaseType()->IsCompleteType(); }
 
@@ -1851,22 +1841,25 @@ int ArrayType::ResolveElementCount(TemplateInstantiation &templInst) const {
 // VectorType
 
 VectorType::VectorType(const Type *b, int a)
-    : SequentialType(VECTOR_TYPE, Variability::Unbound), base(b), elementCount(a) {
+    : SequentialType(VECTOR_TYPE, Variability::Unbound, NON_CONST), base(b), elementCount(a) {
     Assert(elementCount.fixedCount > 0);
     Assert(base != nullptr);
     variability = base->GetVariability();
+    isConst = base->IsConstType() ? IS_CONST : NON_CONST;
 }
 
 VectorType::VectorType(const Type *b, Symbol *num)
-    : SequentialType(VECTOR_TYPE, Variability::Unbound), base(b), elementCount(num) {
+    : SequentialType(VECTOR_TYPE, Variability::Unbound, NON_CONST), base(b), elementCount(num) {
     Assert(base != nullptr);
     variability = base->GetVariability();
+    isConst = base->IsConstType() ? IS_CONST : NON_CONST;
 }
 
 VectorType::VectorType(const Type *b, ElementCount elCount)
-    : SequentialType(VECTOR_TYPE, Variability::Unbound), base(b), elementCount(elCount) {
+    : SequentialType(VECTOR_TYPE, Variability::Unbound, NON_CONST), base(b), elementCount(elCount) {
     Assert(base != nullptr);
     variability = base->GetVariability();
+    isConst = base->IsConstType() ? IS_CONST : NON_CONST;
 }
 
 template <> const VectorType *VectorType::CloneWith<const Type *>(const Type *newBaseType) const {
@@ -1895,8 +1888,6 @@ bool VectorType::IsUnsignedType() const { return base->IsUnsignedType(); }
 bool VectorType::IsSignedType() const { return base->IsSignedType(); }
 
 bool VectorType::IsBoolType() const { return base->IsBoolType(); }
-
-bool VectorType::IsConstType() const { return base->IsConstType(); }
 
 bool VectorType::IsCompleteType() const { return base->IsCompleteType(); }
 
@@ -2152,8 +2143,8 @@ static std::string lMangleStructName(const std::string &name, Variability variab
 StructType::StructType(const std::string &n, const llvm::SmallVector<const Type *, 8> &elts,
                        const llvm::SmallVector<std::string, 8> &en, const llvm::SmallVector<SourcePos, 8> &ep, bool ic,
                        Variability v, bool ia, SourcePos p)
-    : CollectionType(STRUCT_TYPE, v), name(n), elementTypes(elts), elementNames(en), elementPositions(ep), isConst(ic),
-      isAnonymous(ia), pos(p) {
+    : CollectionType(STRUCT_TYPE, v, ic ? IS_CONST : NON_CONST), name(n), elementTypes(elts), elementNames(en),
+      elementPositions(ep), isAnonymous(ia), pos(p) {
     oppositeConstStructType = nullptr;
     finalElementTypes.resize(elts.size(), nullptr);
 
@@ -2239,8 +2230,6 @@ bool StructType::IsIntType() const { return false; }
 bool StructType::IsUnsignedType() const { return false; }
 
 bool StructType::IsSignedType() const { return false; }
-
-bool StructType::IsConstType() const { return isConst; }
 
 bool StructType::IsCompleteType() const {
     int n = GetElementCount();
@@ -2556,7 +2545,7 @@ bool StructType::checkIfCanBeSOA(const StructType *st) {
 // UndefinedStructType
 
 UndefinedStructType::UndefinedStructType(const std::string &n, const Variability var, bool ic, SourcePos p)
-    : Type(UNDEFINED_STRUCT_TYPE, var), name(n), isConst(ic), pos(p) {
+    : Type(UNDEFINED_STRUCT_TYPE, var, ic ? IS_CONST : NON_CONST), name(n), pos(p) {
     Assert(name != "");
     if (variability != Variability::Unbound) {
         // Create a new opaque LLVM struct type for this struct name
@@ -2580,8 +2569,6 @@ bool UndefinedStructType::IsIntType() const { return false; }
 bool UndefinedStructType::IsUnsignedType() const { return false; }
 
 bool UndefinedStructType::IsSignedType() const { return false; }
-
-bool UndefinedStructType::IsConstType() const { return isConst; }
 
 bool UndefinedStructType::IsCompleteType() const { return false; }
 
@@ -2689,11 +2676,12 @@ llvm::DIType *UndefinedStructType::GetDIType(llvm::DIScope *scope) const {
 // ReferenceType
 
 ReferenceType::ReferenceType(const Type *t, AddressSpace as)
-    : Type(REFERENCE_TYPE, Variability::Unbound), targetType(t), addrSpace(as) {
+    : Type(REFERENCE_TYPE, Variability::Unbound, NON_CONST), targetType(t), addrSpace(as) {
     if (targetType == nullptr) {
         Assert(m->errorCount > 0);
     }
     variability = targetType->GetVariability();
+    isConst = targetType->IsConstType() ? IS_CONST : NON_CONST;
     asOtherConstType = nullptr;
 }
 
@@ -2743,14 +2731,6 @@ bool ReferenceType::IsSignedType() const {
         return false;
     }
     return targetType->IsSignedType();
-}
-
-bool ReferenceType::IsConstType() const {
-    if (targetType == nullptr) {
-        Assert(m->errorCount > 0);
-        return false;
-    }
-    return targetType->IsConstType();
 }
 
 bool ReferenceType::IsCompleteType() const { return true; }
@@ -2954,7 +2934,7 @@ llvm::DIType *ReferenceType::GetDIType(llvm::DIScope *scope) const {
 // FunctionType
 
 FunctionType::FunctionType(const Type *r, const llvm::SmallVector<const Type *, 8> &a, SourcePos p)
-    : Type(FUNCTION_TYPE, Variability::Uniform), isTask(false), isExported(false), isExternalOnly(false),
+    : Type(FUNCTION_TYPE, Variability::Uniform, NON_CONST), isTask(false), isExported(false), isExternalOnly(false),
       isExternC(false), isExternSYCL(false), isUnmasked(false), isUnmangled(false), isVectorCall(false),
       isRegCall(false), isCdecl(false), returnType(r), paramTypes(a),
       paramNames(llvm::SmallVector<std::string, 8>(a.size(), "")),
@@ -2970,9 +2950,9 @@ FunctionType::FunctionType(const Type *r, const llvm::SmallVector<const Type *, 
                            const llvm::SmallVector<std::string, 8> &an, const llvm::SmallVector<Expr *, 8> &ad,
                            const llvm::SmallVector<SourcePos, 8> &ap, bool it, bool is, bool ric, bool ec, bool esycl,
                            bool ium, bool imngl, bool ivc, bool irc, bool icl, SourcePos p)
-    : Type(FUNCTION_TYPE, Variability::Uniform), isTask(it), isExported(is), isExternalOnly(ric), isExternC(ec), isExternSYCL(esycl),
-      isUnmasked(ium), isUnmangled(imngl), isVectorCall(ivc), isRegCall(irc), isCdecl(icl), returnType(r),
-      paramTypes(a), paramNames(an), paramDefaults(ad), paramPositions(ap), pos(p) {
+    : Type(FUNCTION_TYPE, Variability::Uniform, NON_CONST), isTask(it), isExported(is), isExternalOnly(ric),
+      isExternC(ec), isExternSYCL(esycl), isUnmasked(ium), isUnmangled(imngl), isVectorCall(ivc), isRegCall(irc),
+      isCdecl(icl), returnType(r), paramTypes(a), paramNames(an), paramDefaults(ad), paramPositions(ap), pos(p) {
     Assert(paramTypes.size() == paramNames.size() && paramNames.size() == paramDefaults.size() &&
            paramDefaults.size() == paramPositions.size());
     Assert(returnType != nullptr);
@@ -3001,8 +2981,6 @@ bool FunctionType::IsBoolType() const { return false; }
 bool FunctionType::IsUnsignedType() const { return false; }
 
 bool FunctionType::IsSignedType() const { return false; }
-
-bool FunctionType::IsConstType() const { return false; }
 
 bool FunctionType::IsCompleteType() const { return true; }
 

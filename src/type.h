@@ -68,6 +68,9 @@ enum DeclarationSyntax { C, CPP };
  */
 class Type : public Traceable {
   public:
+
+    enum ConstID { NON_CONST = 0, IS_CONST };
+
     /** Returns true if the underlying type is boolean.  In other words,
         this is true for individual bools and for short-vectors with
         underlying bool type, but not for arrays of bools. */
@@ -121,7 +124,7 @@ class Type : public Traceable {
     bool IsVoidType() const;
 
     /** Returns true if this type is 'const'-qualified. */
-    virtual bool IsConstType() const = 0;
+    bool IsConstType() const { return isConst == IS_CONST; }
 
     /** Returns true if this type is complete. This is used to check for
         incomplete types (e.g. forward-declared structs) that are not
@@ -302,9 +305,10 @@ class Type : public Traceable {
 
   protected:
     Variability variability = {};
+    ConstID isConst = {};
 
-    // Type(TypeId id) : typeId(id) {}
     Type(TypeId id, Variability v) : typeId(id), variability(v) {}
+    Type(TypeId id, Variability v, ConstID c) : typeId(id), variability(v), isConst(c) {}
 };
 
 /** @brief AtomicType represents basic types like floats, ints, etc.
@@ -318,8 +322,8 @@ class Type : public Traceable {
 class AtomicType : public Type {
   public:
     AtomicType(const AtomicType &other)
-        : Type(ATOMIC_TYPE, other.variability), basicType(other.basicType), isConst(other.isConst),
-          asOtherConstType(nullptr), asUniformType(nullptr), asVaryingType(nullptr) {
+        : Type(ATOMIC_TYPE, other.variability, other.isConst), basicType(other.basicType), asOtherConstType(nullptr),
+          asUniformType(nullptr), asVaryingType(nullptr) {
         // The mutable pointers (asOtherConstType, asUniformType, asVaryingType) are
         // initialized to nullptr instead of copying the pointers from 'other'
         // since these are cached values that will be recomputed when needed
@@ -329,7 +333,6 @@ class AtomicType : public Type {
     bool IsIntType() const;
     bool IsUnsignedType() const;
     bool IsSignedType() const;
-    bool IsConstType() const;
     bool IsCompleteType() const;
 
     /** For AtomicTypes, the base type is just the same as the AtomicType
@@ -403,7 +406,6 @@ class AtomicType : public Type {
     static const AtomicType *VaryingInt1;
 
   private:
-    const bool isConst;
     AtomicType(BasicType basicType, Variability v, bool isConst);
 
     template <typename T> const AtomicType *CloneWith(T param) const;
@@ -419,7 +421,7 @@ class TemplateTypeParmType : public Type {
   public:
     TemplateTypeParmType(std::string, Variability v, bool ic, SourcePos pos);
     TemplateTypeParmType(const TemplateTypeParmType &other)
-        : Type(TEMPLATE_TYPE_PARM_TYPE, other.variability), name(other.name), isConst(other.isConst), pos(other.pos),
+        : Type(TEMPLATE_TYPE_PARM_TYPE, other.variability, other.isConst), name(other.name), pos(other.pos),
           asOtherConstType(nullptr), asUniformType(nullptr), asVaryingType(nullptr) {}
 
     bool IsBoolType() const;
@@ -427,7 +429,6 @@ class TemplateTypeParmType : public Type {
     bool IsIntType() const;
     bool IsUnsignedType() const;
     bool IsSignedType() const;
-    bool IsConstType() const;
     bool IsCompleteType() const;
 
     const Type *GetBaseType() const;
@@ -453,7 +454,6 @@ class TemplateTypeParmType : public Type {
 
   private:
     const std::string name;
-    const bool isConst;
     const SourcePos pos;
     mutable const TemplateTypeParmType *asOtherConstType, *asUniformType, *asVaryingType;
 
@@ -472,7 +472,7 @@ class EnumType : public Type {
     EnumType(const char *name, SourcePos pos);
 
     EnumType(const EnumType &other)
-        : Type(ENUM_TYPE, other.variability), pos(other.pos), name(other.name), isConst(other.isConst),
+        : Type(ENUM_TYPE, other.variability, other.isConst), pos(other.pos), name(other.name),
           enumerators(other.enumerators) {}
 
     bool IsBoolType() const;
@@ -480,7 +480,6 @@ class EnumType : public Type {
     bool IsIntType() const;
     bool IsUnsignedType() const;
     bool IsSignedType() const;
-    bool IsConstType() const;
     bool IsCompleteType() const;
 
     const EnumType *GetBaseType() const;
@@ -516,7 +515,6 @@ class EnumType : public Type {
 
   private:
     const std::string name;
-    bool isConst;
     std::vector<Symbol *> enumerators;
 
     EnumType(std::string name, Variability v, bool ic, SourcePos pos, const std::vector<Symbol *> &enumerators);
@@ -550,8 +548,8 @@ class PointerType : public Type {
     PointerType(const Type *t, Variability v, bool isConst, bool isSlice = false, bool frozen = false,
                 AddressSpace as = AddressSpace::ispc_default);
     PointerType(const PointerType &other)
-        : Type(POINTER_TYPE, other.variability), isConst(other.isConst), isSlice(other.isSlice),
-          isFrozen(other.isFrozen), baseType(other.baseType), addrSpace(other.addrSpace) {}
+        : Type(POINTER_TYPE, other.variability, other.isConst), isSlice(other.isSlice), isFrozen(other.isFrozen),
+          baseType(other.baseType), addrSpace(other.addrSpace) {}
 
     /** Helper method to return a uniform pointer to the given type. */
     static PointerType *GetUniform(const Type *t, bool isSlice = false);
@@ -566,7 +564,6 @@ class PointerType : public Type {
     bool IsIntType() const;
     bool IsUnsignedType() const;
     bool IsSignedType() const;
-    bool IsConstType() const;
     bool IsCompleteType() const;
 
     bool IsSlice() const { return isSlice; }
@@ -599,7 +596,6 @@ class PointerType : public Type {
     static PointerType *Void;
 
   private:
-    const bool isConst;
     const bool isSlice, isFrozen;
     const Type *baseType;
     const AddressSpace addrSpace;
@@ -625,8 +621,7 @@ class CollectionType : public Type {
     virtual const Type *GetElementType(int index) const = 0;
 
   protected:
-    // CollectionType(TypeId id) : Type(id) {}
-    CollectionType(TypeId id, Variability v) : Type(id, v) {}
+    CollectionType(TypeId id, Variability v, ConstID c) : Type(id, v, c) {}
 };
 
 /** @brief Abstract base class for types that represent sequences
@@ -661,7 +656,7 @@ class SequentialType : public CollectionType {
     virtual bool IsCountDependent() const = 0;
 
   protected:
-    SequentialType(TypeId id, Variability v) : CollectionType(id, v) {}
+    SequentialType(TypeId id, Variability v, ConstID c) : CollectionType(id, v, c) {}
 
     /** Resolves the total number of elements in the collection in template instantiation. */
     virtual int ResolveElementCount(TemplateInstantiation &templInst) const = 0;
@@ -710,7 +705,6 @@ class ArrayType : public SequentialType {
     bool IsIntType() const;
     bool IsUnsignedType() const;
     bool IsSignedType() const;
-    bool IsConstType() const;
     bool IsCompleteType() const;
     /* Returns true if the number of elements in the array is dependent on a template parameter. */
     virtual bool IsCountDependent() const { return elementCount.symbolCount != nullptr; }
@@ -793,7 +787,6 @@ class VectorType : public SequentialType {
     bool IsIntType() const;
     bool IsUnsignedType() const;
     bool IsSignedType() const;
-    bool IsConstType() const;
     bool IsCompleteType() const;
     /* Returns true if the number of elements in the vector is dependent on a template parameter. */
     virtual bool IsCountDependent() const { return elementCount.symbolCount != nullptr; }
@@ -851,8 +844,8 @@ class StructType : public CollectionType {
                const llvm::SmallVector<std::string, 8> &eltNames, const llvm::SmallVector<SourcePos, 8> &eltPositions,
                bool isConst, Variability variability, bool isAnonymous, SourcePos pos);
     StructType(const StructType &other)
-        : CollectionType(STRUCT_TYPE, other.variability), name(other.name), elementTypes(other.elementTypes),
-          elementNames(other.elementNames), elementPositions(other.elementPositions), isConst(other.isConst),
+        : CollectionType(STRUCT_TYPE, other.variability, other.isConst), name(other.name),
+          elementTypes(other.elementTypes), elementNames(other.elementNames), elementPositions(other.elementPositions),
           isAnonymous(other.isAnonymous), pos(other.pos), finalElementTypes(), oppositeConstStructType(nullptr) {}
 
     bool IsBoolType() const;
@@ -860,7 +853,6 @@ class StructType : public CollectionType {
     bool IsIntType() const;
     bool IsUnsignedType() const;
     bool IsSignedType() const;
-    bool IsConstType() const;
     bool IsCompleteType() const;
     bool IsDefined() const;
     bool IsAnonymousType() const;
@@ -932,7 +924,6 @@ class StructType : public CollectionType {
     /** Source file position at which each structure element declaration
         appeared. */
     const llvm::SmallVector<SourcePos, 8> elementPositions;
-    const bool isConst;
     const bool isAnonymous;
     const SourcePos pos;
 
@@ -962,14 +953,13 @@ class UndefinedStructType : public Type {
   public:
     UndefinedStructType(const std::string &name, const Variability variability, bool isConst, SourcePos pos);
     UndefinedStructType(const UndefinedStructType &other)
-        : Type(UNDEFINED_STRUCT_TYPE, other.variability), name(other.name), isConst(other.isConst), pos(other.pos) {}
+        : Type(UNDEFINED_STRUCT_TYPE, other.variability, other.isConst), name(other.name), pos(other.pos) {}
 
     bool IsBoolType() const;
     bool IsFloatType() const;
     bool IsIntType() const;
     bool IsUnsignedType() const;
     bool IsSignedType() const;
-    bool IsConstType() const;
     bool IsCompleteType() const;
 
     const Type *GetBaseType() const;
@@ -997,7 +987,6 @@ class UndefinedStructType : public Type {
 
   private:
     const std::string name;
-    const bool isConst;
     const SourcePos pos;
 
     template <typename T> const UndefinedStructType *CloneWith(T param) const;
@@ -1028,7 +1017,6 @@ class ReferenceType : public Type {
     bool IsIntType() const;
     bool IsUnsignedType() const;
     bool IsSignedType() const;
-    bool IsConstType() const;
     bool IsCompleteType() const;
     AddressSpace GetAddressSpace() const { return addrSpace; }
 
@@ -1104,7 +1092,6 @@ class FunctionType : public Type {
     bool IsIntType() const;
     bool IsUnsignedType() const;
     bool IsSignedType() const;
-    bool IsConstType() const;
     bool IsCompleteType() const;
 
     bool IsISPCKernel() const;
