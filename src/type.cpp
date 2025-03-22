@@ -725,7 +725,7 @@ llvm::DIType *AtomicType::GetDIType(llvm::DIScope *scope) const {
 // TemplateTypeParmType
 
 TemplateTypeParmType::TemplateTypeParmType(std::string n, Variability v, bool ic, SourcePos p)
-    : Type(TEMPLATE_TYPE_PARM_TYPE, v, ic ? IS_CONST : NON_CONST), name(n), pos(p) {
+    : Type(TEMPLATE_TYPE_PARM_TYPE, v, ic ? IS_CONST : NON_CONST, p), name(n) {
     asOtherConstType = nullptr;
     asUniformType = asVaryingType = nullptr;
 }
@@ -842,8 +842,6 @@ const Type *TemplateTypeParmType::GetAsNonConstType() const {
 
 std::string TemplateTypeParmType::GetName() const { return name; }
 
-const SourcePos &TemplateTypeParmType::GetSourcePos() const { return pos; }
-
 std::string TemplateTypeParmType::GetString() const {
     std::string ret;
     if (isConst) {
@@ -892,14 +890,14 @@ llvm::DIType *TemplateTypeParmType::GetDIType(llvm::DIScope *scope) const { UNRE
 ///////////////////////////////////////////////////////////////////////////
 // EnumType
 
-EnumType::EnumType(SourcePos p) : Type(ENUM_TYPE, Variability::Unbound, NON_CONST), pos(p) {
+EnumType::EnumType(SourcePos p) : Type(ENUM_TYPE, Variability::Unbound, NON_CONST, p) {
     //    name = "/* (anonymous) */";
 }
 
-EnumType::EnumType(const char *n, SourcePos p) : Type(ENUM_TYPE, Variability::Unbound, NON_CONST), pos(p), name(n) {}
+EnumType::EnumType(const char *n, SourcePos p) : Type(ENUM_TYPE, Variability::Unbound, NON_CONST, p), name(n) {}
 
 EnumType::EnumType(std::string n, Variability v, bool ic, SourcePos p, const std::vector<Symbol *> &enums)
-    : Type(ENUM_TYPE, v, ic ? IS_CONST : NON_CONST), pos(p), name(n), enumerators(enums) {}
+    : Type(ENUM_TYPE, v, ic ? IS_CONST : NON_CONST, p), name(n), enumerators(enums) {}
 
 bool EnumType::IsBoolType() const { return false; }
 
@@ -1457,6 +1455,7 @@ const Type *SequentialType::GetElementType(int index) const { return GetElementT
 ///////////////////////////////////////////////////////////////////////////
 // ArrayType
 
+// TODO!: Why ArrayType misses SourcePos??
 ArrayType::ArrayType(const Type *c, int a)
     : SequentialType(ARRAY_TYPE, Variability::Uniform, NON_CONST), child(c), elementCount(a) {
     // 0 -> unsized array.
@@ -2127,8 +2126,8 @@ static std::string lMangleStructName(const std::string &name, Variability variab
 StructType::StructType(const std::string &n, const llvm::SmallVector<const Type *, 8> &elts,
                        const llvm::SmallVector<std::string, 8> &en, const llvm::SmallVector<SourcePos, 8> &ep, bool ic,
                        Variability v, bool ia, SourcePos p)
-    : CollectionType(STRUCT_TYPE, v, ic ? IS_CONST : NON_CONST), name(n), elementTypes(elts), elementNames(en),
-      elementPositions(ep), isAnonymous(ia), pos(p) {
+    : CollectionType(STRUCT_TYPE, v, ic ? IS_CONST : NON_CONST, p), name(n), elementTypes(elts), elementNames(en),
+      elementPositions(ep), isAnonymous(ia) {
     oppositeConstStructType = nullptr;
     finalElementTypes.resize(elts.size(), nullptr);
 
@@ -2524,7 +2523,7 @@ bool StructType::checkIfCanBeSOA(const StructType *st) {
 // UndefinedStructType
 
 UndefinedStructType::UndefinedStructType(const std::string &n, const Variability var, bool ic, SourcePos p)
-    : Type(UNDEFINED_STRUCT_TYPE, var, ic ? IS_CONST : NON_CONST), name(n), pos(p) {
+    : Type(UNDEFINED_STRUCT_TYPE, var, ic ? IS_CONST : NON_CONST, p), name(n) {
     Assert(name != "");
     if (variability != Variability::Unbound) {
         // Create a new opaque LLVM struct type for this struct name
@@ -2909,12 +2908,12 @@ llvm::DIType *ReferenceType::GetDIType(llvm::DIScope *scope) const {
 // FunctionType
 
 FunctionType::FunctionType(const Type *r, const llvm::SmallVector<const Type *, 8> &a, SourcePos p)
-    : Type(FUNCTION_TYPE, Variability::Uniform, NON_CONST), isTask(false), isExported(false), isExternalOnly(false),
+    : Type(FUNCTION_TYPE, Variability::Uniform, NON_CONST, p), isTask(false), isExported(false), isExternalOnly(false),
       isExternC(false), isExternSYCL(false), isUnmasked(false), isUnmangled(false), isVectorCall(false),
       isRegCall(false), isCdecl(false), returnType(r), paramTypes(a),
       paramNames(llvm::SmallVector<std::string, 8>(a.size(), "")),
       paramDefaults(llvm::SmallVector<Expr *, 8>(a.size(), nullptr)),
-      paramPositions(llvm::SmallVector<SourcePos, 8>(a.size(), p)), pos(p) {
+      paramPositions(llvm::SmallVector<SourcePos, 8>(a.size(), p)) {
     Assert(returnType != nullptr);
     isSafe = false;
     costOverride = -1;
@@ -2925,9 +2924,9 @@ FunctionType::FunctionType(const Type *r, const llvm::SmallVector<const Type *, 
                            const llvm::SmallVector<std::string, 8> &an, const llvm::SmallVector<Expr *, 8> &ad,
                            const llvm::SmallVector<SourcePos, 8> &ap, bool it, bool is, bool ric, bool ec, bool esycl,
                            bool ium, bool imngl, bool ivc, bool irc, bool icl, SourcePos p)
-    : Type(FUNCTION_TYPE, Variability::Uniform, NON_CONST), isTask(it), isExported(is), isExternalOnly(ric),
+    : Type(FUNCTION_TYPE, Variability::Uniform, NON_CONST, p), isTask(it), isExported(is), isExternalOnly(ric),
       isExternC(ec), isExternSYCL(esycl), isUnmasked(ium), isUnmangled(imngl), isVectorCall(ivc), isRegCall(irc),
-      isCdecl(icl), returnType(r), paramTypes(a), paramNames(an), paramDefaults(ad), paramPositions(ap), pos(p) {
+      isCdecl(icl), returnType(r), paramTypes(a), paramNames(an), paramDefaults(ad), paramPositions(ap) {
     Assert(paramTypes.size() == paramNames.size() && paramNames.size() == paramDefaults.size() &&
            paramDefaults.size() == paramPositions.size());
     Assert(returnType != nullptr);
@@ -3714,7 +3713,7 @@ static bool lCheckTypeEquality(const Type *a, const Type *b, bool ignoreConst) {
     const EnumType *etb = CastType<EnumType>(b);
     if (eta != nullptr && etb != nullptr) {
         // Kind of goofy, but this sufficies to check
-        return (eta->pos == etb->pos && eta->GetVariability() == etb->GetVariability());
+        return (eta->GetSourcePos() == etb->GetSourcePos() && eta->GetVariability() == etb->GetVariability());
     }
 
     const ArrayType *arta = CastType<ArrayType>(a);

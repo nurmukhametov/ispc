@@ -155,7 +155,7 @@ class Type : public Traceable {
     bool IsTypeDependent() const;
 
     /** Returns the variability of the type. */
-    virtual Variability GetVariability() const { return variability; }
+    Variability GetVariability() const { return variability; }
 
     /** Returns true if the underlying type is uniform */
     bool IsUniformType() const { return GetVariability() == Variability::Uniform; }
@@ -231,6 +231,8 @@ class Type : public Traceable {
     /** Returns a text representation of the type (for example, for use in
         warning and error messages). */
     virtual std::string GetString() const = 0;
+
+    const SourcePos &GetSourcePos() const { return pos; }
 
     /** Returns a string that represents the mangled type (for use in
         mangling function symbol names for function overloading).  The
@@ -312,9 +314,12 @@ class Type : public Traceable {
   protected:
     Variability variability = {};
     ConstID isConst = {};
+    SourcePos pos = {};
 
-    Type(TypeId id, Variability v) : typeId(id), variability(v) {}
-    Type(TypeId id, Variability v, ConstID c) : typeId(id), variability(v), isConst(c) {}
+    // Type(TypeId id) : typeId(id), variability(Variability::Unbound), isConst(NON_CONST), pos() {}
+    // Type(TypeId id, Variability v) : typeId(id), variability(v), isConst(NON_CONST), pos() {}
+    Type(TypeId id, Variability v, ConstID c) : typeId(id), variability(v), isConst(c), pos() {}
+    Type(TypeId id, Variability v, ConstID c, SourcePos s) : typeId(id), variability(v), isConst(c), pos(s) {}
 };
 
 /** @brief AtomicType represents basic types like floats, ints, etc.
@@ -427,7 +432,7 @@ class TemplateTypeParmType : public Type {
   public:
     TemplateTypeParmType(std::string, Variability v, bool ic, SourcePos pos);
     TemplateTypeParmType(const TemplateTypeParmType &other)
-        : Type(TEMPLATE_TYPE_PARM_TYPE, other.variability, other.isConst), name(other.name), pos(other.pos),
+        : Type(TEMPLATE_TYPE_PARM_TYPE, other.variability, other.isConst, other.pos), name(other.name),
           asOtherConstType(nullptr), asUniformType(nullptr), asVaryingType(nullptr) {}
 
     bool IsBoolType() const;
@@ -449,7 +454,6 @@ class TemplateTypeParmType : public Type {
     const Type *GetAsNonConstType() const;
 
     std::string GetName() const;
-    const SourcePos &GetSourcePos() const;
     std::string GetString() const;
     std::string Mangle() const;
     std::string GetDeclaration(const std::string &name, DeclarationSyntax syntax) const;
@@ -460,7 +464,6 @@ class TemplateTypeParmType : public Type {
 
   private:
     const std::string name;
-    const SourcePos pos;
     mutable const TemplateTypeParmType *asOtherConstType, *asUniformType, *asVaryingType;
 
     template <typename T> const TemplateTypeParmType *CloneWith(T param) const;
@@ -478,7 +481,7 @@ class EnumType : public Type {
     EnumType(const char *name, SourcePos pos);
 
     EnumType(const EnumType &other)
-        : Type(ENUM_TYPE, other.variability, other.isConst), pos(other.pos), name(other.name),
+        : Type(ENUM_TYPE, other.variability, other.isConst, other.pos), name(other.name),
           enumerators(other.enumerators) {}
 
     bool IsBoolType() const;
@@ -516,8 +519,6 @@ class EnumType : public Type {
     int GetEnumeratorCount() const;
     /** Returns the symbol for the given enumerator number. */
     const Symbol *GetEnumerator(int i) const;
-
-    const SourcePos pos;
 
   private:
     const std::string name;
@@ -628,6 +629,7 @@ class CollectionType : public Type {
 
   protected:
     CollectionType(TypeId id, Variability v, ConstID c) : Type(id, v, c) {}
+    CollectionType(TypeId id, Variability v, ConstID c, SourcePos pos) : Type(id, v, c, pos) {}
 };
 
 /** @brief Abstract base class for types that represent sequences
@@ -663,6 +665,7 @@ class SequentialType : public CollectionType {
 
   protected:
     SequentialType(TypeId id, Variability v, ConstID c) : CollectionType(id, v, c) {}
+    SequentialType(TypeId id, Variability v, ConstID c, SourcePos pos) : CollectionType(id, v, c, pos) {}
 
     /** Resolves the total number of elements in the collection in template instantiation. */
     virtual int ResolveElementCount(TemplateInstantiation &templInst) const = 0;
@@ -850,9 +853,9 @@ class StructType : public CollectionType {
                const llvm::SmallVector<std::string, 8> &eltNames, const llvm::SmallVector<SourcePos, 8> &eltPositions,
                bool isConst, Variability variability, bool isAnonymous, SourcePos pos);
     StructType(const StructType &other)
-        : CollectionType(STRUCT_TYPE, other.variability, other.isConst), name(other.name),
+        : CollectionType(STRUCT_TYPE, other.variability, other.isConst, other.pos), name(other.name),
           elementTypes(other.elementTypes), elementNames(other.elementNames), elementPositions(other.elementPositions),
-          isAnonymous(other.isAnonymous), pos(other.pos), finalElementTypes(), oppositeConstStructType(nullptr) {}
+          isAnonymous(other.isAnonymous), finalElementTypes(), oppositeConstStructType(nullptr) {}
 
     bool IsBoolType() const;
     bool IsFloatType() const;
@@ -931,7 +934,6 @@ class StructType : public CollectionType {
         appeared. */
     const llvm::SmallVector<SourcePos, 8> elementPositions;
     const bool isAnonymous;
-    const SourcePos pos;
 
     mutable llvm::SmallVector<const Type *, 8> finalElementTypes;
 
@@ -969,7 +971,7 @@ class UndefinedStructType : public Type {
   public:
     UndefinedStructType(const std::string &name, const Variability variability, bool isConst, SourcePos pos);
     UndefinedStructType(const UndefinedStructType &other)
-        : Type(UNDEFINED_STRUCT_TYPE, other.variability, other.isConst), name(other.name), pos(other.pos) {}
+        : Type(UNDEFINED_STRUCT_TYPE, other.variability, other.isConst, other.pos), name(other.name) {}
 
     bool IsBoolType() const;
     bool IsFloatType() const;
@@ -999,11 +1001,9 @@ class UndefinedStructType : public Type {
 
     /** Returns the name of the structure type.  (e.g. struct Foo -> "Foo".) */
     const std::string &GetStructName() const { return name; }
-    const SourcePos &GetSourcePos() const { return pos; };
 
   private:
     const std::string name;
-    const SourcePos pos;
 
     template <typename T> const UndefinedStructType *CloneWith(T param) const;
 
@@ -1177,8 +1177,6 @@ class FunctionType : public Type {
     /* Get string representation of calling convention */
     const std::string GetNameForCallConv() const;
 
-    const SourcePos &GetSourcePos() const { return pos; };
-
     int GetNumParameters() const { return (int)paramTypes.size(); }
     const Type *GetParameterType(int i) const;
     Expr *GetParameterDefault(int i) const;
@@ -1251,8 +1249,6 @@ class FunctionType : public Type {
     const llvm::SmallVector<SourcePos, 8> paramPositions;
 
     mutable const FunctionType *asMaskedType, *asUnmaskedType;
-
-    const SourcePos pos;
 
     template <typename T, typename F> const FunctionType *CloneWith(T param1, F param2) const;
 };
