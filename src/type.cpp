@@ -150,10 +150,6 @@ template <> const AtomicType *AtomicType::CloneWith<AtomicType::BasicType>(Atomi
     return new AtomicType(newBasicType, variability, isConst);
 }
 
-template <> const AtomicType *AtomicType::CloneWith<bool>(bool newIsConst) const {
-    return new AtomicType(basicType, variability, newIsConst);
-}
-
 bool Type::IsPointerType() const { return (CastType<PointerType>(this) != nullptr); }
 
 bool Type::IsArrayType() const { return (CastType<ArrayType>(this) != nullptr); }
@@ -327,7 +323,7 @@ const AtomicType *AtomicType::GetAsConstType() const {
     }
 
     if (asOtherConstType == nullptr) {
-        asOtherConstType = CloneWith(true);
+        asOtherConstType = CloneWithConst(this, IS_CONST);
         asOtherConstType->asOtherConstType = this;
     }
     return asOtherConstType;
@@ -340,7 +336,7 @@ const AtomicType *AtomicType::GetAsNonConstType() const {
     }
 
     if (asOtherConstType == nullptr) {
-        asOtherConstType = CloneWith(false);
+        asOtherConstType = CloneWithConst(this, NON_CONST);
         asOtherConstType->asOtherConstType = this;
     }
     return asOtherConstType;
@@ -734,10 +730,6 @@ TemplateTypeParmType::TemplateTypeParmType(std::string n, Variability v, bool ic
     asUniformType = asVaryingType = nullptr;
 }
 
-template <> const TemplateTypeParmType *TemplateTypeParmType::CloneWith<bool>(bool newIsConst) const {
-    return new TemplateTypeParmType(name, variability, newIsConst, pos);
-}
-
 bool TemplateTypeParmType::IsBoolType() const { return false; }
 
 bool TemplateTypeParmType::IsFloatType() const { return false; }
@@ -830,7 +822,7 @@ const Type *TemplateTypeParmType::GetAsConstType() const {
     }
 
     if (asOtherConstType == nullptr) {
-        asOtherConstType = CloneWith(true);
+        asOtherConstType = CloneWithConst(this, IS_CONST);
         asOtherConstType->asOtherConstType = this;
     }
     return asOtherConstType;
@@ -842,7 +834,7 @@ const Type *TemplateTypeParmType::GetAsNonConstType() const {
     }
 
     if (asOtherConstType == nullptr) {
-        asOtherConstType = CloneWith(false);
+        asOtherConstType = CloneWithConst(this, NON_CONST);
         asOtherConstType->asOtherConstType = this;
     }
     return asOtherConstType;
@@ -909,10 +901,6 @@ EnumType::EnumType(const char *n, SourcePos p) : Type(ENUM_TYPE, Variability::Un
 EnumType::EnumType(std::string n, Variability v, bool ic, SourcePos p, const std::vector<Symbol *> &enums)
     : Type(ENUM_TYPE, v, ic ? IS_CONST : NON_CONST), pos(p), name(n), enumerators(enums) {}
 
-template <> const EnumType *EnumType::CloneWith<bool>(bool newIsConst) const {
-    return new EnumType(name, variability, newIsConst, pos, enumerators);
-}
-
 bool EnumType::IsBoolType() const { return false; }
 
 bool EnumType::IsFloatType() const { return false; }
@@ -973,7 +961,7 @@ const EnumType *EnumType::GetAsConstType() const {
     if (isConst) {
         return this;
     } else {
-        return CloneWith(true);
+        return CloneWithConst(this, IS_CONST);
     }
 }
 
@@ -981,7 +969,7 @@ const EnumType *EnumType::GetAsNonConstType() const {
     if (!isConst) {
         return this;
     } else {
-        return CloneWith(false);
+        return CloneWithConst(this, NON_CONST);
     }
 }
 
@@ -1126,10 +1114,6 @@ template <> const PointerType *PointerType::CloneWith<const Type *>(const Type *
     return new PointerType(newBaseType, variability, isConst, isSlice, isFrozen, addrSpace);
 }
 
-template <> const PointerType *PointerType::CloneWith<bool>(bool newIsConst) const {
-    return new PointerType(baseType, variability, newIsConst, isSlice, isFrozen, addrSpace);
-}
-
 template <> const PointerType *PointerType::CloneWith<AddressSpace>(AddressSpace newAddrSpace) const {
     return new PointerType(baseType, variability, isConst, isSlice, isFrozen, newAddrSpace);
 }
@@ -1258,7 +1242,7 @@ const PointerType *PointerType::GetAsConstType() const {
     if (isConst == true) {
         return this;
     } else {
-        return CloneWith(true);
+        return CloneWithConst(this, IS_CONST);
     }
 }
 
@@ -1266,7 +1250,7 @@ const PointerType *PointerType::GetAsNonConstType() const {
     if (isConst == false) {
         return this;
     } else {
-        return CloneWith(false);
+        return CloneWithConst(this, NON_CONST);
     }
 }
 
@@ -2205,11 +2189,6 @@ StructType::StructType(const std::string &n, const llvm::SmallVector<const Type 
     }
 }
 
-template <> const StructType *StructType::CloneWith<bool>(bool newIsConst) const {
-    return new StructType(name, elementTypes, elementNames, elementPositions, newIsConst, variability, isAnonymous,
-                          pos);
-}
-
 const std::string StructType::GetCStructName() const {
     // only return mangled name for varying structs for backwards
     // compatibility...
@@ -2331,7 +2310,7 @@ const StructType *StructType::GetAsConstType() const {
     } else if (oppositeConstStructType != nullptr) {
         return oppositeConstStructType;
     } else {
-        oppositeConstStructType = CloneWith(true);
+        oppositeConstStructType = CloneWithConst(this, IS_CONST);
         oppositeConstStructType->oppositeConstStructType = this;
         return oppositeConstStructType;
     }
@@ -2343,7 +2322,7 @@ const StructType *StructType::GetAsNonConstType() const {
     } else if (oppositeConstStructType != nullptr) {
         return oppositeConstStructType;
     } else {
-        oppositeConstStructType = CloneWith(false);
+        oppositeConstStructType = CloneWithConst(this, NON_CONST);
         oppositeConstStructType->oppositeConstStructType = this;
         return oppositeConstStructType;
     }
@@ -2556,10 +2535,6 @@ UndefinedStructType::UndefinedStructType(const std::string &n, const Variability
     }
 }
 
-template <> const UndefinedStructType *UndefinedStructType::CloneWith<bool>(bool newIsConst) const {
-    return new UndefinedStructType(name, variability, newIsConst, pos);
-}
-
 bool UndefinedStructType::IsBoolType() const { return false; }
 
 bool UndefinedStructType::IsFloatType() const { return false; }
@@ -2615,14 +2590,14 @@ const UndefinedStructType *UndefinedStructType::GetAsConstType() const {
     if (isConst) {
         return this;
     }
-    return CloneWith(true);
+    return CloneWithConst(this, IS_CONST);
 }
 
 const UndefinedStructType *UndefinedStructType::GetAsNonConstType() const {
     if (isConst == false) {
         return this;
     }
-    return CloneWith(false);
+    return CloneWithConst(this, NON_CONST);
 }
 
 std::string UndefinedStructType::GetString() const {

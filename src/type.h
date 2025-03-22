@@ -303,6 +303,12 @@ class Type : public Traceable {
         return ins;
     }
 
+    template <typename B> static const B *CloneWithConst(const B *ptr, ConstID newIsConst) {
+        B *ins = new B(*ptr);
+        ins->isConst = newIsConst;
+        return ins;
+    }
+
   protected:
     Variability variability = {};
     ConstID isConst = {};
@@ -942,6 +948,16 @@ class StructType : public CollectionType {
                        newVariability, ptr->isAnonymous, ptr->pos);
         return ins;
     }
+
+    template <typename B> static const B *CloneWithConst(B *ptr, ConstID newIsConst) {
+        // This is a bit of a hack, but it's the easiest way to get the correct
+        // m->structTypeMap entry. It is created inside constructor depending
+        // on the new variability value.
+        // TODO!: I don't think constructor needs to create m->structTypeMap entry
+        B *ins = new B(ptr->name, ptr->elementTypes, ptr->elementNames, ptr->elementPositions, newIsConst,
+                       ptr->variability, ptr->isAnonymous, ptr->pos);
+        return ins;
+    }
 };
 
 /** Type implementation representing a struct name that has been declared
@@ -997,6 +1013,15 @@ class UndefinedStructType : public Type {
         // on the new variability value.
         // TODO!: I don't think constructor needs to create m->structTypeMap entry
         B *ins = new B(ptr->name, newVariability, ptr->isConst, ptr->pos);
+        return ins;
+    }
+
+    template <typename B> static const B *CloneWithVariability(B *ptr, ConstID newIsConst) {
+        // This is a bit of a hack, but it's the easiest way to get the correct
+        // m->structTypeMap entry. It is created inside constructor depending
+        // on the new variability value.
+        // TODO!: I don't think constructor needs to create m->structTypeMap entry
+        B *ins = new B(ptr->name, ptr->variability, newIsConst, ptr->pos);
         return ins;
     }
 };
