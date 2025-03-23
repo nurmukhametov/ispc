@@ -291,6 +291,7 @@ class Type : public Traceable {
     /** Returns true if the given type is an atomic, enum, or pointer type
         (i.e. not an aggregation of multiple instances of a type or
         types.) */
+    // TODO!: consider renaming to IsPrimitiveType
     static bool IsBasicType(const Type *type);
 
     /** Indicates which Type implementation this type is.  This value can
@@ -372,6 +373,7 @@ class AtomicType : public Type {
 
     /** This enumerator records the basic types that AtomicTypes can be
         built from.  */
+    // TODO!: consider renaming to something like TypeKind with prefix avoidin Base or Basic
     enum BasicType {
         TYPE_VOID,
         TYPE_BOOL,
@@ -419,7 +421,7 @@ class AtomicType : public Type {
   private:
     AtomicType(BasicType basicType, Variability v, bool isConst);
 
-    template <typename T> const AtomicType *CloneWith(T param) const;
+    const AtomicType *CloneWithBasicType(BasicType newBasicType) const;
 
     mutable const AtomicType *asOtherConstType, *asUniformType, *asVaryingType;
 };
@@ -1016,7 +1018,7 @@ class UndefinedStructType : public Type {
         return ins;
     }
 
-    template <typename B> static const B *CloneWithVariability(B *ptr, ConstID newIsConst) {
+    template <typename B> static const B *CloneWithConst(B *ptr, ConstID newIsConst) {
         // This is a bit of a hack, but it's the easiest way to get the correct
         // m->structTypeMap entry. It is created inside constructor depending
         // on the new variability value.

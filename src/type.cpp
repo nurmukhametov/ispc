@@ -146,7 +146,7 @@ AtomicType::AtomicType(BasicType bt, Variability v, bool ic)
     asUniformType = asVaryingType = nullptr;
 }
 
-template <> const AtomicType *AtomicType::CloneWith<AtomicType::BasicType>(AtomicType::BasicType newBasicType) const {
+const AtomicType *AtomicType::CloneWithBasicType(BasicType newBasicType) const {
     return new AtomicType(newBasicType, variability, isConst);
 }
 
@@ -279,13 +279,13 @@ const AtomicType *AtomicType::GetAsUnsignedType() const {
 
     switch (basicType) {
     case TYPE_INT8:
-        return CloneWith(TYPE_UINT8);
+        return CloneWithBasicType(TYPE_UINT8);
     case TYPE_INT16:
-        return CloneWith(TYPE_UINT16);
+        return CloneWithBasicType(TYPE_UINT16);
     case TYPE_INT32:
-        return CloneWith(TYPE_UINT32);
+        return CloneWithBasicType(TYPE_UINT32);
     case TYPE_INT64:
-        return CloneWith(TYPE_UINT64);
+        return CloneWithBasicType(TYPE_UINT64);
     default:
         FATAL("Unexpected basicType in GetAsUnsignedType()");
         return nullptr;
@@ -303,13 +303,13 @@ const AtomicType *AtomicType::GetAsSignedType() const {
 
     switch (basicType) {
     case TYPE_UINT8:
-        return CloneWith(TYPE_INT8);
+        return CloneWithBasicType(TYPE_INT8);
     case TYPE_UINT16:
-        return CloneWith(TYPE_INT16);
+        return CloneWithBasicType(TYPE_INT16);
     case TYPE_UINT32:
-        return CloneWith(TYPE_INT32);
+        return CloneWithBasicType(TYPE_INT32);
     case TYPE_UINT64:
-        return CloneWith(TYPE_INT64);
+        return CloneWithBasicType(TYPE_INT64);
     default:
         FATAL("Unexpected basicType in GetAsSignedType()");
         return nullptr;
