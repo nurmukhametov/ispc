@@ -1108,18 +1108,15 @@ PointerType::PointerType(const Type *t, Variability v, bool ic, bool is, bool fr
     baseType = t;
 }
 
-template <> const PointerType *PointerType::CloneWith<const Type *>(const Type *newBaseType) const {
+const PointerType *PointerType::CloneWithBaseType(const Type *newBaseType) const {
     return new PointerType(newBaseType, variability, isConst, isSlice, isFrozen, addrSpace);
 }
-
-template <> const PointerType *PointerType::CloneWith<AddressSpace>(AddressSpace newAddrSpace) const {
+const PointerType *PointerType::CloneWithAddressSpace(AddressSpace newAddrSpace) const {
     return new PointerType(baseType, variability, isConst, isSlice, isFrozen, newAddrSpace);
 }
-
-template <>
-const PointerType *PointerType::CloneWith<const Type *, Variability>(const Type *newBasicType,
-                                                                     Variability newVariability) const {
-    return new PointerType(newBasicType, newVariability, isConst, isSlice, isFrozen, addrSpace);
+const PointerType *PointerType::CloneWithBaseTypeAndVariability(const Type *newBaseType,
+                                                                Variability newVariability) const {
+    return new PointerType(newBaseType, newVariability, isConst, isSlice, isFrozen, addrSpace);
 }
 
 PointerType *PointerType::GetUniform(const Type *t, bool is) {
@@ -1206,7 +1203,7 @@ const PointerType *PointerType::GetWithAddrSpace(AddressSpace as) const {
     if (addrSpace == as) {
         return this;
     }
-    return CloneWith(as);
+    return CloneWithAddressSpace(as);
 }
 
 const PointerType *PointerType::ResolveDependence(TemplateInstantiation &templInst) const {
@@ -1220,7 +1217,7 @@ const PointerType *PointerType::ResolveDependence(TemplateInstantiation &templIn
         return this;
     }
 
-    const PointerType *pType = CloneWith(resType);
+    const PointerType *pType = CloneWithBaseType(resType);
     return pType;
 }
 
@@ -1233,7 +1230,7 @@ const PointerType *PointerType::ResolveUnboundVariability(Variability v) const {
     Assert(v != Variability::Unbound);
     Variability ptrVariability = (variability == Variability::Unbound) ? v : variability;
     const Type *resolvedBaseType = baseType->ResolveUnboundVariability(Variability::Uniform);
-    return CloneWith(resolvedBaseType, ptrVariability);
+    return CloneWithBaseTypeAndVariability(resolvedBaseType, ptrVariability);
 }
 
 const PointerType *PointerType::GetAsConstType() const {
@@ -1483,21 +1480,15 @@ ArrayType::ArrayType(const Type *c, ElementCount elCount)
     }
 }
 
-template <> const ArrayType *ArrayType::CloneWith<const Type *>(const Type *newChildType) const {
-    return new ArrayType(newChildType, elementCount);
+const ArrayType *ArrayType::CloneWithBaseType(const Type *newBaseType) const {
+    return new ArrayType(newBaseType, elementCount);
 }
-
-template <>
-const ArrayType *
-ArrayType::CloneWith<SequentialType::ElementCount>(SequentialType::ElementCount newElementCount) const {
+const ArrayType *ArrayType::CloneWithElementCount(ElementCount newElementCount) const {
     return new ArrayType(child, newElementCount);
 }
-
-template <>
-const ArrayType *
-ArrayType::CloneWith<const Type *, SequentialType::ElementCount>(const Type *newChildType,
-                                                                 SequentialType::ElementCount newElementCount) const {
-    return new ArrayType(newChildType, newElementCount);
+const ArrayType *ArrayType::CloneWithBaseTypeAndElementCount(const Type *newBaseType,
+                                                             ElementCount newElementCount) const {
+    return new ArrayType(newBaseType, newElementCount);
 }
 
 llvm::ArrayType *ArrayType::LLVMType(llvm::LLVMContext *ctx) const {
@@ -1545,7 +1536,7 @@ const ArrayType *ArrayType::GetAsVaryingType() const {
         Assert(m->errorCount > 0);
         return nullptr;
     }
-    return CloneWith(child->GetAsVaryingType());
+    return CloneWithBaseType(child->GetAsVaryingType());
 }
 
 const ArrayType *ArrayType::GetAsUniformType() const {
@@ -1556,7 +1547,7 @@ const ArrayType *ArrayType::GetAsUniformType() const {
         Assert(m->errorCount > 0);
         return nullptr;
     }
-    return CloneWith(child->GetAsUniformType());
+    return CloneWithBaseType(child->GetAsUniformType());
 }
 
 const ArrayType *ArrayType::GetAsUnboundVariabilityType() const {
@@ -1564,7 +1555,7 @@ const ArrayType *ArrayType::GetAsUnboundVariabilityType() const {
         Assert(m->errorCount > 0);
         return nullptr;
     }
-    return CloneWith(child->GetAsUnboundVariabilityType());
+    return CloneWithBaseType(child->GetAsUnboundVariabilityType());
 }
 
 const ArrayType *ArrayType::GetAsSOAType(int width) const {
@@ -1572,7 +1563,7 @@ const ArrayType *ArrayType::GetAsSOAType(int width) const {
         Assert(m->errorCount > 0);
         return nullptr;
     }
-    return CloneWith(child->GetAsSOAType(width));
+    return CloneWithBaseType(child->GetAsSOAType(width));
 }
 
 const ArrayType *ArrayType::ResolveDependence(TemplateInstantiation &templInst) const {
@@ -1587,7 +1578,7 @@ const ArrayType *ArrayType::ResolveDependence(TemplateInstantiation &templInst) 
     }
     // TODO!: if element.symbolCount is 0 ?
     ElementCount elemCount = resolvedCount > 0 ? ElementCount(resolvedCount) : ElementCount(elementCount.symbolCount);
-    return CloneWith(resType, elemCount);
+    return CloneWithBaseTypeAndElementCount(resType, elemCount);
 }
 
 const ArrayType *ArrayType::ResolveUnboundVariability(Variability v) const {
@@ -1595,7 +1586,7 @@ const ArrayType *ArrayType::ResolveUnboundVariability(Variability v) const {
         Assert(m->errorCount > 0);
         return nullptr;
     }
-    return CloneWith(child->ResolveUnboundVariability(v));
+    return CloneWithBaseType(child->ResolveUnboundVariability(v));
 }
 
 const ArrayType *ArrayType::GetAsUnsignedType() const {
@@ -1603,7 +1594,7 @@ const ArrayType *ArrayType::GetAsUnsignedType() const {
         Assert(m->errorCount > 0);
         return nullptr;
     }
-    return CloneWith(child->GetAsUnsignedType());
+    return CloneWithBaseType(child->GetAsUnsignedType());
 }
 
 const ArrayType *ArrayType::GetAsSignedType() const {
@@ -1611,7 +1602,7 @@ const ArrayType *ArrayType::GetAsSignedType() const {
         Assert(m->errorCount > 0);
         return nullptr;
     }
-    return CloneWith(child->GetAsSignedType());
+    return CloneWithBaseType(child->GetAsSignedType());
 }
 
 const ArrayType *ArrayType::GetAsConstType() const {
@@ -1619,7 +1610,7 @@ const ArrayType *ArrayType::GetAsConstType() const {
         Assert(m->errorCount > 0);
         return nullptr;
     }
-    return CloneWith(child->GetAsConstType());
+    return CloneWithBaseType(child->GetAsConstType());
 }
 
 const ArrayType *ArrayType::GetAsNonConstType() const {
@@ -1627,7 +1618,7 @@ const ArrayType *ArrayType::GetAsNonConstType() const {
         Assert(m->errorCount > 0);
         return nullptr;
     }
-    return CloneWith(child->GetAsNonConstType());
+    return CloneWithBaseType(child->GetAsNonConstType());
 }
 
 int ArrayType::GetElementCount() const { return elementCount.fixedCount; }
@@ -1741,7 +1732,7 @@ bool ArrayType::IsUnsized() const { return (elementCount.fixedCount == 0 && elem
 const ArrayType *ArrayType::GetSizedArray(int sz) const {
     Assert(elementCount.fixedCount == 0);
     // TODO!: if sz is 0, we should issue an error here?
-    return CloneWith(ElementCount(sz));
+    return CloneWithElementCount(ElementCount(sz));
 }
 
 const Type *ArrayType::SizeUnsizedArrays(const Type *type, Expr *initExpr) {
@@ -1845,20 +1836,14 @@ VectorType::VectorType(const Type *b, ElementCount elCount)
     isConst = base->IsConstType() ? IS_CONST : NON_CONST;
 }
 
-template <> const VectorType *VectorType::CloneWith<const Type *>(const Type *newBaseType) const {
+const VectorType *VectorType::CloneWithBaseType(const Type *newBaseType) const {
     return new VectorType(newBaseType, elementCount);
 }
-
-template <>
-const VectorType *
-VectorType::CloneWith<SequentialType::ElementCount>(SequentialType::ElementCount newElementCount) const {
+const VectorType *VectorType::CloneWithElementCount(ElementCount newElementCount) const {
     return new VectorType(base, newElementCount);
 }
-
-template <>
-const VectorType *
-VectorType::CloneWith<const Type *, SequentialType::ElementCount>(const Type *newBaseType,
-                                                                  SequentialType::ElementCount newElementCount) const {
+const VectorType *VectorType::CloneWithBaseTypeAndElementCount(const Type *newBaseType,
+                                                               ElementCount newElementCount) const {
     return new VectorType(newBaseType, newElementCount);
 }
 
@@ -1884,7 +1869,7 @@ const VectorType *VectorType::GetAsVaryingType() const {
         Assert(m->errorCount > 0);
         return nullptr;
     }
-    return CloneWith(base->GetAsVaryingType());
+    return CloneWithBaseType(base->GetAsVaryingType());
 }
 
 const VectorType *VectorType::GetAsUniformType() const {
@@ -1895,15 +1880,15 @@ const VectorType *VectorType::GetAsUniformType() const {
         Assert(m->errorCount > 0);
         return nullptr;
     }
-    return CloneWith(base->GetAsUniformType());
+    return CloneWithBaseType(base->GetAsUniformType());
 }
 
 const VectorType *VectorType::GetAsUnboundVariabilityType() const {
-    return CloneWith(base->GetAsUnboundVariabilityType());
+    return CloneWithBaseType(base->GetAsUnboundVariabilityType());
 }
 
 const VectorType *VectorType::GetAsSOAType(int width) const {
-    return CloneWith(base->GetAsSOAType(width));
+    return CloneWithBaseType(base->GetAsSOAType(width));
 }
 
 const VectorType *VectorType::ResolveDependence(TemplateInstantiation &templInst) const {
@@ -1911,11 +1896,11 @@ const VectorType *VectorType::ResolveDependence(TemplateInstantiation &templInst
     const Type *resolvedBase = base->ResolveDependence(templInst);
     ElementCount elemCount =
         (resolvedCount > 0) ? ElementCount(resolvedCount) : ElementCount(elementCount.symbolCount);
-    return CloneWith(resolvedBase, elemCount);
+    return CloneWithBaseTypeAndElementCount(resolvedBase, elemCount);
 }
 
 const VectorType *VectorType::ResolveUnboundVariability(Variability v) const {
-    return CloneWith(base->ResolveUnboundVariability(v));
+    return CloneWithBaseType(base->ResolveUnboundVariability(v));
 }
 
 const VectorType *VectorType::GetAsUnsignedType() const {
@@ -1923,7 +1908,7 @@ const VectorType *VectorType::GetAsUnsignedType() const {
         Assert(m->errorCount > 0);
         return nullptr;
     }
-    return CloneWith(base->GetAsUnsignedType());
+    return CloneWithBaseType(base->GetAsUnsignedType());
 }
 
 const VectorType *VectorType::GetAsSignedType() const {
@@ -1931,15 +1916,15 @@ const VectorType *VectorType::GetAsSignedType() const {
         Assert(m->errorCount > 0);
         return nullptr;
     }
-    return CloneWith(base->GetAsSignedType());
+    return CloneWithBaseType(base->GetAsSignedType());
 }
 
 const VectorType *VectorType::GetAsConstType() const {
-    return CloneWith(base->GetAsConstType());
+    return CloneWithBaseType(base->GetAsConstType());
 }
 
 const VectorType *VectorType::GetAsNonConstType() const {
-    return CloneWith(base->GetAsNonConstType());
+    return CloneWithBaseType(base->GetAsNonConstType());
 }
 
 std::string VectorType::GetCountString() const {
@@ -2659,11 +2644,10 @@ ReferenceType::ReferenceType(const Type *t, AddressSpace as)
     asOtherConstType = nullptr;
 }
 
-template <> const ReferenceType *ReferenceType::CloneWith<const Type *>(const Type *newTargetType) const {
-    return new ReferenceType(newTargetType, addrSpace);
+const ReferenceType *ReferenceType::CloneWithBaseType(const Type *newBaseType) const {
+    return new ReferenceType(newBaseType, addrSpace);
 }
-
-template <> const ReferenceType *ReferenceType::CloneWith<AddressSpace>(AddressSpace newAddrSpace) const {
+const ReferenceType *ReferenceType::CloneWithAddressSpace(AddressSpace newAddrSpace) const {
     return new ReferenceType(targetType, newAddrSpace);
 }
 
@@ -2727,7 +2711,7 @@ const ReferenceType *ReferenceType::GetAsVaryingType() const {
     if (IsVaryingType()) {
         return this;
     }
-    return CloneWith(targetType->GetAsVaryingType());
+    return CloneWithBaseType(targetType->GetAsVaryingType());
 }
 
 const ReferenceType *ReferenceType::GetAsUniformType() const {
@@ -2738,7 +2722,7 @@ const ReferenceType *ReferenceType::GetAsUniformType() const {
     if (IsUniformType()) {
         return this;
     }
-    return CloneWith(targetType->GetAsUniformType());
+    return CloneWithBaseType(targetType->GetAsUniformType());
 }
 
 const ReferenceType *ReferenceType::GetAsUnboundVariabilityType() const {
@@ -2749,7 +2733,7 @@ const ReferenceType *ReferenceType::GetAsUnboundVariabilityType() const {
     if (HasUnboundVariability()) {
         return this;
     }
-    return CloneWith(targetType->GetAsUnboundVariabilityType());
+    return CloneWithBaseType(targetType->GetAsUnboundVariabilityType());
 }
 
 const Type *ReferenceType::GetAsSOAType(int width) const {
@@ -2762,7 +2746,7 @@ const ReferenceType *ReferenceType::ResolveDependence(TemplateInstantiation &tem
         Assert(m->errorCount > 0);
         return nullptr;
     }
-    return CloneWith(targetType->ResolveDependence(templInst));
+    return CloneWithBaseType(targetType->ResolveDependence(templInst));
 }
 
 const ReferenceType *ReferenceType::ResolveUnboundVariability(Variability v) const {
@@ -2770,7 +2754,7 @@ const ReferenceType *ReferenceType::ResolveUnboundVariability(Variability v) con
         Assert(m->errorCount > 0);
         return nullptr;
     }
-    return CloneWith(targetType->ResolveUnboundVariability(v));
+    return CloneWithBaseType(targetType->ResolveUnboundVariability(v));
 }
 
 const ReferenceType *ReferenceType::GetAsConstType() const {
@@ -2783,7 +2767,7 @@ const ReferenceType *ReferenceType::GetAsConstType() const {
     }
 
     if (asOtherConstType == nullptr) {
-        asOtherConstType = CloneWith(targetType->GetAsConstType());
+        asOtherConstType = CloneWithBaseType(targetType->GetAsConstType());
         asOtherConstType->asOtherConstType = this;
     }
     return asOtherConstType;
@@ -2799,7 +2783,7 @@ const ReferenceType *ReferenceType::GetAsNonConstType() const {
     }
 
     if (asOtherConstType == nullptr) {
-        asOtherConstType = CloneWith(targetType->GetAsNonConstType());
+        asOtherConstType = CloneWithBaseType(targetType->GetAsNonConstType());
         asOtherConstType->asOtherConstType = this;
     }
     return asOtherConstType;
@@ -2814,7 +2798,7 @@ const ReferenceType *ReferenceType::GetWithAddrSpace(AddressSpace as) const {
         return this;
     }
 
-    return CloneWith(as);
+    return CloneWithAddressSpace(as);
 }
 
 std::string ReferenceType::GetString() const {
@@ -2935,9 +2919,9 @@ FunctionType::FunctionType(const Type *r, const llvm::SmallVector<const Type *, 
     asUnmaskedType = asMaskedType = nullptr;
 }
 
-template <>
-const FunctionType *FunctionType::CloneWith<const Type *, llvm::SmallVector<const Type *, 8>>(
-    const Type *newReturnType, llvm::SmallVector<const Type *, 8> newParamTypes) const {
+const FunctionType *
+FunctionType::CloneWithRetTypeAndNewParamTypes(const Type *newReturnType,
+                                               llvm::SmallVector<const Type *, 8> newParamTypes) const {
     FunctionType *ret = new FunctionType(newReturnType, newParamTypes, paramNames, paramDefaults, paramPositions,
                                          isTask, isExported, isExternalOnly, isExternC, isExternSYCL, isUnmasked,
                                          isUnmangled, isVectorCall, isRegCall, isCdecl, pos);
@@ -3004,7 +2988,7 @@ const FunctionType *FunctionType::ResolveDependence(TemplateInstantiation &templ
         pt.push_back(argt);
     }
 
-    return CloneWith(rt, pt);
+    return CloneWithRetTypeAndNewParamTypes(rt, pt);
 }
 
 const FunctionType *FunctionType::ResolveUnboundVariability(Variability v) const {
@@ -3023,7 +3007,7 @@ const FunctionType *FunctionType::ResolveUnboundVariability(Variability v) const
         pt.push_back(paramTypes[i]->ResolveUnboundVariability(v));
     }
 
-    return CloneWith(rt, pt);
+    return CloneWithRetTypeAndNewParamTypes(rt, pt);
 }
 
 const Type *FunctionType::GetAsConstType() const { return this; }
@@ -3072,7 +3056,7 @@ const Type *FunctionType::GetWithReturnType(const Type *newReturnType) const {
         return this;
     }
 
-    return CloneWith(newReturnType, paramTypes);
+    return CloneWithRetTypeAndNewParamTypes(newReturnType, paramTypes);
 }
 
 std::string FunctionType::GetString() const {

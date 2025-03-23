@@ -467,8 +467,6 @@ class TemplateTypeParmType : public Type {
   private:
     const std::string name;
     mutable const TemplateTypeParmType *asOtherConstType, *asUniformType, *asVaryingType;
-
-    template <typename T> const TemplateTypeParmType *CloneWith(T param) const;
 };
 
 /** @brief Type implementation for enumerated types
@@ -527,8 +525,6 @@ class EnumType : public Type {
     std::vector<Symbol *> enumerators;
 
     EnumType(std::string name, Variability v, bool ic, SourcePos pos, const std::vector<Symbol *> &enumerators);
-
-    template <typename T> const EnumType *CloneWith(T param) const;
 };
 
 /** @brief Type implementation for pointers to other types
@@ -606,11 +602,15 @@ class PointerType : public Type {
 
   private:
     const bool isSlice, isFrozen;
+    // TODO!: outline baseType and related methods from PointerType,
+    // RefereceType, ArrayType and VectorType to TypeWithBaseType class
     const Type *baseType;
+    // TODO!: storing address space in Type doesn't seem to be a correct
     const AddressSpace addrSpace;
 
-    template <typename T> const PointerType *CloneWith(T param) const;
-    template <typename T, typename F> const PointerType *CloneWith(T param1, F param2) const;
+    const PointerType *CloneWithBaseType(const Type *newBaseType) const;
+    const PointerType *CloneWithAddressSpace(AddressSpace newAddrSpace) const;
+    const PointerType *CloneWithBaseTypeAndVariability(const Type *newBaseType, Variability newVariability) const;
 };
 
 /** @brief Abstract base class for types that represent collections of
@@ -772,8 +772,9 @@ class ArrayType : public SequentialType {
     /** Resolves the total number of elements in the array in template instantiation. */
     virtual int ResolveElementCount(TemplateInstantiation &templInst) const;
 
-    template <typename T> const ArrayType *CloneWith(T param) const;
-    template <typename T, typename F> const ArrayType *CloneWith(T param1, F param2) const;
+    const ArrayType *CloneWithBaseType(const Type *newBaseType) const;
+    const ArrayType *CloneWithElementCount(ElementCount newElementCount) const;
+    const ArrayType *CloneWithBaseTypeAndElementCount(const Type *newBaseType, ElementCount newElementCount) const;
 };
 
 /** @brief A (short) vector of atomic types.
@@ -837,8 +838,9 @@ class VectorType : public SequentialType {
     /** Resolves the total number of elements in the vector in template instantiation. */
     virtual int ResolveElementCount(TemplateInstantiation &templInst) const;
 
-    template <typename T> const VectorType *CloneWith(T param) const;
-    template <typename T, typename F> const VectorType *CloneWith(T param1, F param2) const;
+    const VectorType *CloneWithBaseType(const Type *newBaseType) const;
+    const VectorType *CloneWithElementCount(ElementCount newElementCount) const;
+    const VectorType *CloneWithBaseTypeAndElementCount(const Type *newBaseType, ElementCount newElementCount) const;
 
   public:
     /** Returns the number of elements stored in memory for the vector.
@@ -1073,7 +1075,8 @@ class ReferenceType : public Type {
     mutable const ReferenceType *asOtherConstType;
     const AddressSpace addrSpace;
 
-    template <typename T> const ReferenceType *CloneWith(T param) const;
+    const ReferenceType *CloneWithBaseType(const Type *newBaseType) const;
+    const ReferenceType *CloneWithAddressSpace(AddressSpace newAddrSpace) const;
 };
 
 /** @brief Type representing a function (return type + argument types)
@@ -1252,7 +1255,8 @@ class FunctionType : public Type {
 
     mutable const FunctionType *asMaskedType, *asUnmaskedType;
 
-    template <typename T, typename F> const FunctionType *CloneWith(T param1, F param2) const;
+    const FunctionType *CloneWithRetTypeAndNewParamTypes(const Type *newReturnType,
+                                                         llvm::SmallVector<const Type *, 8> newParamTypes) const;
 };
 
 /* Efficient dynamic casting of Types.  First, we specify a default
