@@ -109,46 +109,6 @@ const Type *Type::ResolveDependenceForTopType(TemplateInstantiation &templInst) 
     const Type *result = temp->ResolveUnboundVariability(Variability::Varying);
     return result;
 }
-///////////////////////////////////////////////////////////////////////////
-// AtomicType
-
-const AtomicType *AtomicType::UniformBool = new AtomicType(AtomicType::TYPE_BOOL, Variability::Uniform, false);
-const AtomicType *AtomicType::VaryingBool = new AtomicType(AtomicType::TYPE_BOOL, Variability::Varying, false);
-const AtomicType *AtomicType::VaryingInt1 = new AtomicType(AtomicType::TYPE_INT1, Variability::Varying, false);
-const AtomicType *AtomicType::UniformInt8 = new AtomicType(AtomicType::TYPE_INT8, Variability::Uniform, false);
-const AtomicType *AtomicType::VaryingInt8 = new AtomicType(AtomicType::TYPE_INT8, Variability::Varying, false);
-const AtomicType *AtomicType::UniformUInt8 = new AtomicType(AtomicType::TYPE_UINT8, Variability::Uniform, false);
-const AtomicType *AtomicType::VaryingUInt8 = new AtomicType(AtomicType::TYPE_UINT8, Variability::Varying, false);
-const AtomicType *AtomicType::UniformInt16 = new AtomicType(AtomicType::TYPE_INT16, Variability::Uniform, false);
-const AtomicType *AtomicType::VaryingInt16 = new AtomicType(AtomicType::TYPE_INT16, Variability::Varying, false);
-const AtomicType *AtomicType::UniformUInt16 = new AtomicType(AtomicType::TYPE_UINT16, Variability::Uniform, false);
-const AtomicType *AtomicType::VaryingUInt16 = new AtomicType(AtomicType::TYPE_UINT16, Variability::Varying, false);
-const AtomicType *AtomicType::UniformInt32 = new AtomicType(AtomicType::TYPE_INT32, Variability::Uniform, false);
-const AtomicType *AtomicType::VaryingInt32 = new AtomicType(AtomicType::TYPE_INT32, Variability::Varying, false);
-const AtomicType *AtomicType::UniformUInt32 = new AtomicType(AtomicType::TYPE_UINT32, Variability::Uniform, false);
-const AtomicType *AtomicType::VaryingUInt32 = new AtomicType(AtomicType::TYPE_UINT32, Variability::Varying, false);
-const AtomicType *AtomicType::UniformFloat16 = new AtomicType(AtomicType::TYPE_FLOAT16, Variability::Uniform, false);
-const AtomicType *AtomicType::VaryingFloat16 = new AtomicType(AtomicType::TYPE_FLOAT16, Variability::Varying, false);
-const AtomicType *AtomicType::UniformFloat = new AtomicType(AtomicType::TYPE_FLOAT, Variability::Uniform, false);
-const AtomicType *AtomicType::VaryingFloat = new AtomicType(AtomicType::TYPE_FLOAT, Variability::Varying, false);
-const AtomicType *AtomicType::UniformInt64 = new AtomicType(AtomicType::TYPE_INT64, Variability::Uniform, false);
-const AtomicType *AtomicType::VaryingInt64 = new AtomicType(AtomicType::TYPE_INT64, Variability::Varying, false);
-const AtomicType *AtomicType::UniformUInt64 = new AtomicType(AtomicType::TYPE_UINT64, Variability::Uniform, false);
-const AtomicType *AtomicType::VaryingUInt64 = new AtomicType(AtomicType::TYPE_UINT64, Variability::Varying, false);
-const AtomicType *AtomicType::UniformDouble = new AtomicType(AtomicType::TYPE_DOUBLE, Variability::Uniform, false);
-const AtomicType *AtomicType::VaryingDouble = new AtomicType(AtomicType::TYPE_DOUBLE, Variability::Varying, false);
-const AtomicType *AtomicType::Dependent = new AtomicType(AtomicType::TYPE_DEPENDENT, Variability::Uniform, false);
-const AtomicType *AtomicType::Void = new AtomicType(TYPE_VOID, Variability::Uniform, false);
-
-AtomicType::AtomicType(BasicType bt, Variability v, bool ic)
-    : Type(ATOMIC_TYPE, v, ic ? IS_CONST : NON_CONST), basicType(bt) {
-    asOtherConstType = nullptr;
-    asUniformType = asVaryingType = nullptr;
-}
-
-const AtomicType *AtomicType::CloneWithBasicType(BasicType newBasicType) const {
-    return new AtomicType(newBasicType, variability, isConst);
-}
 
 bool Type::IsPointerType() const { return (CastType<PointerType>(this) != nullptr); }
 
@@ -243,6 +203,122 @@ bool Type::IsCountDependent() const {
     }
     }
     UNREACHABLE();
+}
+
+const Type *Type::GetAsVaryingType() const {
+    if (variability == Variability::Varying) {
+        return this;
+    }
+
+    if (asVaryingType == nullptr) {
+        asVaryingType = CloneWithVariability(Variability(Variability::Varying));
+        if (variability == Variability::Uniform) {
+            asVaryingType->asUniformType = this;
+        }
+    }
+    return asVaryingType;
+}
+
+const Type *Type::GetAsUniformType() const {
+    if (variability == Variability::Uniform) {
+        return this;
+    }
+
+    if (asUniformType == nullptr) {
+        asUniformType = CloneWithVariability(Variability(Variability::Uniform));
+        if (variability == Variability::Varying) {
+            asUniformType->asVaryingType = this;
+        }
+    }
+    return asUniformType;
+}
+
+const Type *Type::GetAsUnboundVariabilityType() const {
+    if (variability == Variability::Unbound) {
+        return this;
+    }
+    // TODO!: why we cache uniform and varying types but not unbound?
+    return CloneWithVariability(Variability(Variability::Unbound));
+}
+
+const Type *Type::GetReferenceTarget() const {
+    // only ReferenceType needs to override this method
+    return this;
+}
+
+const Type *Type::GetAsConstType() const {
+    if (isConst) {
+        return this;
+    }
+
+    if (asOtherConstType == nullptr) {
+        asOtherConstType = CloneWithConst(IS_CONST);
+        asOtherConstType->asOtherConstType = this;
+    }
+    return asOtherConstType;
+}
+
+const Type *Type::GetAsNonConstType() const {
+    if (!isConst) {
+        return this;
+    }
+
+    if (asOtherConstType == nullptr) {
+        asOtherConstType = CloneWithConst(NON_CONST);
+        asOtherConstType->asOtherConstType = this;
+    }
+    return asOtherConstType;
+}
+
+const Type *Type::GetAsUnsignedType() const {
+    // For many types, this doesn't make any sense
+    return nullptr;
+}
+
+const Type *Type::GetAsSignedType() const {
+    // For many types, this doesn't make any sense
+    return nullptr;
+}
+
+///////////////////////////////////////////////////////////////////////////
+// AtomicType
+
+const AtomicType *AtomicType::UniformBool = new AtomicType(AtomicType::TYPE_BOOL, Variability::Uniform, false);
+const AtomicType *AtomicType::VaryingBool = new AtomicType(AtomicType::TYPE_BOOL, Variability::Varying, false);
+const AtomicType *AtomicType::VaryingInt1 = new AtomicType(AtomicType::TYPE_INT1, Variability::Varying, false);
+const AtomicType *AtomicType::UniformInt8 = new AtomicType(AtomicType::TYPE_INT8, Variability::Uniform, false);
+const AtomicType *AtomicType::VaryingInt8 = new AtomicType(AtomicType::TYPE_INT8, Variability::Varying, false);
+const AtomicType *AtomicType::UniformUInt8 = new AtomicType(AtomicType::TYPE_UINT8, Variability::Uniform, false);
+const AtomicType *AtomicType::VaryingUInt8 = new AtomicType(AtomicType::TYPE_UINT8, Variability::Varying, false);
+const AtomicType *AtomicType::UniformInt16 = new AtomicType(AtomicType::TYPE_INT16, Variability::Uniform, false);
+const AtomicType *AtomicType::VaryingInt16 = new AtomicType(AtomicType::TYPE_INT16, Variability::Varying, false);
+const AtomicType *AtomicType::UniformUInt16 = new AtomicType(AtomicType::TYPE_UINT16, Variability::Uniform, false);
+const AtomicType *AtomicType::VaryingUInt16 = new AtomicType(AtomicType::TYPE_UINT16, Variability::Varying, false);
+const AtomicType *AtomicType::UniformInt32 = new AtomicType(AtomicType::TYPE_INT32, Variability::Uniform, false);
+const AtomicType *AtomicType::VaryingInt32 = new AtomicType(AtomicType::TYPE_INT32, Variability::Varying, false);
+const AtomicType *AtomicType::UniformUInt32 = new AtomicType(AtomicType::TYPE_UINT32, Variability::Uniform, false);
+const AtomicType *AtomicType::VaryingUInt32 = new AtomicType(AtomicType::TYPE_UINT32, Variability::Varying, false);
+const AtomicType *AtomicType::UniformFloat16 = new AtomicType(AtomicType::TYPE_FLOAT16, Variability::Uniform, false);
+const AtomicType *AtomicType::VaryingFloat16 = new AtomicType(AtomicType::TYPE_FLOAT16, Variability::Varying, false);
+const AtomicType *AtomicType::UniformFloat = new AtomicType(AtomicType::TYPE_FLOAT, Variability::Uniform, false);
+const AtomicType *AtomicType::VaryingFloat = new AtomicType(AtomicType::TYPE_FLOAT, Variability::Varying, false);
+const AtomicType *AtomicType::UniformInt64 = new AtomicType(AtomicType::TYPE_INT64, Variability::Uniform, false);
+const AtomicType *AtomicType::VaryingInt64 = new AtomicType(AtomicType::TYPE_INT64, Variability::Varying, false);
+const AtomicType *AtomicType::UniformUInt64 = new AtomicType(AtomicType::TYPE_UINT64, Variability::Uniform, false);
+const AtomicType *AtomicType::VaryingUInt64 = new AtomicType(AtomicType::TYPE_UINT64, Variability::Varying, false);
+const AtomicType *AtomicType::UniformDouble = new AtomicType(AtomicType::TYPE_DOUBLE, Variability::Uniform, false);
+const AtomicType *AtomicType::VaryingDouble = new AtomicType(AtomicType::TYPE_DOUBLE, Variability::Varying, false);
+const AtomicType *AtomicType::Dependent = new AtomicType(AtomicType::TYPE_DEPENDENT, Variability::Uniform, false);
+const AtomicType *AtomicType::Void = new AtomicType(TYPE_VOID, Variability::Uniform, false);
+
+AtomicType::AtomicType(BasicType bt, Variability v, bool ic)
+    : Type(ATOMIC_TYPE, v, ic ? IS_CONST : NON_CONST), basicType(bt) {
+    asOtherConstType = nullptr;
+    asUniformType = asVaryingType = nullptr;
+}
+
+const AtomicType *AtomicType::CloneWithBasicType(BasicType newBasicType) const {
+    return new AtomicType(newBasicType, variability, isConst);
 }
 
 bool AtomicType::IsFloatType() const {
@@ -3197,81 +3273,7 @@ const std::string &FunctionType::GetParameterName(int i) const {
 
 ///////////////////////////////////////////////////////////////////////////
 // Type
-
-const Type *Type::GetAsVaryingType() const {
-    if (variability == Variability::Varying) {
-        return this;
-    }
-
-    if (asVaryingType == nullptr) {
-        asVaryingType = CloneWithVariability(Variability(Variability::Varying));
-        if (variability == Variability::Uniform) {
-            asVaryingType->asUniformType = this;
-        }
-    }
-    return asVaryingType;
-}
-
-const Type *Type::GetAsUniformType() const {
-    if (variability == Variability::Uniform) {
-        return this;
-    }
-
-    if (asUniformType == nullptr) {
-        asUniformType = CloneWithVariability(Variability(Variability::Uniform));
-        if (variability == Variability::Varying) {
-            asUniformType->asVaryingType = this;
-        }
-    }
-    return asUniformType;
-}
-
-const Type *Type::GetAsUnboundVariabilityType() const {
-    if (variability == Variability::Unbound) {
-        return this;
-    }
-    // TODO!: why we cache uniform and varying types but not unbound?
-    return CloneWithVariability(Variability(Variability::Unbound));
-}
-
-const Type *Type::GetReferenceTarget() const {
-    // only ReferenceType needs to override this method
-    return this;
-}
-
-const Type *Type::GetAsConstType() const {
-    if (isConst) {
-        return this;
-    }
-
-    if (asOtherConstType == nullptr) {
-        asOtherConstType = CloneWithConst(IS_CONST);
-        asOtherConstType->asOtherConstType = this;
-    }
-    return asOtherConstType;
-}
-
-const Type *Type::GetAsNonConstType() const {
-    if (!isConst) {
-        return this;
-    }
-
-    if (asOtherConstType == nullptr) {
-        asOtherConstType = CloneWithConst(NON_CONST);
-        asOtherConstType->asOtherConstType = this;
-    }
-    return asOtherConstType;
-}
-
-const Type *Type::GetAsUnsignedType() const {
-    // For many types, this doesn't make any sense
-    return nullptr;
-}
-
-const Type *Type::GetAsSignedType() const {
-    // For many types, this doesn't make any sense
-    return nullptr;
-}
+// static methods?
 
 /** Given an atomic or vector type, return a vector type of the given
     vecSize.  Issue an error if given a vector type that isn't already that
