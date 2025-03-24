@@ -585,8 +585,6 @@ class PointerType : public Type {
     const PointerType *GetAsFrozenSlice() const;
 
     const Type *GetBaseType() const;
-    const PointerType *GetAsVaryingType() const;
-    const PointerType *GetAsUniformType() const;
     const PointerType *GetAsUnboundVariabilityType() const;
     const PointerType *GetAsSOAType(int width) const;
 

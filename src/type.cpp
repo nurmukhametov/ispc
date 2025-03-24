@@ -1011,22 +1011,6 @@ bool PointerType::IsCompleteType() const { return true; }
 
 const Type *PointerType::GetBaseType() const { return baseType; }
 
-const PointerType *PointerType::GetAsVaryingType() const {
-    if (variability == Variability::Varying) {
-        return this;
-    } else {
-        return CloneWithVariability(this, Variability(Variability::Varying));
-    }
-}
-
-const PointerType *PointerType::GetAsUniformType() const {
-    if (variability == Variability::Uniform) {
-        return this;
-    } else {
-        return CloneWithVariability(this, Variability(Variability::Uniform));
-    }
-}
-
 const PointerType *PointerType::GetAsUnboundVariabilityType() const {
     if (variability == Variability::Unbound) {
         return this;
