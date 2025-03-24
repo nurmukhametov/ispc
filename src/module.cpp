@@ -2748,7 +2748,7 @@ bool Module::writeHeader() {
         if (const StructType *st = CastType<StructType>(exportedTypes[i].first)) {
             exportedStructTypes.push_back(st->GetAsUniformType());
         } else if (const EnumType *et = CastType<EnumType>(exportedTypes[i].first)) {
-            exportedEnumTypes.push_back(et->GetAsUniformType());
+            exportedEnumTypes.push_back(static_cast<const EnumType *>(et->GetAsUniformType()));
         } else if (const VectorType *vt = CastType<VectorType>(exportedTypes[i].first)) {
             exportedVectorTypes.push_back(vt->GetAsUniformType());
         } else {
@@ -2897,7 +2897,7 @@ bool Module::writeDispatchHeader(DispatchHeaderInfo *DHI) {
             if (const StructType *st = CastType<StructType>(exportedTypes[i].first)) {
                 exportedStructTypes.push_back(st->GetAsUniformType());
             } else if (const EnumType *et = CastType<EnumType>(exportedTypes[i].first)) {
-                exportedEnumTypes.push_back(et->GetAsUniformType());
+                exportedEnumTypes.push_back(static_cast<const EnumType *>(et->GetAsUniformType()));
             } else if (const VectorType *vt = CastType<VectorType>(exportedTypes[i].first)) {
                 exportedVectorTypes.push_back(vt->GetAsUniformType());
             } else {

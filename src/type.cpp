@@ -807,14 +807,6 @@ bool EnumType::IsCompleteType() const { return true; }
 
 const EnumType *EnumType::GetBaseType() const { return this; }
 
-const EnumType *EnumType::GetAsUniformType() const {
-    if (IsUniformType()) {
-        return this;
-    } else {
-        return CloneWithVariability(this, Variability(Variability::Uniform));
-    }
-}
-
 const EnumType *EnumType::ResolveDependence(TemplateInstantiation &templInst) const { return this; }
 
 const EnumType *EnumType::ResolveUnboundVariability(Variability v) const {
@@ -822,14 +814,6 @@ const EnumType *EnumType::ResolveUnboundVariability(Variability v) const {
         return this;
     } else {
         return CloneWithVariability(this, v);
-    }
-}
-
-const EnumType *EnumType::GetAsVaryingType() const {
-    if (IsVaryingType()) {
-        return this;
-    } else {
-        return CloneWithVariability(this, Variability(Variability::Varying));
     }
 }
 

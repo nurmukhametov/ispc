@@ -494,8 +494,6 @@ class EnumType : public Type {
     bool IsCompleteType() const;
 
     const EnumType *GetBaseType() const;
-    const EnumType *GetAsVaryingType() const;
-    const EnumType *GetAsUniformType() const;
     const EnumType *GetAsUnboundVariabilityType() const;
     const EnumType *GetAsSOAType(int width) const;
 

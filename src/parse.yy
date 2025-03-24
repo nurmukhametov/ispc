@@ -3617,8 +3617,7 @@ lCreateEnumType(const char *name, std::vector<Symbol *> *enums, SourcePos pos) {
 static void
 lFinalizeEnumeratorSymbols(std::vector<Symbol *> &enums,
                            const EnumType *enumType) {
-    enumType = static_cast<const EnumType*>(enumType->GetAsConstType());
-    enumType = enumType->GetAsUniformType();
+    enumType = static_cast<const EnumType*>(enumType->GetAsConstType()->GetAsUniformType());
 
     /* nextVal tracks the value for the next enumerant.  It starts from
        zero and goes up with each successive enumerant.  If any of them
