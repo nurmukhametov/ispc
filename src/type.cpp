@@ -2483,20 +2483,6 @@ const UndefinedStructType *UndefinedStructType::ResolveUnboundVariability(Variab
     return CloneWithVariability(this, v);
 }
 
-const UndefinedStructType *UndefinedStructType::GetAsConstType() const {
-    if (isConst) {
-        return this;
-    }
-    return CloneWithConst(this, IS_CONST);
-}
-
-const UndefinedStructType *UndefinedStructType::GetAsNonConstType() const {
-    if (isConst == false) {
-        return this;
-    }
-    return CloneWithConst(this, NON_CONST);
-}
-
 std::string UndefinedStructType::GetString() const {
     std::string ret;
     if (isConst) {

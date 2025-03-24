@@ -1016,9 +1016,6 @@ class UndefinedStructType : public Type {
     const UndefinedStructType *ResolveDependence(TemplateInstantiation &templInst) const;
     const UndefinedStructType *ResolveUnboundVariability(Variability v) const;
 
-    const UndefinedStructType *GetAsConstType() const;
-    const UndefinedStructType *GetAsNonConstType() const;
-
     std::string GetString() const;
     std::string Mangle() const;
     std::string GetDeclaration(const std::string &name, DeclarationSyntax syntax) const;
