@@ -188,7 +188,7 @@ class Type : public Traceable {
     /* Returns a type wherein any elements of the original type and
        contained types that have unbound variability have their variability
        set to the given variability. */
-    virtual const Type *ResolveUnboundVariability(Variability v) const = 0;
+    virtual const Type *ResolveUnboundVariability(Variability v) const;
 
     /** Return a "uniform" instance of this type.  If the type is already
         uniform, its "this" pointer will be returned. */
@@ -365,7 +365,6 @@ class AtomicType : public Type {
     const AtomicType *GetBaseType() const;
 
     const AtomicType *ResolveDependence(TemplateInstantiation &templInst) const;
-    const AtomicType *ResolveUnboundVariability(Variability v) const;
     const AtomicType *GetAsUnsignedType() const;
     const AtomicType *GetAsSignedType() const;
 
@@ -452,7 +451,6 @@ class TemplateTypeParmType : public Type {
     const Type *GetBaseType() const;
     const Type *GetAsSOAType(int width) const override;
     const Type *ResolveDependence(TemplateInstantiation &templInst) const;
-    const Type *ResolveUnboundVariability(Variability v) const;
 
     std::string GetName() const;
     std::string GetString() const;
@@ -493,7 +491,6 @@ class EnumType : public Type {
     const EnumType *GetBaseType() const;
 
     const EnumType *ResolveDependence(TemplateInstantiation &templInst) const;
-    const EnumType *ResolveUnboundVariability(Variability v) const;
 
     std::string GetString() const;
     std::string Mangle() const;
@@ -582,7 +579,7 @@ class PointerType : public Type {
     const Type *GetBaseType() const;
 
     const PointerType *ResolveDependence(TemplateInstantiation &templInst) const;
-    const PointerType *ResolveUnboundVariability(Variability v) const;
+    const PointerType *ResolveUnboundVariability(Variability v) const override;
     const PointerType *GetAsConstType() const;
     const PointerType *GetAsNonConstType() const;
     const PointerType *GetWithAddrSpace(AddressSpace as) const;
@@ -876,7 +873,6 @@ class StructType : public CollectionType {
     const Type *GetBaseType() const;
     const StructType *GetAsSOAType(int width) const override;
     const StructType *ResolveDependence(TemplateInstantiation &templInst) const;
-    const StructType *ResolveUnboundVariability(Variability v) const;
 
     const StructType *GetAsNamed(const std::string &name) const;
 
@@ -982,7 +978,6 @@ class UndefinedStructType : public Type {
     const Type *GetBaseType() const;
     const UndefinedStructType *GetAsSOAType(int width) const override;
     const UndefinedStructType *ResolveDependence(TemplateInstantiation &templInst) const;
-    const UndefinedStructType *ResolveUnboundVariability(Variability v) const;
 
     std::string GetString() const;
     std::string Mangle() const;
@@ -1044,7 +1039,7 @@ class ReferenceType : public Type {
     const ReferenceType *GetAsUnboundVariabilityType() const;
     const Type *GetAsSOAType(int width) const override;
     const ReferenceType *ResolveDependence(TemplateInstantiation &templInst) const;
-    const ReferenceType *ResolveUnboundVariability(Variability v) const;
+    const ReferenceType *ResolveUnboundVariability(Variability v) const override;
 
     const ReferenceType *GetAsConstType() const;
     const ReferenceType *GetAsNonConstType() const;
@@ -1134,7 +1129,7 @@ class FunctionType : public Type {
     const Type *GetAsUnboundVariabilityType() const override;
     const Type *GetAsSOAType(int width) const override;
     const FunctionType *ResolveDependence(TemplateInstantiation &templInst) const;
-    const FunctionType *ResolveUnboundVariability(Variability v) const;
+    const FunctionType *ResolveUnboundVariability(Variability v) const override;
 
     const Type *GetAsConstType() const;
     const Type *GetAsNonConstType() const;

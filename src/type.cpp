@@ -219,6 +219,19 @@ const Type *Type::GetAsVaryingType() const {
     return asVaryingType;
 }
 
+const Type *Type::ResolveUnboundVariability(Variability v) const {
+    Assert(v != Variability::Unbound);
+    if (variability != Variability::Unbound) {
+        return this;
+    }
+    // In case of StructType:
+    // We don't resolve the members here but leave them unbound, so that if
+    // resolve to varying but later want to get the uniform version of this
+    // type, for example, then we still have the information around about
+    // which element types were originally unbound...
+    return CloneWithVariability(v);
+}
+
 const Type *Type::GetAsUniformType() const {
     if (variability == Variability::Uniform) {
         return this;
@@ -406,15 +419,6 @@ const AtomicType *AtomicType::ResolveDependence(TemplateInstantiation &templInst
     // TODO: ???
     // Assert(basicType != TYPE_DEPENDENT); // Dependent placeholder type should not be attempted to resolve.
     return this;
-}
-
-const AtomicType *AtomicType::ResolveUnboundVariability(Variability v) const {
-    Assert(basicType != TYPE_DEPENDENT);
-    Assert(v != Variability::Unbound);
-    if (variability != Variability::Unbound) {
-        return this;
-    }
-    return CloneWithVariability(this, v);
 }
 
 std::string AtomicType::GetString() const {
@@ -787,14 +791,6 @@ const Type *TemplateTypeParmType::ResolveDependence(TemplateInstantiation &templ
     return resolvedType;
 }
 
-const Type *TemplateTypeParmType::ResolveUnboundVariability(Variability v) const {
-    Assert(v != Variability::Unbound);
-    if (variability != Variability::Unbound) {
-        return this;
-    }
-    return CloneWithVariability(this, v);
-}
-
 std::string TemplateTypeParmType::GetName() const { return name; }
 
 std::string TemplateTypeParmType::GetString() const {
@@ -869,14 +865,6 @@ bool EnumType::IsCompleteType() const { return true; }
 const EnumType *EnumType::GetBaseType() const { return this; }
 
 const EnumType *EnumType::ResolveDependence(TemplateInstantiation &templInst) const { return this; }
-
-const EnumType *EnumType::ResolveUnboundVariability(Variability v) const {
-    if (variability != Variability::Unbound) {
-        return this;
-    } else {
-        return CloneWithVariability(this, v);
-    }
-}
 
 std::string EnumType::GetString() const {
     std::string ret;
@@ -2127,20 +2115,6 @@ const StructType *StructType::GetAsSOAType(int width) const {
 
 const StructType *StructType::ResolveDependence(TemplateInstantiation &templInst) const { return this; }
 
-const StructType *StructType::ResolveUnboundVariability(Variability v) const {
-    Assert(v != Variability::Unbound);
-
-    if (variability != Variability::Unbound) {
-        return this;
-    }
-
-    // We don't resolve the members here but leave them unbound, so that if
-    // resolve to varying but later want to get the uniform version of this
-    // type, for example, then we still have the information around about
-    // which element types were originally unbound...
-    return CloneWithVariability(v);
-}
-
 const StructType *StructType::GetAsNamed(const std::string &n) const {
     // TODO!: isNamed enum flag type?
     return new StructType(n, elementTypes, elementNames, elementPositions, isConst, variability, false, pos);
@@ -2369,13 +2343,6 @@ const UndefinedStructType *UndefinedStructType::GetAsSOAType(int width) const {
 
 const UndefinedStructType *UndefinedStructType::ResolveDependence(TemplateInstantiation &templInst) const {
     return this;
-}
-
-const UndefinedStructType *UndefinedStructType::ResolveUnboundVariability(Variability v) const {
-    if (variability != Variability::Unbound) {
-        return this;
-    }
-    return CloneWithVariability(v);
 }
 
 std::string UndefinedStructType::GetString() const {
