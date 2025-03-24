@@ -2306,8 +2306,9 @@ llvm::Value *FunctionEmitContext::AddElementOffset(AddressInfo *fullBasePtrInfo,
         AssertPos(currentPos, ptrType != nullptr);
         const CollectionType *ct = CastType<CollectionType>(ptrType->GetBaseType());
         AssertPos(currentPos, ct != nullptr);
-        *resultPtrType = new PointerType(ct->GetElementType(elementNum), ptrType->GetVariability(),
-                                         ptrType->IsConstType(), ptrType->IsSlice());
+        PointerType::Property prop = ptrType->IsSlice() ? PointerType::SLICE : PointerType::NONE;
+        *resultPtrType =
+            new PointerType(ct->GetElementType(elementNum), ptrType->GetVariability(), ptrType->IsConstType(), prop);
     }
 
     llvm::Value *resultPtr = nullptr;

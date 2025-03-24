@@ -1103,24 +1103,28 @@ const Symbol *EnumType::GetEnumerator(int i) const { return enumerators[i]; }
 
 PointerType *PointerType::Void = new PointerType(AtomicType::Void, Variability(Variability::Uniform), false);
 
-PointerType::PointerType(const Type *t, Variability v, bool ic, bool is, bool fr, AddressSpace as)
-    : Type(POINTER_TYPE, v, ic ? IS_CONST : NON_CONST), isSlice(is), isFrozen(fr), addrSpace(as) {
-    baseType = t;
-}
+PointerType::PointerType(const Type *t, Variability v, bool ic, unsigned int prop, AddressSpace as)
+    : Type(POINTER_TYPE, v, ic ? IS_CONST : NON_CONST), property(prop), baseType(t), addrSpace(as) {}
 
 const PointerType *PointerType::CloneWithBaseType(const Type *newBaseType) const {
-    return new PointerType(newBaseType, variability, isConst, isSlice, isFrozen, addrSpace);
+    return new PointerType(newBaseType, variability, isConst, property, addrSpace);
 }
 const PointerType *PointerType::CloneWithAddressSpace(AddressSpace newAddrSpace) const {
-    return new PointerType(baseType, variability, isConst, isSlice, isFrozen, newAddrSpace);
+    return new PointerType(baseType, variability, isConst, property, newAddrSpace);
 }
 const PointerType *PointerType::CloneWithBaseTypeAndVariability(const Type *newBaseType,
                                                                 Variability newVariability) const {
-    return new PointerType(newBaseType, newVariability, isConst, isSlice, isFrozen, addrSpace);
+    return new PointerType(newBaseType, newVariability, isConst, property, addrSpace);
+}
+const PointerType *PointerType::CloneWithProperty(unsigned int newProperty) const {
+    return new PointerType(baseType, variability, isConst, newProperty, addrSpace);
+}
+const PointerType *PointerType::CloneWithConstAndProperty(ConstID newIsConst, unsigned int newProperty) const {
+    return new PointerType(baseType, variability, newIsConst, newProperty, addrSpace);
 }
 
 PointerType *PointerType::GetUniform(const Type *t, bool is) {
-    return new PointerType(t, Variability(Variability::Uniform), false, is);
+    return new PointerType(t, Variability(Variability::Uniform), false, is ? SLICE : NONE);
 }
 
 PointerType *PointerType::GetVarying(const Type *t) {
@@ -1178,25 +1182,24 @@ const PointerType *PointerType::GetAsSOAType(int width) const {
 }
 
 const PointerType *PointerType::GetAsSlice() const {
-    if (isSlice) {
+    if (IsSlice()) {
         return this;
     }
-    return new PointerType(baseType, variability, isConst, true);
+    return CloneWithProperty(SLICE);
 }
 
 const PointerType *PointerType::GetAsNonSlice() const {
-    if (isSlice == false) {
+    if (!IsSlice()) {
         return this;
     }
-    return new PointerType(baseType, variability, isConst, false);
+    return CloneWithProperty(NONE);
 }
 
 const PointerType *PointerType::GetAsFrozenSlice() const {
-    if (isFrozen) {
+    if (IsFrozenSlice()) {
         return this;
     }
-    // TODO! merge isSlice and isFrozen into a single field of enum type
-    return new PointerType(baseType, variability, isConst, true, true);
+    return CloneWithProperty(FROZEN);
 }
 
 const PointerType *PointerType::GetWithAddrSpace(AddressSpace as) const {
@@ -1237,7 +1240,8 @@ const PointerType *PointerType::GetAsConstType() const {
     if (isConst == true) {
         return this;
     } else {
-        return CloneWithConst(this, IS_CONST);
+        return CloneWithConstAndProperty(IS_CONST, property & ~FROZEN);
+        // return CloneWithConst(this, IS_CONST);
     }
 }
 
@@ -1245,7 +1249,8 @@ const PointerType *PointerType::GetAsNonConstType() const {
     if (isConst == false) {
         return this;
     } else {
-        return CloneWithConst(this, NON_CONST);
+        return CloneWithConstAndProperty(NON_CONST, property & ~FROZEN);
+        // return CloneWithConst(this, NON_CONST);
     }
 }
 
@@ -1265,10 +1270,10 @@ std::string PointerType::GetString() const {
     if (isConst) {
         ret += "const ";
     }
-    if (isSlice) {
+    if (IsSlice()) {
         ret += "slice ";
     }
-    if (isFrozen) {
+    if (IsFrozenSlice()) {
         ret += "/*frozen*/ ";
     }
     ret += variability.GetString();
@@ -1284,23 +1289,23 @@ std::string PointerType::Mangle() const {
     }
 
     std::string ret = variability.MangleString() + std::string("_3C_"); // <
-    if (isSlice || isFrozen) {
+    if (IsSlice() || IsFrozenSlice()) {
         ret += "-";
     }
-    if (isSlice) {
+    if (IsSlice()) {
         ret += "s";
     }
-    if (isFrozen) {
+    if (IsFrozenSlice()) {
         ret += "f";
     }
-    if (isSlice || isFrozen) {
+    if (IsSlice() || IsFrozenSlice()) {
         ret += "-";
     }
     return ret + baseType->Mangle() + std::string("_3E_"); // >
 }
 
 std::string PointerType::GetDeclaration(const std::string &name, DeclarationSyntax syntax) const {
-    if (isSlice || (variability == Variability::Unbound)) {
+    if (IsSlice() || (variability == Variability::Unbound)) {
         Assert(m->errorCount > 0);
         return "";
     }
@@ -1355,7 +1360,7 @@ llvm::Type *PointerType::LLVMType(llvm::LLVMContext *ctx) const {
         return nullptr;
     }
 
-    if (isSlice) {
+    if (IsSlice()) {
         llvm::Type *types[2];
         types[0] = GetAsNonSlice()->LLVMStorageType(ctx);
 

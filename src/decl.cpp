@@ -701,7 +701,8 @@ void Declarator::InitFromType(const Type *baseType, DeclSpecs *ds) {
         /* For now, any pointer to an SOA type gets the slice property; if
            we add the capability to declare pointers as slices or not,
            we'll want to set this based on a type qualifier here. */
-        const Type *ptrType = new PointerType(baseType, variability, isConst, baseType->IsSOAType());
+        PointerType::Property prop = baseType->IsSOAType() ? PointerType::SLICE : PointerType::NONE;
+        const Type *ptrType = new PointerType(baseType, variability, isConst, prop);
         if (child != nullptr) {
             child->InitFromType(ptrType, ds);
             type = child->type;

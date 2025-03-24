@@ -550,11 +550,18 @@ class EnumType : public Type {
 
 class PointerType : public Type {
   public:
-    PointerType(const Type *t, Variability v, bool isConst, bool isSlice = false, bool frozen = false,
+
+    enum Property : unsigned int {
+        NONE = 0,
+        SLICE = 1,
+        FROZEN = 2,
+    };
+
+    PointerType(const Type *t, Variability v, bool isConst, unsigned int prop = 0,
                 AddressSpace as = AddressSpace::ispc_default);
     PointerType(const PointerType &other)
-        : Type(POINTER_TYPE, other.variability, other.isConst), isSlice(other.isSlice), isFrozen(other.isFrozen),
-          baseType(other.baseType), addrSpace(other.addrSpace) {}
+        : Type(POINTER_TYPE, other.variability, other.isConst), property(other.property), baseType(other.baseType),
+          addrSpace(other.addrSpace) {}
 
     /** Helper method to return a uniform pointer to the given type. */
     static PointerType *GetUniform(const Type *t, bool isSlice = false);
@@ -571,8 +578,8 @@ class PointerType : public Type {
     bool IsSignedType() const;
     bool IsCompleteType() const;
 
-    bool IsSlice() const { return isSlice; }
-    bool IsFrozenSlice() const { return isFrozen; }
+    bool IsSlice() const { return property; }
+    bool IsFrozenSlice() const { return property & FROZEN; }
     AddressSpace GetAddressSpace() const { return addrSpace; }
     const PointerType *GetAsSlice() const;
     const PointerType *GetAsNonSlice() const;
@@ -601,7 +608,7 @@ class PointerType : public Type {
     static PointerType *Void;
 
   private:
-    const bool isSlice, isFrozen;
+    const unsigned int property;
     // TODO!: outline baseType and related methods from PointerType,
     // RefereceType, ArrayType and VectorType to TypeWithBaseType class
     const Type *baseType;
@@ -611,6 +618,8 @@ class PointerType : public Type {
     const PointerType *CloneWithBaseType(const Type *newBaseType) const;
     const PointerType *CloneWithAddressSpace(AddressSpace newAddrSpace) const;
     const PointerType *CloneWithBaseTypeAndVariability(const Type *newBaseType, Variability newVariability) const;
+    const PointerType *CloneWithProperty(unsigned int newProperty) const;
+    const PointerType *CloneWithConstAndProperty(ConstID newIsConst, unsigned int newProperty) const;
 };
 
 /** @brief Abstract base class for types that represent collections of
@@ -856,6 +865,7 @@ class StructType : public CollectionType {
     StructType(const std::string &name, const llvm::SmallVector<const Type *, 8> &elts,
                const llvm::SmallVector<std::string, 8> &eltNames, const llvm::SmallVector<SourcePos, 8> &eltPositions,
                bool isConst, Variability variability, bool isAnonymous, SourcePos pos);
+    // TODO!: remove it
     StructType(const StructType &other)
         : CollectionType(STRUCT_TYPE, other.variability, other.isConst, other.pos), name(other.name),
           elementTypes(other.elementTypes), elementNames(other.elementNames), elementPositions(other.elementPositions),
@@ -974,6 +984,7 @@ class StructType : public CollectionType {
 class UndefinedStructType : public Type {
   public:
     UndefinedStructType(const std::string &name, const Variability variability, bool isConst, SourcePos pos);
+    // TODO!: remove copy constructor
     UndefinedStructType(const UndefinedStructType &other)
         : Type(UNDEFINED_STRUCT_TYPE, other.variability, other.isConst, other.pos), name(other.name) {}
 
