@@ -2084,28 +2084,11 @@ bool StructType::IsAnonymousType() const { return isAnonymous; }
 
 const Type *StructType::GetBaseType() const { return this; }
 
-const StructType *StructType::GetAsVaryingType() const {
-    if (IsVaryingType()) {
-        return this;
-    } else {
-        auto *p = CloneWithVariability(this, Variability(Variability::Varying));
-        return p;
-    }
-}
-
-const StructType *StructType::GetAsUniformType() const {
-    if (IsUniformType()) {
-        return this;
-    } else {
-        return CloneWithVariability(this, Variability(Variability::Uniform));
-    }
-}
-
 const StructType *StructType::GetAsUnboundVariabilityType() const {
     if (HasUnboundVariability()) {
         return this;
     } else {
-        return CloneWithVariability(this, Variability(Variability::Unbound));
+        return CloneWithVariability(Variability(Variability::Unbound));
     }
 }
 
@@ -2118,7 +2101,7 @@ const StructType *StructType::GetAsSOAType(int width) const {
         return nullptr;
     }
 
-    return CloneWithVariability(this, Variability(Variability::SOA, width));
+    return CloneWithVariability(Variability(Variability::SOA, width));
 }
 
 const StructType *StructType::ResolveDependence(TemplateInstantiation &templInst) const { return this; }
@@ -2134,7 +2117,7 @@ const StructType *StructType::ResolveUnboundVariability(Variability v) const {
     // resolve to varying but later want to get the uniform version of this
     // type, for example, then we still have the information around about
     // which element types were originally unbound...
-    return CloneWithVariability(this, v);
+    return CloneWithVariability(v);
 }
 
 const StructType *StructType::GetAsNamed(const std::string &n) const {

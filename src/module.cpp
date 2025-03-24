@@ -2746,7 +2746,7 @@ bool Module::writeHeader() {
     // Go through the explicitly exported types
     for (int i = 0; i < (int)exportedTypes.size(); ++i) {
         if (const StructType *st = CastType<StructType>(exportedTypes[i].first)) {
-            exportedStructTypes.push_back(st->GetAsUniformType());
+            exportedStructTypes.push_back(static_cast<const StructType *>(st->GetAsUniformType()));
         } else if (const EnumType *et = CastType<EnumType>(exportedTypes[i].first)) {
             exportedEnumTypes.push_back(static_cast<const EnumType *>(et->GetAsUniformType()));
         } else if (const VectorType *vt = CastType<VectorType>(exportedTypes[i].first)) {
@@ -2892,10 +2892,11 @@ bool Module::writeDispatchHeader(DispatchHeaderInfo *DHI) {
         lGetExportedParamTypes(exportedFuncs, &exportedStructTypes, &exportedEnumTypes, &exportedVectorTypes);
         lGetExportedParamTypes(externCFuncs, &exportedStructTypes, &exportedEnumTypes, &exportedVectorTypes);
 
+        // TODO!: Why there are two almost identical piece of code like this?
         // Go through the explicitly exported types
         for (int i = 0; i < (int)exportedTypes.size(); ++i) {
             if (const StructType *st = CastType<StructType>(exportedTypes[i].first)) {
-                exportedStructTypes.push_back(st->GetAsUniformType());
+                exportedStructTypes.push_back(static_cast<const StructType *>(st->GetAsUniformType()));
             } else if (const EnumType *et = CastType<EnumType>(exportedTypes[i].first)) {
                 exportedEnumTypes.push_back(static_cast<const EnumType *>(et->GetAsUniformType()));
             } else if (const VectorType *vt = CastType<VectorType>(exportedTypes[i].first)) {

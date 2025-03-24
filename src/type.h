@@ -316,7 +316,7 @@ class Type : public Traceable {
 
     mutable const Type *asOtherConstType = {};
 
-    const Type *CloneWithVariability(Variability newVariability) const {
+    virtual const Type *CloneWithVariability(Variability newVariability) const {
         const Type *ins = Clone();
         ins->variability = newVariability;
         return ins;
@@ -869,7 +869,7 @@ class StructType : public CollectionType {
         : CollectionType(STRUCT_TYPE, other.variability, other.isConst, other.pos), name(other.name),
           elementTypes(other.elementTypes), elementNames(other.elementNames), elementPositions(other.elementPositions),
           isAnonymous(other.isAnonymous), finalElementTypes(), oppositeConstStructType(nullptr) {}
-    const StructType *Clone() const { return new StructType(*this); Assert(0); }
+    const StructType *Clone() const { Assert(0); return nullptr; }
 
     bool IsBoolType() const;
     bool IsFloatType() const;
@@ -881,8 +881,6 @@ class StructType : public CollectionType {
     bool IsAnonymousType() const;
 
     const Type *GetBaseType() const;
-    const StructType *GetAsVaryingType() const;
-    const StructType *GetAsUniformType() const;
     const StructType *GetAsUnboundVariabilityType() const;
     const StructType *GetAsSOAType(int width) const;
     const StructType *ResolveDependence(TemplateInstantiation &templInst) const;
@@ -950,19 +948,16 @@ class StructType : public CollectionType {
 
     mutable const StructType *oppositeConstStructType;
 
-    template <typename T> const StructType *CloneWith(T param) const;
-
-    template <typename B> static const B *CloneWithVariability(B *ptr, Variability newVariability) {
+    const StructType *CloneWithVariability(Variability newVariability) const override {
         // This is a bit of a hack, but it's the easiest way to get the correct
         // m->structTypeMap entry. It is created inside constructor depending
         // on the new variability value.
         // TODO!: I don't think constructor needs to create m->structTypeMap entry
-        B *ins = new B(ptr->name, ptr->elementTypes, ptr->elementNames, ptr->elementPositions, ptr->isConst,
-                       newVariability, ptr->isAnonymous, ptr->pos);
-        return ins;
+        return new StructType(name, elementTypes, elementNames, elementPositions, isConst, newVariability, isAnonymous,
+                              pos);
     }
 
-    const Type *CloneWithConst(ConstID newIsConst) const override {
+    const StructType *CloneWithConst(ConstID newIsConst) const override {
         // This is a bit of a hack, but it's the easiest way to get the correct
         // m->structTypeMap entry. It is created inside constructor depending
         // on the new variability value.
@@ -983,7 +978,7 @@ class UndefinedStructType : public Type {
     // TODO!: remove copy constructor
     UndefinedStructType(const UndefinedStructType &other)
         : Type(UNDEFINED_STRUCT_TYPE, other.variability, other.isConst, other.pos), name(other.name) {}
-    const UndefinedStructType *Clone() const { return new UndefinedStructType(*this); Assert(0); }
+    const UndefinedStructType *Clone() const { Assert(0); return nullptr; }
 
     bool IsBoolType() const;
     bool IsFloatType() const;
