@@ -318,14 +318,6 @@ const AtomicType *AtomicType::GetAsSignedType() const {
 
 const AtomicType *AtomicType::GetBaseType() const { return this; }
 
-const AtomicType *AtomicType::GetAsUnboundVariabilityType() const {
-    Assert(basicType != TYPE_VOID && basicType != TYPE_DEPENDENT);
-    if (variability == Variability::Unbound) {
-        return this;
-    }
-    return CloneWithVariability(this, Variability(Variability::Unbound));
-}
-
 const AtomicType *AtomicType::GetAsSOAType(int width) const {
     Assert(basicType != TYPE_VOID && basicType != TYPE_DEPENDENT);
     if (variability == Variability(Variability::SOA, width)) {
@@ -688,13 +680,6 @@ bool TemplateTypeParmType::IsCompleteType() const { return false; }
 
 const Type *TemplateTypeParmType::GetBaseType() const { return this; }
 
-const Type *TemplateTypeParmType::GetAsUnboundVariabilityType() const {
-    if (variability == Variability::Unbound) {
-        return this;
-    }
-    return CloneWithVariability(this, Variability(Variability::Unbound));
-}
-
 // Revisit: Should soa type be supported for template type param?
 const Type *TemplateTypeParmType::GetAsSOAType(int width) const {
     Error(pos, "soa type not supported for template type parameter.");
@@ -814,14 +799,6 @@ const EnumType *EnumType::ResolveUnboundVariability(Variability v) const {
         return this;
     } else {
         return CloneWithVariability(this, v);
-    }
-}
-
-const EnumType *EnumType::GetAsUnboundVariabilityType() const {
-    if (HasUnboundVariability()) {
-        return this;
-    } else {
-        return CloneWithVariability(this, Variability(Variability::Unbound));
     }
 }
 
@@ -1010,14 +987,6 @@ bool PointerType::IsSignedType() const { return false; }
 bool PointerType::IsCompleteType() const { return true; }
 
 const Type *PointerType::GetBaseType() const { return baseType; }
-
-const PointerType *PointerType::GetAsUnboundVariabilityType() const {
-    if (variability == Variability::Unbound) {
-        return this;
-    } else {
-        return CloneWithVariability(this, Variability(Variability::Unbound));
-    }
-}
 
 const PointerType *PointerType::GetAsSOAType(int width) const {
     if (GetSOAWidth() == width) {
@@ -2084,14 +2053,6 @@ bool StructType::IsAnonymousType() const { return isAnonymous; }
 
 const Type *StructType::GetBaseType() const { return this; }
 
-const StructType *StructType::GetAsUnboundVariabilityType() const {
-    if (HasUnboundVariability()) {
-        return this;
-    } else {
-        return CloneWithVariability(Variability(Variability::Unbound));
-    }
-}
-
 const StructType *StructType::GetAsSOAType(int width) const {
     if (GetSOAWidth() == width) {
         return this;
@@ -2340,13 +2301,6 @@ bool UndefinedStructType::IsSignedType() const { return false; }
 bool UndefinedStructType::IsCompleteType() const { return false; }
 
 const Type *UndefinedStructType::GetBaseType() const { return this; }
-
-const UndefinedStructType *UndefinedStructType::GetAsUnboundVariabilityType() const {
-    if (variability == Variability::Unbound) {
-        return this;
-    }
-    return CloneWithVariability(Variability(Variability::Unbound));
-}
 
 const UndefinedStructType *UndefinedStructType::GetAsSOAType(int width) const {
     FATAL("UndefinedStructType::GetAsSOAType() shouldn't be called.");
@@ -3270,6 +3224,14 @@ const Type *Type::GetAsUniformType() const {
         }
     }
     return asUniformType;
+}
+
+const Type *Type::GetAsUnboundVariabilityType() const {
+    if (variability == Variability::Unbound) {
+        return this;
+    }
+    // TODO!: why we cache uniform and varying types but not unbound?
+    return CloneWithVariability(Variability(Variability::Unbound));
 }
 
 const Type *Type::GetReferenceTarget() const {
