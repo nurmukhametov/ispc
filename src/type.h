@@ -192,11 +192,11 @@ class Type : public Traceable {
 
     /** Return a "uniform" instance of this type.  If the type is already
         uniform, its "this" pointer will be returned. */
-    virtual const Type *GetAsUniformType() const = 0;
+    virtual const Type *GetAsUniformType() const;
 
     /** Return a "varying" instance of this type.  If the type is already
         varying, its "this" pointer will be returned. */
-    virtual const Type *GetAsVaryingType() const = 0;
+    virtual const Type *GetAsVaryingType() const;
 
     /** Get an instance of the type with unbound variability. */
     virtual const Type *GetAsUnboundVariabilityType() const = 0;
@@ -316,8 +316,17 @@ class Type : public Traceable {
 
     mutable const Type *asOtherConstType = {};
 
+    const Type *CloneWithVariability(Variability newVariability) const {
+        const Type *ins = Clone();
+        ins->variability = newVariability;
+        return ins;
+    }
+
+    mutable const Type *asUniformType = {};
+    mutable const Type *asVaryingType = {};
+
   protected:
-    Variability variability = {};
+    mutable Variability variability = {};
     mutable ConstID isConst = {};
     SourcePos pos = {};
 
@@ -325,6 +334,10 @@ class Type : public Traceable {
     // Type(TypeId id, Variability v) : typeId(id), variability(v), isConst(NON_CONST), pos() {}
     Type(TypeId id, Variability v, ConstID c) : typeId(id), variability(v), isConst(c), pos() {}
     Type(TypeId id, Variability v, ConstID c, SourcePos s) : typeId(id), variability(v), isConst(c), pos(s) {}
+
+    // The mutable pointers (asOtherConstType, asUniformType, asVaryingType) are
+    // initialized to nullptr instead of copying the pointers from 'other'
+    // since these are cached values that will be recomputed when needed
 };
 
 /** @brief AtomicType represents basic types like floats, ints, etc.
@@ -338,12 +351,7 @@ class Type : public Traceable {
 class AtomicType : public Type {
   public:
     AtomicType(const AtomicType &other)
-        : Type(ATOMIC_TYPE, other.variability, other.isConst), basicType(other.basicType), asUniformType(nullptr),
-          asVaryingType(nullptr) {
-        // The mutable pointers (asOtherConstType, asUniformType, asVaryingType) are
-        // initialized to nullptr instead of copying the pointers from 'other'
-        // since these are cached values that will be recomputed when needed
-    }
+        : Type(ATOMIC_TYPE, other.variability, other.isConst), basicType(other.basicType) {}
     const AtomicType *Clone() const { return new AtomicType(*this); }
     bool IsBoolType() const;
     bool IsFloatType() const;
@@ -355,8 +363,6 @@ class AtomicType : public Type {
     /** For AtomicTypes, the base type is just the same as the AtomicType
         itself. */
     const AtomicType *GetBaseType() const;
-    const AtomicType *GetAsUniformType() const;
-    const AtomicType *GetAsVaryingType() const;
     const AtomicType *GetAsUnboundVariabilityType() const;
     const AtomicType *GetAsSOAType(int width) const;
 
@@ -425,8 +431,6 @@ class AtomicType : public Type {
     AtomicType(BasicType basicType, Variability v, bool isConst);
 
     const AtomicType *CloneWithBasicType(BasicType newBasicType) const;
-
-    mutable const AtomicType *asUniformType, *asVaryingType;
 };
 
 /** @brief Type representing a template typename type.

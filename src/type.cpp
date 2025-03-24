@@ -318,36 +318,6 @@ const AtomicType *AtomicType::GetAsSignedType() const {
 
 const AtomicType *AtomicType::GetBaseType() const { return this; }
 
-const AtomicType *AtomicType::GetAsVaryingType() const {
-    Assert(basicType != TYPE_VOID && basicType != TYPE_DEPENDENT);
-    if (variability == Variability::Varying) {
-        return this;
-    }
-
-    if (asVaryingType == nullptr) {
-        asVaryingType = CloneWithVariability(this, Variability(Variability::Varying));
-        if (variability == Variability::Uniform) {
-            asVaryingType->asUniformType = this;
-        }
-    }
-    return asVaryingType;
-}
-
-const AtomicType *AtomicType::GetAsUniformType() const {
-    Assert(basicType != TYPE_VOID && basicType != TYPE_DEPENDENT);
-    if (variability == Variability::Uniform) {
-        return this;
-    }
-
-    if (asUniformType == nullptr) {
-        asUniformType = CloneWithVariability(this, Variability(Variability::Uniform));
-        if (variability == Variability::Varying) {
-            asUniformType->asVaryingType = this;
-        }
-    }
-    return asUniformType;
-}
-
 const AtomicType *AtomicType::GetAsUnboundVariabilityType() const {
     Assert(basicType != TYPE_VOID && basicType != TYPE_DEPENDENT);
     if (variability == Variability::Unbound) {
@@ -3362,6 +3332,34 @@ const std::string &FunctionType::GetParameterName(int i) const {
 
 ///////////////////////////////////////////////////////////////////////////
 // Type
+
+const Type *Type::GetAsVaryingType() const {
+    if (variability == Variability::Varying) {
+        return this;
+    }
+
+    if (asVaryingType == nullptr) {
+        asVaryingType = CloneWithVariability(Variability(Variability::Varying));
+        if (variability == Variability::Uniform) {
+            asVaryingType->asUniformType = this;
+        }
+    }
+    return asVaryingType;
+}
+
+const Type *Type::GetAsUniformType() const {
+    if (variability == Variability::Uniform) {
+        return this;
+    }
+
+    if (asUniformType == nullptr) {
+        asUniformType = CloneWithVariability(Variability(Variability::Uniform));
+        if (variability == Variability::Varying) {
+            asUniformType->asVaryingType = this;
+        }
+    }
+    return asUniformType;
+}
 
 const Type *Type::GetReferenceTarget() const {
     // only ReferenceType needs to override this method
