@@ -363,8 +363,6 @@ bool AtomicType::IsSignedType() const {
 
 bool AtomicType::IsBoolType() const { return basicType == TYPE_BOOL || basicType == TYPE_INT1; }
 
-bool AtomicType::IsCompleteType() const { return true; }
-
 const AtomicType *AtomicType::GetAsUnsignedType() const {
     if (IsUnsignedType() == true) {
         return this;
@@ -738,16 +736,6 @@ TemplateTypeParmType::TemplateTypeParmType(std::string n, Variability v, bool ic
     asUniformType = asVaryingType = nullptr;
 }
 
-bool TemplateTypeParmType::IsBoolType() const { return false; }
-
-bool TemplateTypeParmType::IsFloatType() const { return false; }
-
-bool TemplateTypeParmType::IsIntType() const { return false; }
-
-bool TemplateTypeParmType::IsUnsignedType() const { return false; }
-
-bool TemplateTypeParmType::IsSignedType() const { return false; }
-
 bool TemplateTypeParmType::IsCompleteType() const { return false; }
 
 // Revisit: Should soa type be supported for template type param?
@@ -840,17 +828,9 @@ EnumType::EnumType(const char *n, SourcePos p) : Type(ENUM_TYPE, Variability::Un
 EnumType::EnumType(std::string n, Variability v, bool ic, SourcePos p, const std::vector<Symbol *> &enums)
     : Type(ENUM_TYPE, v, ic ? IS_CONST : NON_CONST, p), name(n), enumerators(enums) {}
 
-bool EnumType::IsBoolType() const { return false; }
-
-bool EnumType::IsFloatType() const { return false; }
-
 bool EnumType::IsIntType() const { return true; }
 
 bool EnumType::IsUnsignedType() const { return true; }
-
-bool EnumType::IsSignedType() const { return false; }
-
-bool EnumType::IsCompleteType() const { return true; }
 
 std::string EnumType::GetString() const {
     std::string ret;
@@ -1015,18 +995,6 @@ PointerType *PointerType::GetVarying(const Type *t) {
 bool PointerType::IsVoidPointer(const Type *t) {
     return Type::EqualIgnoringConst(t->GetAsUniformType(), PointerType::Void);
 }
-
-bool PointerType::IsBoolType() const { return false; }
-
-bool PointerType::IsFloatType() const { return false; }
-
-bool PointerType::IsIntType() const { return false; }
-
-bool PointerType::IsUnsignedType() const { return false; }
-
-bool PointerType::IsSignedType() const { return false; }
-
-bool PointerType::IsCompleteType() const { return true; }
 
 const Type *PointerType::GetBaseType() const { return baseType; }
 
@@ -1356,16 +1324,6 @@ llvm::ArrayType *ArrayType::LLVMType(llvm::LLVMContext *ctx) const {
     }
     return llvm::ArrayType::get(ct, elementCount.fixedCount);
 }
-
-bool ArrayType::IsFloatType() const { return false; }
-
-bool ArrayType::IsIntType() const { return false; }
-
-bool ArrayType::IsUnsignedType() const { return false; }
-
-bool ArrayType::IsSignedType() const { return false; }
-
-bool ArrayType::IsBoolType() const { return false; }
 
 bool ArrayType::IsCompleteType() const { return GetBaseType()->IsCompleteType(); }
 
@@ -2036,16 +1994,6 @@ const std::string StructType::GetCStructName() const {
     }
 }
 
-bool StructType::IsBoolType() const { return false; }
-
-bool StructType::IsFloatType() const { return false; }
-
-bool StructType::IsIntType() const { return false; }
-
-bool StructType::IsUnsignedType() const { return false; }
-
-bool StructType::IsSignedType() const { return false; }
-
 bool StructType::IsCompleteType() const {
     int n = GetElementCount();
     // Corner case when struct consists of a single unsized array
@@ -2304,16 +2252,6 @@ UndefinedStructType::UndefinedStructType(const std::string &n, const Variability
     }
 }
 
-bool UndefinedStructType::IsBoolType() const { return false; }
-
-bool UndefinedStructType::IsFloatType() const { return false; }
-
-bool UndefinedStructType::IsIntType() const { return false; }
-
-bool UndefinedStructType::IsUnsignedType() const { return false; }
-
-bool UndefinedStructType::IsSignedType() const { return false; }
-
 bool UndefinedStructType::IsCompleteType() const { return false; }
 
 const UndefinedStructType *UndefinedStructType::GetAsSOAType(int width) const {
@@ -2427,8 +2365,6 @@ bool ReferenceType::IsSignedType() const {
     }
     return targetType->IsSignedType();
 }
-
-bool ReferenceType::IsCompleteType() const { return true; }
 
 const Type *ReferenceType::GetReferenceTarget() const { return targetType; }
 
@@ -2665,18 +2601,6 @@ const FunctionType *FunctionType::CloneWithFlags(unsigned int newFlags) const {
     ret->costOverride = costOverride;
     return ret;
 }
-
-bool FunctionType::IsFloatType() const { return false; }
-
-bool FunctionType::IsIntType() const { return false; }
-
-bool FunctionType::IsBoolType() const { return false; }
-
-bool FunctionType::IsUnsignedType() const { return false; }
-
-bool FunctionType::IsSignedType() const { return false; }
-
-bool FunctionType::IsCompleteType() const { return true; }
 
 bool FunctionType::IsISPCKernel() const { return g->target->isXeTarget() && IsTask(); }
 

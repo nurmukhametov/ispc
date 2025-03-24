@@ -74,27 +74,27 @@ class Type : public Traceable {
     /** Returns true if the underlying type is boolean.  In other words,
         this is true for individual bools and for short-vectors with
         underlying bool type, but not for arrays of bools. */
-    virtual bool IsBoolType() const = 0;
+    virtual bool IsBoolType() const { return false; }
 
     /** Returns true if the underlying type is float or double.  In other
         words, this is true for individual floats/doubles and for
         short-vectors of them, but not for arrays of them. */
-    virtual bool IsFloatType() const = 0;
+    virtual bool IsFloatType() const { return false; }
 
     /** Returns true if the underlying type is an integer type.  In other
         words, this is true for individual integers and for short-vectors
         of integer types, but not for arrays of integer types. */
-    virtual bool IsIntType() const = 0;
+    virtual bool IsIntType() const { return false; }
 
     /** Returns true if the underlying type is unsigned.  In other words,
         this is true for unsigned integers and short vectors of unsigned
         integer types. */
-    virtual bool IsUnsignedType() const = 0;
+    virtual bool IsUnsignedType() const { return false; }
 
     /** Returns true if the underlying type is signed.  In other words,
         this is true for signed integers and short vectors of signed
         integer types. */
-    virtual bool IsSignedType() const = 0;
+    virtual bool IsSignedType() const { return false; }
 
     /** Returns true if the underlying type is either a pointer type */
     bool IsPointerType() const;
@@ -130,7 +130,7 @@ class Type : public Traceable {
         incomplete types (e.g. forward-declared structs) that are not
         allowed in certain contexts, e.g., when we need to allocate memory for
         them. */
-    virtual bool IsCompleteType() const = 0;
+    virtual bool IsCompleteType() const { return true; }
 
     /** Returns true if the underlying type is a float or integer type. */
     bool IsNumericType() const { return IsFloatType() || IsIntType(); }
@@ -353,12 +353,11 @@ class AtomicType : public Type {
     AtomicType(const AtomicType &other)
         : Type(ATOMIC_TYPE, other.variability, other.isConst), basicType(other.basicType) {}
     const AtomicType *Clone() const { return new AtomicType(*this); }
-    bool IsBoolType() const;
-    bool IsFloatType() const;
-    bool IsIntType() const;
-    bool IsUnsignedType() const;
-    bool IsSignedType() const;
-    bool IsCompleteType() const;
+    bool IsBoolType() const override;
+    bool IsFloatType() const override;
+    bool IsIntType() const override;
+    bool IsUnsignedType() const override;
+    bool IsSignedType() const override;
 
     const AtomicType *GetAsUnsignedType() const;
     const AtomicType *GetAsSignedType() const;
@@ -436,12 +435,7 @@ class TemplateTypeParmType : public Type {
         : Type(TEMPLATE_TYPE_PARM_TYPE, other.variability, other.isConst, other.pos), name(other.name) {}
     const TemplateTypeParmType *Clone() const { return new TemplateTypeParmType(*this); }
 
-    bool IsBoolType() const;
-    bool IsFloatType() const;
-    bool IsIntType() const;
-    bool IsUnsignedType() const;
-    bool IsSignedType() const;
-    bool IsCompleteType() const;
+    bool IsCompleteType() const override;
 
     const Type *GetAsSOAType(int width) const override;
     const Type *ResolveDependence(TemplateInstantiation &templInst) const;
@@ -475,12 +469,8 @@ class EnumType : public Type {
           enumerators(other.enumerators) {}
     const EnumType *Clone() const { return new EnumType(*this); }
 
-    bool IsBoolType() const;
-    bool IsFloatType() const;
-    bool IsIntType() const;
-    bool IsUnsignedType() const;
-    bool IsSignedType() const;
-    bool IsCompleteType() const;
+    bool IsIntType() const override;
+    bool IsUnsignedType() const override;
 
     std::string GetString() const;
     std::string Mangle() const;
@@ -551,13 +541,6 @@ class PointerType : public Type {
 
     /** Returns true if the given type is a void * type. */
     static bool IsVoidPointer(const Type *t);
-
-    bool IsBoolType() const;
-    bool IsFloatType() const;
-    bool IsIntType() const;
-    bool IsUnsignedType() const;
-    bool IsSignedType() const;
-    bool IsCompleteType() const;
 
     bool IsSlice() const { return property; }
     bool IsFrozenSlice() const { return property & FROZEN; }
@@ -698,12 +681,7 @@ class ArrayType : public SequentialType {
     ArrayType(const Type *elementType, ElementCount elCount);
     const ArrayType *Clone() const { return new ArrayType(*this); }
 
-    bool IsBoolType() const;
-    bool IsFloatType() const;
-    bool IsIntType() const;
-    bool IsUnsignedType() const;
-    bool IsSignedType() const;
-    bool IsCompleteType() const;
+    bool IsCompleteType() const override;
     /* Returns true if the number of elements in the array is dependent on a template parameter. */
     virtual bool IsCountDependent() const { return elementCount.symbolCount != nullptr; }
 
@@ -782,12 +760,12 @@ class VectorType : public SequentialType {
     VectorType(const Type *base, ElementCount elCount);
     const VectorType *Clone() const { return new VectorType(*this); }
 
-    bool IsBoolType() const;
-    bool IsFloatType() const;
-    bool IsIntType() const;
-    bool IsUnsignedType() const;
-    bool IsSignedType() const;
-    bool IsCompleteType() const;
+    bool IsBoolType() const override;
+    bool IsFloatType() const override;
+    bool IsIntType() const override;
+    bool IsUnsignedType() const override;
+    bool IsSignedType() const override;
+    bool IsCompleteType() const override;
     /* Returns true if the number of elements in the vector is dependent on a template parameter. */
     virtual bool IsCountDependent() const { return elementCount.symbolCount != nullptr; }
 
@@ -851,12 +829,7 @@ class StructType : public CollectionType {
           isAnonymous(other.isAnonymous), finalElementTypes(), oppositeConstStructType(nullptr) {}
     const StructType *Clone() const { Assert(0); return nullptr; }
 
-    bool IsBoolType() const;
-    bool IsFloatType() const;
-    bool IsIntType() const;
-    bool IsUnsignedType() const;
-    bool IsSignedType() const;
-    bool IsCompleteType() const;
+    bool IsCompleteType() const override;
     bool IsDefined() const;
     bool IsAnonymousType() const;
 
@@ -956,12 +929,7 @@ class UndefinedStructType : public Type {
         : Type(UNDEFINED_STRUCT_TYPE, other.variability, other.isConst, other.pos), name(other.name) {}
     const UndefinedStructType *Clone() const { Assert(0); return nullptr; }
 
-    bool IsBoolType() const;
-    bool IsFloatType() const;
-    bool IsIntType() const;
-    bool IsUnsignedType() const;
-    bool IsSignedType() const;
-    bool IsCompleteType() const;
+    bool IsCompleteType() const override;
 
     const UndefinedStructType *GetAsSOAType(int width) const override;
 
@@ -1010,12 +978,11 @@ class ReferenceType : public Type {
     }
     const ReferenceType *Clone() const { return new ReferenceType(*this); }
 
-    bool IsBoolType() const;
-    bool IsFloatType() const;
-    bool IsIntType() const;
-    bool IsUnsignedType() const;
-    bool IsSignedType() const;
-    bool IsCompleteType() const;
+    bool IsBoolType() const override;
+    bool IsFloatType() const override;
+    bool IsIntType() const override;
+    bool IsUnsignedType() const override;
+    bool IsSignedType() const override;
     AddressSpace GetAddressSpace() const { return addrSpace; }
 
     const Type *GetBaseType() const override;
@@ -1098,13 +1065,6 @@ class FunctionType : public Type {
     };
 
     const FunctionType *Clone() const { return new FunctionType(*this); }
-
-    bool IsBoolType() const;
-    bool IsFloatType() const;
-    bool IsIntType() const;
-    bool IsUnsignedType() const;
-    bool IsSignedType() const;
-    bool IsCompleteType() const;
 
     bool IsISPCKernel() const;
     bool IsISPCExternal() const;
