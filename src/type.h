@@ -178,7 +178,7 @@ class Type : public Traceable {
     /** Resolves dependent type with mapping of template types to concrete type passed as argeument.
         Do not handle variability resolution, which need to be done as a separate step.
      */
-    virtual const Type *ResolveDependence(TemplateInstantiation &templInst) const = 0;
+    virtual const Type *ResolveDependence(TemplateInstantiation &templInst) const { return this; }
 
     /** Resolves dependent type with mapping of template types to concrete type passed as argeument.
         Resolve variability of the type as well.
@@ -360,7 +360,6 @@ class AtomicType : public Type {
     bool IsSignedType() const;
     bool IsCompleteType() const;
 
-    const AtomicType *ResolveDependence(TemplateInstantiation &templInst) const;
     const AtomicType *GetAsUnsignedType() const;
     const AtomicType *GetAsSignedType() const;
 
@@ -482,8 +481,6 @@ class EnumType : public Type {
     bool IsUnsignedType() const;
     bool IsSignedType() const;
     bool IsCompleteType() const;
-
-    const EnumType *ResolveDependence(TemplateInstantiation &templInst) const;
 
     std::string GetString() const;
     std::string Mangle() const;
@@ -864,7 +861,6 @@ class StructType : public CollectionType {
     bool IsAnonymousType() const;
 
     const StructType *GetAsSOAType(int width) const override;
-    const StructType *ResolveDependence(TemplateInstantiation &templInst) const;
 
     const StructType *GetAsNamed(const std::string &name) const;
 
@@ -968,7 +964,6 @@ class UndefinedStructType : public Type {
     bool IsCompleteType() const;
 
     const UndefinedStructType *GetAsSOAType(int width) const override;
-    const UndefinedStructType *ResolveDependence(TemplateInstantiation &templInst) const;
 
     std::string GetString() const;
     std::string Mangle() const;
@@ -1119,7 +1114,7 @@ class FunctionType : public Type {
     const Type *GetAsUniformType() const override;
     const Type *GetAsUnboundVariabilityType() const override;
     const Type *GetAsSOAType(int width) const override;
-    const FunctionType *ResolveDependence(TemplateInstantiation &templInst) const;
+    const FunctionType *ResolveDependence(TemplateInstantiation &templInst) const override;
     const FunctionType *ResolveUnboundVariability(Variability v) const override;
 
     const Type *GetAsConstType() const;

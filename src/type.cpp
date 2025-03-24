@@ -413,12 +413,6 @@ const AtomicType *AtomicType::GetAsSignedType() const {
     }
 }
 
-const AtomicType *AtomicType::ResolveDependence(TemplateInstantiation &templInst) const {
-    // TODO: ???
-    // Assert(basicType != TYPE_DEPENDENT); // Dependent placeholder type should not be attempted to resolve.
-    return this;
-}
-
 std::string AtomicType::GetString() const {
     std::string ret;
     if (isConst) {
@@ -857,8 +851,6 @@ bool EnumType::IsUnsignedType() const { return true; }
 bool EnumType::IsSignedType() const { return false; }
 
 bool EnumType::IsCompleteType() const { return true; }
-
-const EnumType *EnumType::ResolveDependence(TemplateInstantiation &templInst) const { return this; }
 
 std::string EnumType::GetString() const {
     std::string ret;
@@ -2105,8 +2097,6 @@ const StructType *StructType::GetAsSOAType(int width) const {
     return CloneWithVariability(Variability(Variability::SOA, width));
 }
 
-const StructType *StructType::ResolveDependence(TemplateInstantiation &templInst) const { return this; }
-
 const StructType *StructType::GetAsNamed(const std::string &n) const {
     // TODO!: isNamed enum flag type?
     return new StructType(n, elementTypes, elementNames, elementPositions, isConst, variability, false, pos);
@@ -2329,10 +2319,6 @@ bool UndefinedStructType::IsCompleteType() const { return false; }
 const UndefinedStructType *UndefinedStructType::GetAsSOAType(int width) const {
     FATAL("UndefinedStructType::GetAsSOAType() shouldn't be called.");
     return nullptr;
-}
-
-const UndefinedStructType *UndefinedStructType::ResolveDependence(TemplateInstantiation &templInst) const {
-    return this;
 }
 
 std::string UndefinedStructType::GetString() const {
