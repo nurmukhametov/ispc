@@ -413,8 +413,6 @@ const AtomicType *AtomicType::GetAsSignedType() const {
     }
 }
 
-const AtomicType *AtomicType::GetBaseType() const { return this; }
-
 const AtomicType *AtomicType::ResolveDependence(TemplateInstantiation &templInst) const {
     // TODO: ???
     // Assert(basicType != TYPE_DEPENDENT); // Dependent placeholder type should not be attempted to resolve.
@@ -758,8 +756,6 @@ bool TemplateTypeParmType::IsSignedType() const { return false; }
 
 bool TemplateTypeParmType::IsCompleteType() const { return false; }
 
-const Type *TemplateTypeParmType::GetBaseType() const { return this; }
-
 // Revisit: Should soa type be supported for template type param?
 const Type *TemplateTypeParmType::GetAsSOAType(int width) const {
     Error(pos, "soa type not supported for template type parameter.");
@@ -861,8 +857,6 @@ bool EnumType::IsUnsignedType() const { return true; }
 bool EnumType::IsSignedType() const { return false; }
 
 bool EnumType::IsCompleteType() const { return true; }
-
-const EnumType *EnumType::GetBaseType() const { return this; }
 
 const EnumType *EnumType::ResolveDependence(TemplateInstantiation &templInst) const { return this; }
 
@@ -2099,8 +2093,6 @@ bool StructType::IsDefined() const {
 
 bool StructType::IsAnonymousType() const { return isAnonymous; }
 
-const Type *StructType::GetBaseType() const { return this; }
-
 const StructType *StructType::GetAsSOAType(int width) const {
     if (GetSOAWidth() == width) {
         return this;
@@ -2333,8 +2325,6 @@ bool UndefinedStructType::IsUnsignedType() const { return false; }
 bool UndefinedStructType::IsSignedType() const { return false; }
 
 bool UndefinedStructType::IsCompleteType() const { return false; }
-
-const Type *UndefinedStructType::GetBaseType() const { return this; }
 
 const UndefinedStructType *UndefinedStructType::GetAsSOAType(int width) const {
     FATAL("UndefinedStructType::GetAsSOAType() shouldn't be called.");

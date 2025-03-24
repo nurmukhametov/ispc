@@ -214,7 +214,7 @@ class Type : public Traceable {
     /** Returns the basic root type of the given type.  For example, for an
         array or short-vector, this returns the element type.  For a struct
         or atomic type, it returns itself. */
-    virtual const Type *GetBaseType() const = 0;
+    virtual const Type *GetBaseType() const { return this; };
 
     /** If this is a reference type, returns the type it is referring to.
         For all other types, just returns its own type. */
@@ -360,10 +360,6 @@ class AtomicType : public Type {
     bool IsSignedType() const;
     bool IsCompleteType() const;
 
-    /** For AtomicTypes, the base type is just the same as the AtomicType
-        itself. */
-    const AtomicType *GetBaseType() const;
-
     const AtomicType *ResolveDependence(TemplateInstantiation &templInst) const;
     const AtomicType *GetAsUnsignedType() const;
     const AtomicType *GetAsSignedType() const;
@@ -448,7 +444,6 @@ class TemplateTypeParmType : public Type {
     bool IsSignedType() const;
     bool IsCompleteType() const;
 
-    const Type *GetBaseType() const;
     const Type *GetAsSOAType(int width) const override;
     const Type *ResolveDependence(TemplateInstantiation &templInst) const;
 
@@ -487,8 +482,6 @@ class EnumType : public Type {
     bool IsUnsignedType() const;
     bool IsSignedType() const;
     bool IsCompleteType() const;
-
-    const EnumType *GetBaseType() const;
 
     const EnumType *ResolveDependence(TemplateInstantiation &templInst) const;
 
@@ -576,7 +569,7 @@ class PointerType : public Type {
     const PointerType *GetAsNonSlice() const;
     const PointerType *GetAsFrozenSlice() const;
 
-    const Type *GetBaseType() const;
+    const Type *GetBaseType() const override;
 
     const PointerType *ResolveDependence(TemplateInstantiation &templInst) const;
     const PointerType *ResolveUnboundVariability(Variability v) const override;
@@ -870,7 +863,6 @@ class StructType : public CollectionType {
     bool IsDefined() const;
     bool IsAnonymousType() const;
 
-    const Type *GetBaseType() const;
     const StructType *GetAsSOAType(int width) const override;
     const StructType *ResolveDependence(TemplateInstantiation &templInst) const;
 
@@ -975,7 +967,6 @@ class UndefinedStructType : public Type {
     bool IsSignedType() const;
     bool IsCompleteType() const;
 
-    const Type *GetBaseType() const;
     const UndefinedStructType *GetAsSOAType(int width) const override;
     const UndefinedStructType *ResolveDependence(TemplateInstantiation &templInst) const;
 
@@ -1032,7 +1023,7 @@ class ReferenceType : public Type {
     bool IsCompleteType() const;
     AddressSpace GetAddressSpace() const { return addrSpace; }
 
-    const Type *GetBaseType() const;
+    const Type *GetBaseType() const override;
     const Type *GetReferenceTarget() const;
     const ReferenceType *GetAsVaryingType() const;
     const ReferenceType *GetAsUniformType() const;
@@ -1123,7 +1114,7 @@ class FunctionType : public Type {
     bool IsISPCKernel() const;
     bool IsISPCExternal() const;
 
-    const Type *GetBaseType() const;
+    const Type *GetBaseType() const override;
     const Type *GetAsVaryingType() const override;
     const Type *GetAsUniformType() const override;
     const Type *GetAsUnboundVariabilityType() const override;
