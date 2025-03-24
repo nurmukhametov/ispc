@@ -1175,7 +1175,6 @@ const PointerType *PointerType::GetAsConstType() const {
         return this;
     } else {
         return CloneWithConstAndProperty(IS_CONST, property & ~FROZEN);
-        // return CloneWithConst(this, IS_CONST);
     }
 }
 
@@ -1184,7 +1183,6 @@ const PointerType *PointerType::GetAsNonConstType() const {
         return this;
     } else {
         return CloneWithConstAndProperty(NON_CONST, property & ~FROZEN);
-        // return CloneWithConst(this, NON_CONST);
     }
 }
 
@@ -2225,30 +2223,6 @@ const StructType *StructType::ResolveUnboundVariability(Variability v) const {
     // type, for example, then we still have the information around about
     // which element types were originally unbound...
     return CloneWithVariability(this, v);
-}
-
-const StructType *StructType::GetAsConstType() const {
-    if (isConst == true) {
-        return this;
-    } else if (oppositeConstStructType != nullptr) {
-        return oppositeConstStructType;
-    } else {
-        oppositeConstStructType = CloneWithConst(this, IS_CONST);
-        oppositeConstStructType->oppositeConstStructType = this;
-        return oppositeConstStructType;
-    }
-}
-
-const StructType *StructType::GetAsNonConstType() const {
-    if (isConst == false) {
-        return this;
-    } else if (oppositeConstStructType != nullptr) {
-        return oppositeConstStructType;
-    } else {
-        oppositeConstStructType = CloneWithConst(this, NON_CONST);
-        oppositeConstStructType->oppositeConstStructType = this;
-        return oppositeConstStructType;
-    }
 }
 
 const StructType *StructType::GetAsNamed(const std::string &n) const {

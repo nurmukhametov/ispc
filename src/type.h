@@ -898,9 +898,6 @@ class StructType : public CollectionType {
     const StructType *ResolveDependence(TemplateInstantiation &templInst) const;
     const StructType *ResolveUnboundVariability(Variability v) const;
 
-    const StructType *GetAsConstType() const;
-    const StructType *GetAsNonConstType() const;
-
     const StructType *GetAsNamed(const std::string &name) const;
 
     std::string GetString() const;
