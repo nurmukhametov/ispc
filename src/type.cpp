@@ -2341,25 +2341,11 @@ bool UndefinedStructType::IsCompleteType() const { return false; }
 
 const Type *UndefinedStructType::GetBaseType() const { return this; }
 
-const UndefinedStructType *UndefinedStructType::GetAsVaryingType() const {
-    if (variability == Variability::Varying) {
-        return this;
-    }
-    return CloneWithVariability(this, Variability(Variability::Varying));
-}
-
-const UndefinedStructType *UndefinedStructType::GetAsUniformType() const {
-    if (variability == Variability::Uniform) {
-        return this;
-    }
-    return CloneWithVariability(this, Variability(Variability::Uniform));
-}
-
 const UndefinedStructType *UndefinedStructType::GetAsUnboundVariabilityType() const {
     if (variability == Variability::Unbound) {
         return this;
     }
-    return CloneWithVariability(this, Variability(Variability::Unbound));
+    return CloneWithVariability(Variability(Variability::Unbound));
 }
 
 const UndefinedStructType *UndefinedStructType::GetAsSOAType(int width) const {
@@ -2375,7 +2361,7 @@ const UndefinedStructType *UndefinedStructType::ResolveUnboundVariability(Variab
     if (variability != Variability::Unbound) {
         return this;
     }
-    return CloneWithVariability(this, v);
+    return CloneWithVariability(v);
 }
 
 std::string UndefinedStructType::GetString() const {

@@ -988,8 +988,6 @@ class UndefinedStructType : public Type {
     bool IsCompleteType() const;
 
     const Type *GetBaseType() const;
-    const UndefinedStructType *GetAsVaryingType() const;
-    const UndefinedStructType *GetAsUniformType() const;
     const UndefinedStructType *GetAsUnboundVariabilityType() const;
     const UndefinedStructType *GetAsSOAType(int width) const;
     const UndefinedStructType *ResolveDependence(TemplateInstantiation &templInst) const;
@@ -1011,16 +1009,15 @@ class UndefinedStructType : public Type {
 
     template <typename T> const UndefinedStructType *CloneWith(T param) const;
 
-    template <typename B> static const B *CloneWithVariability(B *ptr, Variability newVariability) {
+    const UndefinedStructType *CloneWithVariability(Variability newVariability) const override {
         // This is a bit of a hack, but it's the easiest way to get the correct
         // m->structTypeMap entry. It is created inside constructor depending
         // on the new variability value.
         // TODO!: I don't think constructor needs to create m->structTypeMap entry
-        B *ins = new B(ptr->name, newVariability, ptr->isConst, ptr->pos);
-        return ins;
+        return new UndefinedStructType(name, newVariability, isConst, pos);
     }
 
-    const Type *CloneWithConst(ConstID newIsConst) const override {
+    const UndefinedStructType *CloneWithConst(ConstID newIsConst) const override {
         // This is a bit of a hack, but it's the easiest way to get the correct
         // m->structTypeMap entry. It is created inside constructor depending
         // on the new variability value.
