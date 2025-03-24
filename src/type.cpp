@@ -2443,7 +2443,7 @@ const ReferenceType *ReferenceType::GetAsConstType() const {
         asOtherConstType = CloneWithBaseType(targetType->GetAsConstType());
         asOtherConstType->asOtherConstType = this;
     }
-    return asOtherConstType;
+    return static_cast<const ReferenceType *>(asOtherConstType);
 }
 
 const ReferenceType *ReferenceType::GetAsNonConstType() const {
@@ -2459,7 +2459,7 @@ const ReferenceType *ReferenceType::GetAsNonConstType() const {
         asOtherConstType = CloneWithBaseType(targetType->GetAsNonConstType());
         asOtherConstType->asOtherConstType = this;
     }
-    return asOtherConstType;
+    return static_cast<const ReferenceType *>(asOtherConstType);
 }
 
 const ReferenceType *ReferenceType::GetWithAddrSpace(AddressSpace as) const {

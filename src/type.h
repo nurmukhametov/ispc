@@ -299,20 +299,11 @@ class Type : public Traceable {
         using dynamic_cast. */
     const TypeId typeId;
 
-    // Specialized version for Variability
-    template <typename B> static const B *CloneWithVariability(const B *ptr, Variability newVariability) {
-        B *ins = new B(*ptr);
-        ins->variability = newVariability;
-        return ins;
-    }
-
     virtual const Type *CloneWithConst(ConstID newIsConst) const {
         const Type *ins = Clone();
         ins->isConst = newIsConst;
         return ins;
     }
-
-    virtual const Type *Clone() const = 0;
 
     mutable const Type *asOtherConstType = {};
 
@@ -338,6 +329,8 @@ class Type : public Traceable {
     // The mutable pointers (asOtherConstType, asUniformType, asVaryingType) are
     // initialized to nullptr instead of copying the pointers from 'other'
     // since these are cached values that will be recomputed when needed
+
+    virtual const Type *Clone() const = 0;
 };
 
 /** @brief AtomicType represents basic types like floats, ints, etc.
@@ -352,24 +345,23 @@ class AtomicType : public Type {
   public:
     AtomicType(const AtomicType &other)
         : Type(ATOMIC_TYPE, other.variability, other.isConst), basicType(other.basicType) {}
-    const AtomicType *Clone() const { return new AtomicType(*this); }
+
     bool IsBoolType() const override;
     bool IsFloatType() const override;
     bool IsIntType() const override;
     bool IsUnsignedType() const override;
     bool IsSignedType() const override;
 
-    const AtomicType *GetAsUnsignedType() const;
-    const AtomicType *GetAsSignedType() const;
+    const AtomicType *GetAsUnsignedType() const override;
+    const AtomicType *GetAsSignedType() const override;
 
-    std::string GetString() const;
-    std::string Mangle() const;
-    std::string GetDeclaration(const std::string &name, DeclarationSyntax syntax) const;
+    std::string GetString() const override;
+    std::string Mangle() const override;
+    std::string GetDeclaration(const std::string &name, DeclarationSyntax syntax) const override;
 
-    llvm::Type *LLVMStorageType(llvm::LLVMContext *ctx) const;
-    llvm::Type *LLVMType(llvm::LLVMContext *ctx) const;
-
-    llvm::DIType *GetDIType(llvm::DIScope *scope) const;
+    llvm::Type *LLVMStorageType(llvm::LLVMContext *ctx) const override;
+    llvm::Type *LLVMType(llvm::LLVMContext *ctx) const override;
+    llvm::DIType *GetDIType(llvm::DIScope *scope) const override;
 
     /** This enumerator records the basic types that AtomicTypes can be
         built from.  */
@@ -421,6 +413,8 @@ class AtomicType : public Type {
   private:
     AtomicType(BasicType basicType, Variability v, bool isConst);
 
+    const AtomicType *Clone() const override { return new AtomicType(*this); }
+
     const AtomicType *CloneWithBasicType(BasicType newBasicType) const;
 };
 
@@ -433,24 +427,25 @@ class TemplateTypeParmType : public Type {
     TemplateTypeParmType(std::string, Variability v, bool ic, SourcePos pos);
     TemplateTypeParmType(const TemplateTypeParmType &other)
         : Type(TEMPLATE_TYPE_PARM_TYPE, other.variability, other.isConst, other.pos), name(other.name) {}
-    const TemplateTypeParmType *Clone() const { return new TemplateTypeParmType(*this); }
 
     bool IsCompleteType() const override;
 
     const Type *GetAsSOAType(int width) const override;
-    const Type *ResolveDependence(TemplateInstantiation &templInst) const;
+    const Type *ResolveDependence(TemplateInstantiation &templInst) const override;
+
+    std::string GetString() const override;
+    std::string Mangle() const override;
+    std::string GetDeclaration(const std::string &name, DeclarationSyntax syntax) const override;
+
+    llvm::Type *LLVMType(llvm::LLVMContext *ctx) const override;
+    llvm::DIType *GetDIType(llvm::DIScope *scope) const override;
 
     std::string GetName() const;
-    std::string GetString() const;
-    std::string Mangle() const;
-    std::string GetDeclaration(const std::string &name, DeclarationSyntax syntax) const;
-
-    llvm::Type *LLVMType(llvm::LLVMContext *ctx) const;
-
-    llvm::DIType *GetDIType(llvm::DIScope *scope) const;
 
   private:
     const std::string name;
+
+    const TemplateTypeParmType *Clone() const override { return new TemplateTypeParmType(*this); }
 };
 
 /** @brief Type implementation for enumerated types
@@ -467,21 +462,19 @@ class EnumType : public Type {
     EnumType(const EnumType &other)
         : Type(ENUM_TYPE, other.variability, other.isConst, other.pos), name(other.name),
           enumerators(other.enumerators) {}
-    const EnumType *Clone() const { return new EnumType(*this); }
 
     bool IsIntType() const override;
     bool IsUnsignedType() const override;
 
-    std::string GetString() const;
-    std::string Mangle() const;
-    std::string GetDeclaration(const std::string &name, DeclarationSyntax syntax) const;
+    std::string GetString() const override;
+    std::string Mangle() const override;
+    std::string GetDeclaration(const std::string &name, DeclarationSyntax syntax) const override;
+
+    llvm::Type *LLVMType(llvm::LLVMContext *ctx) const override;
+    llvm::DIType *GetDIType(llvm::DIScope *scope) const override;
 
     /** Returns the name of the enum type.  (e.g. struct Foo -> "Foo".) */
     const std::string &GetEnumName() const { return name; }
-
-    llvm::Type *LLVMType(llvm::LLVMContext *ctx) const;
-
-    llvm::DIType *GetDIType(llvm::DIScope *scope) const;
 
     /** Provides the enumerators defined in the enum definition. */
     void SetEnumerators(const std::vector<Symbol *> &enumerators);
@@ -495,6 +488,8 @@ class EnumType : public Type {
     std::vector<Symbol *> enumerators;
 
     EnumType(std::string name, Variability v, bool ic, SourcePos pos, const std::vector<Symbol *> &enumerators);
+
+    const EnumType *Clone() const override { return new EnumType(*this); }
 };
 
 /** @brief Type implementation for pointers to other types
@@ -532,7 +527,19 @@ class PointerType : public Type {
     PointerType(const PointerType &other)
         : Type(POINTER_TYPE, other.variability, other.isConst), property(other.property), baseType(other.baseType),
           addrSpace(other.addrSpace) {}
-    const PointerType *Clone() const { return new PointerType(*this); }
+
+    const Type *GetBaseType() const override;
+    const PointerType *ResolveDependence(TemplateInstantiation &templInst) const override;
+    const PointerType *ResolveUnboundVariability(Variability v) const override;
+    const PointerType *GetAsConstType() const override;
+    const PointerType *GetAsNonConstType() const override;
+
+    std::string GetString() const override;
+    std::string Mangle() const override;
+    std::string GetDeclaration(const std::string &name, DeclarationSyntax syntax) const override;
+
+    llvm::Type *LLVMType(llvm::LLVMContext *ctx) const override;
+    llvm::DIType *GetDIType(llvm::DIScope *scope) const override;
 
     /** Helper method to return a uniform pointer to the given type. */
     static PointerType *GetUniform(const Type *t, bool isSlice = false);
@@ -549,21 +556,7 @@ class PointerType : public Type {
     const PointerType *GetAsNonSlice() const;
     const PointerType *GetAsFrozenSlice() const;
 
-    const Type *GetBaseType() const override;
-
-    const PointerType *ResolveDependence(TemplateInstantiation &templInst) const;
-    const PointerType *ResolveUnboundVariability(Variability v) const override;
-    const PointerType *GetAsConstType() const;
-    const PointerType *GetAsNonConstType() const;
     const PointerType *GetWithAddrSpace(AddressSpace as) const;
-
-    std::string GetString() const;
-    std::string Mangle() const;
-    std::string GetDeclaration(const std::string &name, DeclarationSyntax syntax) const;
-
-    llvm::Type *LLVMType(llvm::LLVMContext *ctx) const;
-
-    llvm::DIType *GetDIType(llvm::DIScope *scope) const;
 
     static PointerType *Void;
 
@@ -574,6 +567,8 @@ class PointerType : public Type {
     const Type *baseType;
     // TODO!: storing address space in Type doesn't seem to be a correct
     const AddressSpace addrSpace;
+
+    const PointerType *Clone() const override { return new PointerType(*this); }
 
     const PointerType *CloneWithBaseType(const Type *newBaseType) const;
     const PointerType *CloneWithAddressSpace(AddressSpace newAddrSpace) const;
@@ -679,38 +674,38 @@ class ArrayType : public SequentialType {
         @param elCount An ElementCount structure representing the number of elements.
     */
     ArrayType(const Type *elementType, ElementCount elCount);
-    const ArrayType *Clone() const { return new ArrayType(*this); }
+
+    int GetElementCount() const override;
+    const Type *GetElementType() const override;
+
+    /* Returns true if the number of elements in the array is dependent on a template parameter. */
+    virtual bool IsCountDependent() const override { return elementCount.symbolCount != nullptr; }
 
     bool IsCompleteType() const override;
-    /* Returns true if the number of elements in the array is dependent on a template parameter. */
-    virtual bool IsCountDependent() const { return elementCount.symbolCount != nullptr; }
+    const Type *GetBaseType() const override;
+    const ArrayType *GetAsVaryingType() const override;
+    const ArrayType *GetAsUniformType() const override;
+    const ArrayType *GetAsUnboundVariabilityType() const override;
+    const ArrayType *GetAsSOAType(int width) const override;
+    const ArrayType *ResolveDependence(TemplateInstantiation &templInst) const override;
+    const ArrayType *ResolveUnboundVariability(Variability v) const override;
 
-    const Type *GetBaseType() const;
-    const ArrayType *GetAsVaryingType() const;
-    const ArrayType *GetAsUniformType() const;
-    const ArrayType *GetAsUnboundVariabilityType() const;
-    const ArrayType *GetAsSOAType(int width) const;
-    const ArrayType *ResolveDependence(TemplateInstantiation &templInst) const;
-    const ArrayType *ResolveUnboundVariability(Variability v) const;
+    const ArrayType *GetAsUnsignedType() const override;
+    const ArrayType *GetAsSignedType() const override;
+    const ArrayType *GetAsConstType() const override;
+    const ArrayType *GetAsNonConstType() const override;
 
-    const ArrayType *GetAsUnsignedType() const;
-    const ArrayType *GetAsSignedType() const;
-    const ArrayType *GetAsConstType() const;
-    const ArrayType *GetAsNonConstType() const;
+    std::string GetString() const override;
+    std::string Mangle() const override;
+    std::string GetDeclaration(const std::string &name, DeclarationSyntax syntax) const override;
 
-    std::string GetString() const;
-    std::string Mangle() const;
-    std::string GetDeclaration(const std::string &name, DeclarationSyntax syntax) const;
-
-    llvm::DIType *GetDIType(llvm::DIScope *scope) const;
-    llvm::ArrayType *LLVMType(llvm::LLVMContext *ctx) const;
+    llvm::DIType *GetDIType(llvm::DIScope *scope) const override;
+    llvm::ArrayType *LLVMType(llvm::LLVMContext *ctx) const override;
 
     /** This method returns the total number of elements in the array,
         including all dimensions if this is a multidimensional array. */
     int TotalElementCount() const;
 
-    int GetElementCount() const;
-    const Type *GetElementType() const;
     /* Checks if the array is unsized.
        An array is considered unsized if its size is not explicitly set
        as compile-time constant i.e. `fixedCount` is 0 and `symbolCount`
@@ -735,7 +730,9 @@ class ArrayType : public SequentialType {
     /** Number of elements in the array. */
     ElementCount elementCount;
     /** Resolves the total number of elements in the array in template instantiation. */
-    virtual int ResolveElementCount(TemplateInstantiation &templInst) const;
+    virtual int ResolveElementCount(TemplateInstantiation &templInst) const override;
+
+    const ArrayType *Clone() const override { return new ArrayType(*this); }
 
     const ArrayType *CloneWithBaseType(const Type *newBaseType) const;
     const ArrayType *CloneWithElementCount(ElementCount newElementCount) const;
@@ -758,7 +755,6 @@ class VectorType : public SequentialType {
     VectorType(const Type *base, int size);
     VectorType(const Type *base, Symbol *num);
     VectorType(const Type *base, ElementCount elCount);
-    const VectorType *Clone() const { return new VectorType(*this); }
 
     bool IsBoolType() const override;
     bool IsFloatType() const override;
@@ -766,35 +762,36 @@ class VectorType : public SequentialType {
     bool IsUnsignedType() const override;
     bool IsSignedType() const override;
     bool IsCompleteType() const override;
+
     /* Returns true if the number of elements in the vector is dependent on a template parameter. */
-    virtual bool IsCountDependent() const { return elementCount.symbolCount != nullptr; }
+    virtual bool IsCountDependent() const override { return elementCount.symbolCount != nullptr; }
 
-    const Type *GetBaseType() const;
-    const VectorType *GetAsVaryingType() const;
-    const VectorType *GetAsUniformType() const;
-    const VectorType *GetAsUnboundVariabilityType() const;
-    const VectorType *GetAsSOAType(int width) const;
-    const VectorType *ResolveDependence(TemplateInstantiation &templInst) const;
-    const VectorType *ResolveUnboundVariability(Variability v) const;
+    const Type *GetBaseType() const override;
+    const VectorType *GetAsVaryingType() const override;
+    const VectorType *GetAsUniformType() const override;
+    const VectorType *GetAsUnboundVariabilityType() const override;
+    const VectorType *GetAsSOAType(int width) const override;
+    const VectorType *ResolveDependence(TemplateInstantiation &templInst) const override;
+    const VectorType *ResolveUnboundVariability(Variability v) const override;
 
-    const VectorType *GetAsUnsignedType() const;
-    const VectorType *GetAsSignedType() const;
-    const VectorType *GetAsConstType() const;
-    const VectorType *GetAsNonConstType() const;
+    const VectorType *GetAsUnsignedType() const override;
+    const VectorType *GetAsSignedType() const override;
+    const VectorType *GetAsConstType() const override;
+    const VectorType *GetAsNonConstType() const override;
+
+    std::string GetString() const override;
+    std::string Mangle() const override;
+    std::string GetDeclaration(const std::string &name, DeclarationSyntax syntax) const override;
+
+    llvm::Type *LLVMStorageType(llvm::LLVMContext *ctx) const override;
+    llvm::Type *LLVMType(llvm::LLVMContext *ctx) const override;
+    llvm::DIType *GetDIType(llvm::DIScope *scope) const override;
+
+    int GetElementCount() const override;
+
+    const Type *GetElementType() const override;
 
     std::string GetCountString() const;
-    std::string GetString() const;
-    std::string Mangle() const;
-    std::string GetDeclaration(const std::string &name, DeclarationSyntax syntax) const;
-
-    llvm::Type *LLVMStorageType(llvm::LLVMContext *ctx) const;
-    llvm::Type *LLVMType(llvm::LLVMContext *ctx) const;
-
-    llvm::DIType *GetDIType(llvm::DIScope *scope) const;
-
-    int GetElementCount() const;
-
-    const Type *GetElementType() const;
 
   private:
     /** Base type that the vector holds elements of */
@@ -802,7 +799,9 @@ class VectorType : public SequentialType {
     /** Number of elements in the vector */
     ElementCount elementCount;
     /** Resolves the total number of elements in the vector in template instantiation. */
-    virtual int ResolveElementCount(TemplateInstantiation &templInst) const;
+    virtual int ResolveElementCount(TemplateInstantiation &templInst) const override;
+
+    const VectorType *Clone() const override { return new VectorType(*this); }
 
     const VectorType *CloneWithBaseType(const Type *newBaseType) const;
     const VectorType *CloneWithElementCount(ElementCount newElementCount) const;
@@ -827,31 +826,33 @@ class StructType : public CollectionType {
         : CollectionType(STRUCT_TYPE, other.variability, other.isConst, other.pos), name(other.name),
           elementTypes(other.elementTypes), elementNames(other.elementNames), elementPositions(other.elementPositions),
           isAnonymous(other.isAnonymous), finalElementTypes(), oppositeConstStructType(nullptr) {}
-    const StructType *Clone() const { Assert(0); return nullptr; }
 
     bool IsCompleteType() const override;
-    bool IsDefined() const;
-    bool IsAnonymousType() const;
 
     const StructType *GetAsSOAType(int width) const override;
 
-    const StructType *GetAsNamed(const std::string &name) const;
+    std::string GetString() const override;
+    std::string Mangle() const override;
+    std::string GetDeclaration(const std::string &name, DeclarationSyntax syntax) const override;
 
-    std::string GetString() const;
-    std::string Mangle() const;
-    std::string GetDeclaration(const std::string &name, DeclarationSyntax syntax) const;
-
-    llvm::Type *LLVMType(llvm::LLVMContext *ctx) const;
-
-    llvm::DIType *GetDIType(llvm::DIScope *scope) const;
-
-    /** Returns the type of the structure element with the given name (if any).
-        Returns nullptr if there is no such named element. */
-    const Type *GetElementType(const std::string &name) const;
+    llvm::Type *LLVMType(llvm::LLVMContext *ctx) const override;
+    llvm::DIType *GetDIType(llvm::DIScope *scope) const override;
 
     /** Returns the type of the i'th structure element.  The value of \c i must
         be between 0 and NumElements()-1. */
-    const Type *GetElementType(int i) const;
+    const Type *GetElementType(int i) const override;
+
+    /** Returns the total number of elements in the structure. */
+    int GetElementCount() const override { return int(elementTypes.size()); }
+
+    bool IsDefined() const;
+    bool IsAnonymousType() const;
+
+    const StructType *GetAsNamed(const std::string &name) const;
+
+    /** Returns the type of the structure element with the given name (if any).
+        Returns nullptr if there is no such named element. */
+    const Type *GetElementType(const std::string &name) const ;
 
     /** Return the raw element type without "finilizing" varibility and constness of the element. */
     const Type *GetRawElementType(int i) const;
@@ -862,9 +863,6 @@ class StructType : public CollectionType {
 
     /** Returns the name of the i'th element of the structure. */
     const std::string &GetElementName(int i) const { return elementNames[i]; }
-
-    /** Returns the total number of elements in the structure. */
-    int GetElementCount() const { return int(elementTypes.size()); }
 
     const SourcePos &GetElementPosition(int i) const { return elementPositions[i]; }
 
@@ -897,6 +895,8 @@ class StructType : public CollectionType {
 
     mutable const StructType *oppositeConstStructType;
 
+    const StructType *Clone() const override { Assert(0); return nullptr; }
+
     const StructType *CloneWithVariability(Variability newVariability) const override {
         // This is a bit of a hack, but it's the easiest way to get the correct
         // m->structTypeMap entry. It is created inside constructor depending
@@ -927,19 +927,17 @@ class UndefinedStructType : public Type {
     // TODO!: remove copy constructor
     UndefinedStructType(const UndefinedStructType &other)
         : Type(UNDEFINED_STRUCT_TYPE, other.variability, other.isConst, other.pos), name(other.name) {}
-    const UndefinedStructType *Clone() const { Assert(0); return nullptr; }
 
     bool IsCompleteType() const override;
 
     const UndefinedStructType *GetAsSOAType(int width) const override;
 
-    std::string GetString() const;
-    std::string Mangle() const;
-    std::string GetDeclaration(const std::string &name, DeclarationSyntax syntax) const;
+    std::string GetString() const override;
+    std::string Mangle() const override;
+    std::string GetDeclaration(const std::string &name, DeclarationSyntax syntax) const override;
 
-    llvm::Type *LLVMType(llvm::LLVMContext *ctx) const;
-
-    llvm::DIType *GetDIType(llvm::DIScope *scope) const;
+    llvm::Type *LLVMType(llvm::LLVMContext *ctx) const override;
+    llvm::DIType *GetDIType(llvm::DIScope *scope) const override;
 
     /** Returns the name of the structure type.  (e.g. struct Foo -> "Foo".) */
     const std::string &GetStructName() const { return name; }
@@ -947,7 +945,7 @@ class UndefinedStructType : public Type {
   private:
     const std::string name;
 
-    template <typename T> const UndefinedStructType *CloneWith(T param) const;
+    const UndefinedStructType *Clone() const override { Assert(0); return nullptr; }
 
     const UndefinedStructType *CloneWithVariability(Variability newVariability) const override {
         // This is a bit of a hack, but it's the easiest way to get the correct
@@ -971,45 +969,42 @@ class UndefinedStructType : public Type {
 class ReferenceType : public Type {
   public:
     ReferenceType(const Type *targetType, AddressSpace as = AddressSpace::ispc_default);
-    ReferenceType(const ReferenceType &other) : ReferenceType(other.targetType, other.addrSpace) {
-        // The base constructor handles all member initialization
-        // except for asOtherConstType which should be reset
-        this->asOtherConstType = nullptr;
-    }
-    const ReferenceType *Clone() const { return new ReferenceType(*this); }
+    ReferenceType(const ReferenceType &other) : ReferenceType(other.targetType, other.addrSpace) {}
 
     bool IsBoolType() const override;
     bool IsFloatType() const override;
     bool IsIntType() const override;
     bool IsUnsignedType() const override;
     bool IsSignedType() const override;
-    AddressSpace GetAddressSpace() const { return addrSpace; }
 
     const Type *GetBaseType() const override;
-    const Type *GetReferenceTarget() const;
-    const ReferenceType *GetAsVaryingType() const;
-    const ReferenceType *GetAsUniformType() const;
-    const ReferenceType *GetAsUnboundVariabilityType() const;
+    const Type *GetReferenceTarget() const override;
+    const ReferenceType *GetAsVaryingType() const override;
+    const ReferenceType *GetAsUniformType() const override;
+    const ReferenceType *GetAsUnboundVariabilityType() const override;
     const Type *GetAsSOAType(int width) const override;
-    const ReferenceType *ResolveDependence(TemplateInstantiation &templInst) const;
+    const ReferenceType *ResolveDependence(TemplateInstantiation &templInst) const override;
     const ReferenceType *ResolveUnboundVariability(Variability v) const override;
 
-    const ReferenceType *GetAsConstType() const;
-    const ReferenceType *GetAsNonConstType() const;
+    const ReferenceType *GetAsConstType() const override;
+    const ReferenceType *GetAsNonConstType() const override;
+
+    std::string GetString() const override;
+    std::string Mangle() const override;
+    std::string GetDeclaration(const std::string &name, DeclarationSyntax syntax) const override;
+
+    llvm::Type *LLVMType(llvm::LLVMContext *ctx) const override;
+    llvm::DIType *GetDIType(llvm::DIScope *scope) const override;
+
+    AddressSpace GetAddressSpace() const { return addrSpace; }
+
     const ReferenceType *GetWithAddrSpace(AddressSpace as) const;
-
-    std::string GetString() const;
-    std::string Mangle() const;
-    std::string GetDeclaration(const std::string &name, DeclarationSyntax syntax) const;
-
-    llvm::Type *LLVMType(llvm::LLVMContext *ctx) const;
-
-    llvm::DIType *GetDIType(llvm::DIScope *scope) const;
 
   private:
     const Type *const targetType;
-    mutable const ReferenceType *asOtherConstType;
     const AddressSpace addrSpace;
+
+    const ReferenceType *Clone() const override { return new ReferenceType(*this); }
 
     const ReferenceType *CloneWithBaseType(const Type *newBaseType) const;
     const ReferenceType *CloneWithAddressSpace(AddressSpace newAddrSpace) const;
@@ -1064,11 +1059,6 @@ class FunctionType : public Type {
         std::string suffix;
     };
 
-    const FunctionType *Clone() const { return new FunctionType(*this); }
-
-    bool IsISPCKernel() const;
-    bool IsISPCExternal() const;
-
     const Type *GetBaseType() const override;
     const Type *GetAsVaryingType() const override;
     const Type *GetAsUniformType() const override;
@@ -1077,21 +1067,24 @@ class FunctionType : public Type {
     const FunctionType *ResolveDependence(TemplateInstantiation &templInst) const override;
     const FunctionType *ResolveUnboundVariability(Variability v) const override;
 
-    const Type *GetAsConstType() const;
-    const Type *GetAsNonConstType() const;
+    const Type *GetAsConstType() const override;
+    const Type *GetAsNonConstType() const override;
+
+    std::string GetString() const override;
+    std::string Mangle() const override;
+    std::string GetDeclaration(const std::string &name, DeclarationSyntax syntax) const override;
+
+    llvm::Type *LLVMType(llvm::LLVMContext *ctx) const override;
+    llvm::DIType *GetDIType(llvm::DIScope *scope) const override;
+
+    std::string GetDeclarationForDispatch(const std::string &fname, DeclarationSyntax syntax) const;
+
+    bool IsISPCKernel() const;
+    bool IsISPCExternal() const;
 
     const Type *GetAsUnmaskedType() const;
     const Type *GetAsNonUnmaskedType() const;
     const Type *GetWithReturnType(const Type *t) const;
-
-    std::string GetString() const;
-    std::string Mangle() const;
-    std::string GetDeclaration(const std::string &name, DeclarationSyntax syntax) const;
-    std::string GetDeclarationForDispatch(const std::string &fname, DeclarationSyntax syntax) const;
-
-    llvm::Type *LLVMType(llvm::LLVMContext *ctx) const;
-
-    llvm::DIType *GetDIType(llvm::DIScope *scope) const;
 
     const Type *GetReturnType() const { return returnType; }
 
@@ -1207,6 +1200,8 @@ class FunctionType : public Type {
     mutable unsigned int flags;
 
     mutable const FunctionType *asMaskedType, *asUnmaskedType;
+
+    const FunctionType *Clone() const override { return new FunctionType(*this); }
 
     const FunctionType *CloneWithRetTypeAndNewParamTypes(const Type *newReturnType,
                                                          llvm::SmallVector<const Type *, 8> newParamTypes) const;
