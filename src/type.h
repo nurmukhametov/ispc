@@ -222,11 +222,11 @@ class Type : public Traceable {
 
     /** Get a const version of this type.  If it's already const, then the old
         Type pointer is returned. */
-    virtual const Type *GetAsConstType() const = 0;
+    virtual const Type *GetAsConstType() const;
 
     /** Get a non-const version of this type.  If it's already not const,
         then the old Type pointer is returned. */
-    virtual const Type *GetAsNonConstType() const = 0;
+    virtual const Type *GetAsNonConstType() const;
 
     /** Returns a text representation of the type (for example, for use in
         warning and error messages). */
@@ -312,9 +312,19 @@ class Type : public Traceable {
         return ins;
     }
 
+    virtual const Type *CloneWithConst(ConstID newIsConst) const {
+        const Type *ins = Clone();
+        ins->isConst = newIsConst;
+        return ins;
+    }
+
+    virtual const Type *Clone() const = 0;
+
+    mutable const Type *asOtherConstType = {};
+
   protected:
     Variability variability = {};
-    ConstID isConst = {};
+    mutable ConstID isConst = {};
     SourcePos pos = {};
 
     // Type(TypeId id) : typeId(id), variability(Variability::Unbound), isConst(NON_CONST), pos() {}
@@ -334,12 +344,13 @@ class Type : public Traceable {
 class AtomicType : public Type {
   public:
     AtomicType(const AtomicType &other)
-        : Type(ATOMIC_TYPE, other.variability, other.isConst), basicType(other.basicType), asOtherConstType(nullptr),
-          asUniformType(nullptr), asVaryingType(nullptr) {
+        : Type(ATOMIC_TYPE, other.variability, other.isConst), basicType(other.basicType), asUniformType(nullptr),
+          asVaryingType(nullptr) {
         // The mutable pointers (asOtherConstType, asUniformType, asVaryingType) are
         // initialized to nullptr instead of copying the pointers from 'other'
         // since these are cached values that will be recomputed when needed
     }
+    const AtomicType *Clone() const { return new AtomicType(*this); }
     bool IsBoolType() const;
     bool IsFloatType() const;
     bool IsIntType() const;
@@ -359,8 +370,6 @@ class AtomicType : public Type {
     const AtomicType *ResolveUnboundVariability(Variability v) const;
     const AtomicType *GetAsUnsignedType() const;
     const AtomicType *GetAsSignedType() const;
-    const AtomicType *GetAsConstType() const;
-    const AtomicType *GetAsNonConstType() const;
 
     std::string GetString() const;
     std::string Mangle() const;
@@ -423,7 +432,7 @@ class AtomicType : public Type {
 
     const AtomicType *CloneWithBasicType(BasicType newBasicType) const;
 
-    mutable const AtomicType *asOtherConstType, *asUniformType, *asVaryingType;
+    mutable const AtomicType *asUniformType, *asVaryingType;
 };
 
 /** @brief Type representing a template typename type.
@@ -436,6 +445,7 @@ class TemplateTypeParmType : public Type {
     TemplateTypeParmType(const TemplateTypeParmType &other)
         : Type(TEMPLATE_TYPE_PARM_TYPE, other.variability, other.isConst, other.pos), name(other.name),
           asOtherConstType(nullptr), asUniformType(nullptr), asVaryingType(nullptr) {}
+    const TemplateTypeParmType *Clone() const { return new TemplateTypeParmType(*this); }
 
     bool IsBoolType() const;
     bool IsFloatType() const;
@@ -483,6 +493,7 @@ class EnumType : public Type {
     EnumType(const EnumType &other)
         : Type(ENUM_TYPE, other.variability, other.isConst, other.pos), name(other.name),
           enumerators(other.enumerators) {}
+    const EnumType *Clone() const { return new EnumType(*this); }
 
     bool IsBoolType() const;
     bool IsFloatType() const;
@@ -562,6 +573,7 @@ class PointerType : public Type {
     PointerType(const PointerType &other)
         : Type(POINTER_TYPE, other.variability, other.isConst), property(other.property), baseType(other.baseType),
           addrSpace(other.addrSpace) {}
+    const PointerType *Clone() const { return new PointerType(*this); }
 
     /** Helper method to return a uniform pointer to the given type. */
     static PointerType *GetUniform(const Type *t, bool isSlice = false);
@@ -719,6 +731,7 @@ class ArrayType : public SequentialType {
         @param elCount An ElementCount structure representing the number of elements.
     */
     ArrayType(const Type *elementType, ElementCount elCount);
+    const ArrayType *Clone() const { return new ArrayType(*this); }
 
     bool IsBoolType() const;
     bool IsFloatType() const;
@@ -802,6 +815,7 @@ class VectorType : public SequentialType {
     VectorType(const Type *base, int size);
     VectorType(const Type *base, Symbol *num);
     VectorType(const Type *base, ElementCount elCount);
+    const VectorType *Clone() const { return new VectorType(*this); }
 
     bool IsBoolType() const;
     bool IsFloatType() const;
@@ -870,6 +884,7 @@ class StructType : public CollectionType {
         : CollectionType(STRUCT_TYPE, other.variability, other.isConst, other.pos), name(other.name),
           elementTypes(other.elementTypes), elementNames(other.elementNames), elementPositions(other.elementPositions),
           isAnonymous(other.isAnonymous), finalElementTypes(), oppositeConstStructType(nullptr) {}
+    const StructType *Clone() const { return new StructType(*this); Assert(0); }
 
     bool IsBoolType() const;
     bool IsFloatType() const;
@@ -974,6 +989,11 @@ class StructType : public CollectionType {
                        ptr->variability, ptr->isAnonymous, ptr->pos);
         return ins;
     }
+
+    const Type *CloneWithConst(ConstID newIsConst) const override {
+        return new StructType(name, elementTypes, elementNames, elementPositions, newIsConst, variability, isAnonymous,
+                              pos);
+    }
 };
 
 /** Type implementation representing a struct name that has been declared
@@ -987,6 +1007,7 @@ class UndefinedStructType : public Type {
     // TODO!: remove copy constructor
     UndefinedStructType(const UndefinedStructType &other)
         : Type(UNDEFINED_STRUCT_TYPE, other.variability, other.isConst, other.pos), name(other.name) {}
+    const UndefinedStructType *Clone() const { return new UndefinedStructType(*this); Assert(0); }
 
     bool IsBoolType() const;
     bool IsFloatType() const;
@@ -1039,6 +1060,14 @@ class UndefinedStructType : public Type {
         B *ins = new B(ptr->name, ptr->variability, newIsConst, ptr->pos);
         return ins;
     }
+
+    const Type *CloneWithConst(ConstID newIsConst) const override {
+        // This is a bit of a hack, but it's the easiest way to get the correct
+        // m->structTypeMap entry. It is created inside constructor depending
+        // on the new variability value.
+        // TODO!: I don't think constructor needs to create m->structTypeMap entry
+        return new UndefinedStructType(name, variability, newIsConst, pos);
+    }
 };
 
 /** @brief Type representing a reference to another (non-reference) type.
@@ -1051,6 +1080,7 @@ class ReferenceType : public Type {
         // except for asOtherConstType which should be reset
         this->asOtherConstType = nullptr;
     }
+    const ReferenceType *Clone() const { return new ReferenceType(*this); }
 
     bool IsBoolType() const;
     bool IsFloatType() const;
@@ -1138,6 +1168,8 @@ class FunctionType : public Type {
         std::string prefix;
         std::string suffix;
     };
+
+    const FunctionType *Clone() const { return new FunctionType(*this); }
 
     bool IsBoolType() const;
     bool IsFloatType() const;

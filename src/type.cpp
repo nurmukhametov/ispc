@@ -316,32 +316,6 @@ const AtomicType *AtomicType::GetAsSignedType() const {
     }
 }
 
-const AtomicType *AtomicType::GetAsConstType() const {
-    Assert(basicType != TYPE_DEPENDENT);
-    if (isConst == true) {
-        return this;
-    }
-
-    if (asOtherConstType == nullptr) {
-        asOtherConstType = CloneWithConst(this, IS_CONST);
-        asOtherConstType->asOtherConstType = this;
-    }
-    return asOtherConstType;
-}
-
-const AtomicType *AtomicType::GetAsNonConstType() const {
-    Assert(basicType != TYPE_DEPENDENT);
-    if (isConst == false) {
-        return this;
-    }
-
-    if (asOtherConstType == nullptr) {
-        asOtherConstType = CloneWithConst(this, NON_CONST);
-        asOtherConstType->asOtherConstType = this;
-    }
-    return asOtherConstType;
-}
-
 const AtomicType *AtomicType::GetBaseType() const { return this; }
 
 const AtomicType *AtomicType::GetAsVaryingType() const {
@@ -3472,6 +3446,30 @@ const std::string &FunctionType::GetParameterName(int i) const {
 const Type *Type::GetReferenceTarget() const {
     // only ReferenceType needs to override this method
     return this;
+}
+
+const Type *Type::GetAsConstType() const {
+    if (isConst) {
+        return this;
+    }
+
+    if (asOtherConstType == nullptr) {
+        asOtherConstType = CloneWithConst(IS_CONST);
+        asOtherConstType->asOtherConstType = this;
+    }
+    return asOtherConstType;
+}
+
+const Type *Type::GetAsNonConstType() const {
+    if (isConst == false) {
+        return this;
+    }
+
+    if (asOtherConstType == nullptr) {
+        asOtherConstType = CloneWithConst(NON_CONST);
+        asOtherConstType->asOtherConstType = this;
+    }
+    return asOtherConstType;
 }
 
 const Type *Type::GetAsUnsignedType() const {
