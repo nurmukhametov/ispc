@@ -507,8 +507,6 @@ class EnumType : public Type {
 
     const EnumType *ResolveDependence(TemplateInstantiation &templInst) const;
     const EnumType *ResolveUnboundVariability(Variability v) const;
-    const EnumType *GetAsConstType() const;
-    const EnumType *GetAsNonConstType() const;
 
     std::string GetString() const;
     std::string Mangle() const;

@@ -905,22 +905,6 @@ const EnumType *EnumType::GetAsSOAType(int width) const {
     }
 }
 
-const EnumType *EnumType::GetAsConstType() const {
-    if (isConst) {
-        return this;
-    } else {
-        return CloneWithConst(this, IS_CONST);
-    }
-}
-
-const EnumType *EnumType::GetAsNonConstType() const {
-    if (!isConst) {
-        return this;
-    } else {
-        return CloneWithConst(this, NON_CONST);
-    }
-}
-
 std::string EnumType::GetString() const {
     std::string ret;
     if (isConst) {
@@ -3437,7 +3421,7 @@ const Type *Type::GetAsConstType() const {
 }
 
 const Type *Type::GetAsNonConstType() const {
-    if (isConst == false) {
+    if (!isConst) {
         return this;
     }
 
