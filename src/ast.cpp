@@ -394,7 +394,7 @@ static bool lCheckAllOffSafety(ASTNode *node, void *data) {
         const FunctionType *ftype = CastType<FunctionType>(type);
         Assert(ftype != nullptr);
 
-        if (ftype->isSafe == false) {
+        if (ftype->IsSafe() == false) {
             *okPtr = false;
             return false;
         }

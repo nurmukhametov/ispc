@@ -1103,19 +1103,30 @@ class ReferenceType : public Type {
  */
 class FunctionType : public Type {
   public:
+
+    enum FunctionFlag : unsigned int {
+        FUNC_NONE         = 0,
+        FUNC_TASK         = 1 << 0,   // 0x0001
+        FUNC_EXPORTED     = 1 << 1,   // 0x0002
+        FUNC_EXTERNAL_ONLY = 1 << 2,  // 0x0004
+        FUNC_EXTERN_C     = 1 << 3,   // 0x0008
+        FUNC_EXTERN_SYCL  = 1 << 4,   // 0x0010
+        FUNC_UNMASKED     = 1 << 5,   // 0x0020
+        FUNC_UNMANGLED    = 1 << 6,   // 0x0040
+        FUNC_VECTOR_CALL  = 1 << 7,   // 0x0080
+        FUNC_REG_CALL     = 1 << 8,   // 0x0100
+        FUNC_CDECL        = 1 << 9,   // 0x0200
+        FUNC_SAFE         = 1 << 10   // 0x0400
+    };
+
     FunctionType(const Type *returnType, const llvm::SmallVector<const Type *, 8> &argTypes, SourcePos pos);
     FunctionType(const Type *returnType, const llvm::SmallVector<const Type *, 8> &argTypes,
                  const llvm::SmallVector<std::string, 8> &argNames, const llvm::SmallVector<Expr *, 8> &argDefaults,
-                 const llvm::SmallVector<SourcePos, 8> &argPos, bool isTask, bool isExported, bool isExternalOnly,
-                 bool isExternC, bool isExternSYCL, bool isUnmasked, bool isUnmangled, bool isVectorCall,
-                 bool isRegCall, bool isCdecl, SourcePos p);
+                 const llvm::SmallVector<SourcePos, 8> &argPos, unsigned int flags, SourcePos p);
     FunctionType(const FunctionType &other)
         : FunctionType(other.returnType, other.paramTypes, other.paramNames, other.paramDefaults, other.paramPositions,
-                       other.isTask, other.isExported, other.isExternalOnly, other.isExternC, other.isExternSYCL,
-                       other.isUnmasked, other.isUnmangled, other.isVectorCall, other.isRegCall, other.isCdecl,
-                       other.pos) {
+                       other.flags, other.pos) {
         // Copy any additional state that isn't passed to the constructor
-        this->isSafe = other.isSafe;
         this->costOverride = other.costOverride;
 
         // Reset any cached values
@@ -1199,48 +1210,57 @@ class FunctionType : public Type {
     const SourcePos &GetParameterSourcePos(int i) const;
     const std::string &GetParameterName(int i) const;
 
-    /** This value is true if the function had a 'task' qualifier in the
+    /** Return true if the function had a 'task' qualifier in the
         source program. */
-    const bool isTask;
+    bool IsTask() const { return flags & FUNC_TASK; }
 
-    /** This value is true if the function had a 'export' qualifier in the
+    /** Return true if the function had a 'export' qualifier in the
         source program. */
-    const bool isExported;
+    bool IsExported() const { return flags & FUNC_EXPORTED; }
 
-    /** This value signals compiler to omit generation of ISPC function copy
+    /** This signals compiler to omit generation of ISPC function copy
         for function with export qualifier, i.e., ISPC generates only the
         external function for calling from C/C++ */
-    const bool isExternalOnly;
+    bool IsExternalOnly() const { return flags & FUNC_EXTERNAL_ONLY; }
 
-    /** This value is true if the function was declared as an 'extern "C"'
+    /** Return true if the function was declared as an 'extern "C"'
         function in the source program. */
-    const bool isExternC;
+    bool IsExternC() const { return flags & FUNC_EXTERN_C; }
 
-    /** This value is true if the function was declared as an 'extern "SYCL"'
+    /** Return true if the function was declared as an 'extern "SYCL"'
     function in the source program. */
-    const bool isExternSYCL;
+    bool IsExternSYCL() const { return flags & FUNC_EXTERN_SYCL; }
 
     /** Indicates whether the function doesn't take an implicit mask
         parameter (and thus should start execution with an "all on"
         mask). */
-    const bool isUnmasked;
+    bool IsUnmasked() const { return flags & FUNC_UNMASKED; }
 
-    const bool isUnmangled;
+    /** Indicates whether the function name should be mangled. */
+    bool IsUnmangled() const { return flags & FUNC_UNMANGLED; }
 
     /** Indicates whether the function has __vectorcall attribute. */
-    const bool isVectorCall;
+    bool IsVectorCall() const { return flags & FUNC_VECTOR_CALL; }
 
     /** Indicates whether the function has __regcall attribute. */
-    const bool isRegCall;
+    bool IsRegCall() const { return flags & FUNC_REG_CALL; }
 
     /** Indicates whether the function has __cdecl attribute (default C calling
         convention). It is useful when --vectorcall is provided globally to not
         call some function with vectorcall. */
-    const bool isCdecl;
+    bool IsCdecl() const { return flags & FUNC_CDECL; }
 
     /** Indicates whether this function has been declared to be safe to run
         with an all-off mask. */
-    bool isSafe;
+    bool IsSafe() const { return flags & FUNC_SAFE; }
+
+    /** Set the 'safe' flag for the function. */
+    void SetSafe(bool safe) {
+        if (safe)
+            flags |= FUNC_SAFE;
+        else
+            flags &= ~FUNC_SAFE;
+    }
 
     /** If non-negative, this provides a user-supplied override to the cost
         function estimate for the function. */
@@ -1264,10 +1284,13 @@ class FunctionType : public Type {
         etc. */
     const llvm::SmallVector<SourcePos, 8> paramPositions;
 
+    mutable unsigned int flags;
+
     mutable const FunctionType *asMaskedType, *asUnmaskedType;
 
     const FunctionType *CloneWithRetTypeAndNewParamTypes(const Type *newReturnType,
                                                          llvm::SmallVector<const Type *, 8> newParamTypes) const;
+    const FunctionType *CloneWithFlags(unsigned int newFlags) const;
 };
 
 /* Efficient dynamic casting of Types.  First, we specify a default
