@@ -688,32 +688,6 @@ bool TemplateTypeParmType::IsCompleteType() const { return false; }
 
 const Type *TemplateTypeParmType::GetBaseType() const { return this; }
 
-const Type *TemplateTypeParmType::GetAsVaryingType() const {
-    if (variability == Variability::Varying) {
-        return this;
-    }
-    if (asVaryingType == nullptr) {
-        asVaryingType = CloneWithVariability(this, Variability(Variability::Varying));
-        if (variability == Variability::Uniform) {
-            asVaryingType->asUniformType = this;
-        }
-    }
-    return asVaryingType;
-}
-
-const Type *TemplateTypeParmType::GetAsUniformType() const {
-    if (variability == Variability::Uniform) {
-        return this;
-    }
-    if (asUniformType == nullptr) {
-        asUniformType = CloneWithVariability(this, Variability(Variability::Uniform));
-        if (variability == Variability::Varying) {
-            asUniformType->asVaryingType = this;
-        }
-    }
-    return asUniformType;
-}
-
 const Type *TemplateTypeParmType::GetAsUnboundVariabilityType() const {
     if (variability == Variability::Unbound) {
         return this;
