@@ -790,30 +790,6 @@ const Type *TemplateTypeParmType::ResolveUnboundVariability(Variability v) const
     return CloneWithVariability(this, v);
 }
 
-const Type *TemplateTypeParmType::GetAsConstType() const {
-    if (isConst == true) {
-        return this;
-    }
-
-    if (asOtherConstType == nullptr) {
-        asOtherConstType = CloneWithConst(this, IS_CONST);
-        asOtherConstType->asOtherConstType = this;
-    }
-    return asOtherConstType;
-}
-
-const Type *TemplateTypeParmType::GetAsNonConstType() const {
-    if (isConst == false) {
-        return this;
-    }
-
-    if (asOtherConstType == nullptr) {
-        asOtherConstType = CloneWithConst(this, NON_CONST);
-        asOtherConstType->asOtherConstType = this;
-    }
-    return asOtherConstType;
-}
-
 std::string TemplateTypeParmType::GetName() const { return name; }
 
 std::string TemplateTypeParmType::GetString() const {

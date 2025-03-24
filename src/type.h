@@ -444,7 +444,7 @@ class TemplateTypeParmType : public Type {
     TemplateTypeParmType(std::string, Variability v, bool ic, SourcePos pos);
     TemplateTypeParmType(const TemplateTypeParmType &other)
         : Type(TEMPLATE_TYPE_PARM_TYPE, other.variability, other.isConst, other.pos), name(other.name),
-          asOtherConstType(nullptr), asUniformType(nullptr), asVaryingType(nullptr) {}
+          asUniformType(nullptr), asVaryingType(nullptr) {}
     const TemplateTypeParmType *Clone() const { return new TemplateTypeParmType(*this); }
 
     bool IsBoolType() const;
@@ -462,9 +462,6 @@ class TemplateTypeParmType : public Type {
     const Type *ResolveDependence(TemplateInstantiation &templInst) const;
     const Type *ResolveUnboundVariability(Variability v) const;
 
-    const Type *GetAsConstType() const;
-    const Type *GetAsNonConstType() const;
-
     std::string GetName() const;
     std::string GetString() const;
     std::string Mangle() const;
@@ -476,7 +473,7 @@ class TemplateTypeParmType : public Type {
 
   private:
     const std::string name;
-    mutable const TemplateTypeParmType *asOtherConstType, *asUniformType, *asVaryingType;
+    mutable const TemplateTypeParmType *asUniformType, *asVaryingType;
 };
 
 /** @brief Type implementation for enumerated types
