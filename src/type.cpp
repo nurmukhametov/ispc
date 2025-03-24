@@ -241,6 +241,14 @@ const Type *Type::GetAsUnboundVariabilityType() const {
     return CloneWithVariability(Variability(Variability::Unbound));
 }
 
+const Type *Type::GetAsSOAType(int width) const {
+    if (GetSOAWidth() == width) {
+        return this;
+    }
+    // TODO!: why we cache uniform and varying types but not SOA?
+    return CloneWithVariability(Variability(Variability::SOA, width));
+}
+
 const Type *Type::GetReferenceTarget() const {
     // only ReferenceType needs to override this method
     return this;
@@ -393,14 +401,6 @@ const AtomicType *AtomicType::GetAsSignedType() const {
 }
 
 const AtomicType *AtomicType::GetBaseType() const { return this; }
-
-const AtomicType *AtomicType::GetAsSOAType(int width) const {
-    Assert(basicType != TYPE_VOID && basicType != TYPE_DEPENDENT);
-    if (variability == Variability(Variability::SOA, width)) {
-        return this;
-    }
-    return CloneWithVariability(this, Variability(Variability::SOA, width));
-}
 
 const AtomicType *AtomicType::ResolveDependence(TemplateInstantiation &templInst) const {
     // TODO: ???
@@ -878,14 +878,6 @@ const EnumType *EnumType::ResolveUnboundVariability(Variability v) const {
     }
 }
 
-const EnumType *EnumType::GetAsSOAType(int width) const {
-    if (GetSOAWidth() == width) {
-        return this;
-    } else {
-        return CloneWithVariability(this, Variability(Variability::SOA, width));
-    }
-}
-
 std::string EnumType::GetString() const {
     std::string ret;
     if (isConst) {
@@ -1063,14 +1055,6 @@ bool PointerType::IsSignedType() const { return false; }
 bool PointerType::IsCompleteType() const { return true; }
 
 const Type *PointerType::GetBaseType() const { return baseType; }
-
-const PointerType *PointerType::GetAsSOAType(int width) const {
-    if (GetSOAWidth() == width) {
-        return this;
-    } else {
-        return CloneWithVariability(this, Variability(Variability::SOA, width));
-    }
-}
 
 const PointerType *PointerType::GetAsSlice() const {
     if (IsSlice()) {

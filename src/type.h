@@ -201,7 +201,7 @@ class Type : public Traceable {
     /** Get an instance of the type with unbound variability. */
     virtual const Type *GetAsUnboundVariabilityType() const;
 
-    virtual const Type *GetAsSOAType(int width) const = 0;
+    virtual const Type *GetAsSOAType(int width) const;
 
     /** If this is a signed integer type, return the unsigned version of
         the type.  Otherwise, return the original type. */
@@ -363,7 +363,6 @@ class AtomicType : public Type {
     /** For AtomicTypes, the base type is just the same as the AtomicType
         itself. */
     const AtomicType *GetBaseType() const;
-    const AtomicType *GetAsSOAType(int width) const;
 
     const AtomicType *ResolveDependence(TemplateInstantiation &templInst) const;
     const AtomicType *ResolveUnboundVariability(Variability v) const;
@@ -451,7 +450,7 @@ class TemplateTypeParmType : public Type {
     bool IsCompleteType() const;
 
     const Type *GetBaseType() const;
-    const Type *GetAsSOAType(int width) const;
+    const Type *GetAsSOAType(int width) const override;
     const Type *ResolveDependence(TemplateInstantiation &templInst) const;
     const Type *ResolveUnboundVariability(Variability v) const;
 
@@ -492,7 +491,6 @@ class EnumType : public Type {
     bool IsCompleteType() const;
 
     const EnumType *GetBaseType() const;
-    const EnumType *GetAsSOAType(int width) const;
 
     const EnumType *ResolveDependence(TemplateInstantiation &templInst) const;
     const EnumType *ResolveUnboundVariability(Variability v) const;
@@ -582,7 +580,6 @@ class PointerType : public Type {
     const PointerType *GetAsFrozenSlice() const;
 
     const Type *GetBaseType() const;
-    const PointerType *GetAsSOAType(int width) const;
 
     const PointerType *ResolveDependence(TemplateInstantiation &templInst) const;
     const PointerType *ResolveUnboundVariability(Variability v) const;
@@ -877,7 +874,7 @@ class StructType : public CollectionType {
     bool IsAnonymousType() const;
 
     const Type *GetBaseType() const;
-    const StructType *GetAsSOAType(int width) const;
+    const StructType *GetAsSOAType(int width) const override;
     const StructType *ResolveDependence(TemplateInstantiation &templInst) const;
     const StructType *ResolveUnboundVariability(Variability v) const;
 
@@ -983,7 +980,7 @@ class UndefinedStructType : public Type {
     bool IsCompleteType() const;
 
     const Type *GetBaseType() const;
-    const UndefinedStructType *GetAsSOAType(int width) const;
+    const UndefinedStructType *GetAsSOAType(int width) const override;
     const UndefinedStructType *ResolveDependence(TemplateInstantiation &templInst) const;
     const UndefinedStructType *ResolveUnboundVariability(Variability v) const;
 
@@ -1045,7 +1042,7 @@ class ReferenceType : public Type {
     const ReferenceType *GetAsVaryingType() const;
     const ReferenceType *GetAsUniformType() const;
     const ReferenceType *GetAsUnboundVariabilityType() const;
-    const Type *GetAsSOAType(int width) const;
+    const Type *GetAsSOAType(int width) const override;
     const ReferenceType *ResolveDependence(TemplateInstantiation &templInst) const;
     const ReferenceType *ResolveUnboundVariability(Variability v) const;
 
@@ -1135,7 +1132,7 @@ class FunctionType : public Type {
     const Type *GetAsVaryingType() const override;
     const Type *GetAsUniformType() const override;
     const Type *GetAsUnboundVariabilityType() const override;
-    const Type *GetAsSOAType(int width) const;
+    const Type *GetAsSOAType(int width) const override;
     const FunctionType *ResolveDependence(TemplateInstantiation &templInst) const;
     const FunctionType *ResolveUnboundVariability(Variability v) const;
 
