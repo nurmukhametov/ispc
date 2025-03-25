@@ -577,13 +577,44 @@ class PointerType : public Type {
     const PointerType *CloneWithConstAndProperty(ConstID newIsConst, unsigned int newProperty) const;
 };
 
+class DependentType : public Type {
+public:
+  virtual bool IsBoolType() const override;
+  virtual bool IsFloatType() const override;
+  virtual bool IsIntType() const override;
+  virtual bool IsUnsignedType() const override;
+  virtual bool IsSignedType() const override;
+  virtual bool IsCompleteType() const override;
+
+  virtual const Type *ResolveUnboundVariability(Variability v) const override;
+  virtual const Type *GetAsUniformType() const override;
+  virtual const Type *GetAsVaryingType() const override;
+  virtual const Type *GetAsUnboundVariabilityType() const override;
+  virtual const Type *GetAsSOAType(int width) const override;
+
+  virtual const Type *GetAsUnsignedType() const override;
+  virtual const Type *GetAsSignedType() const override;
+  virtual const Type *GetAsConstType() const override;
+  virtual const Type *GetAsNonConstType() const override;
+
+  virtual const Type *GetBaseType() const override { return base; }
+
+protected:
+    mutable const Type* base = {};
+
+    DependentType(TypeId id, const Type* b, Variability v, ConstID c);
+    DependentType(TypeId id, const Type* b, Variability v, ConstID c, SourcePos p);
+
+    virtual const Type *CloneWithBaseType(const Type *newBaseType) const;
+};
+
 /** @brief Abstract base class for types that represent collections of
     other types.
 
     This is a common base class that StructTypes, ArrayTypes, and
     VectorTypes all inherit from.
 */
-class CollectionType : public Type {
+class CollectionType : public DependentType {
   public:
     /** Returns the total number of elements in the collection. */
     virtual int GetElementCount() const = 0;
@@ -594,8 +625,11 @@ class CollectionType : public Type {
     virtual const Type *GetElementType(int index) const = 0;
 
   protected:
-    CollectionType(TypeId id, Variability v, ConstID c) : Type(id, v, c) {}
-    CollectionType(TypeId id, Variability v, ConstID c, SourcePos pos) : Type(id, v, c, pos) {}
+    CollectionType(TypeId id, Variability v, ConstID c) : DependentType(id, nullptr, v, c) {}
+    CollectionType(TypeId id, Variability v, ConstID c, SourcePos pos) : DependentType(id, nullptr, v, c, pos) {}
+    CollectionType(TypeId id, const Type *base, Variability v, ConstID c) : DependentType(id, base, v, c) {}
+    CollectionType(TypeId id, const Type *base, Variability v, ConstID c, SourcePos pos)
+        : DependentType(id, base, v, c, pos) {}
 };
 
 /** @brief Abstract base class for types that represent sequences
@@ -632,6 +666,9 @@ class SequentialType : public CollectionType {
   protected:
     SequentialType(TypeId id, Variability v, ConstID c) : CollectionType(id, v, c) {}
     SequentialType(TypeId id, Variability v, ConstID c, SourcePos pos) : CollectionType(id, v, c, pos) {}
+    SequentialType(TypeId id, const Type *base, Variability v, ConstID c) : CollectionType(id, base, v, c) {}
+    SequentialType(TypeId id, const Type *base, Variability v, ConstID c, SourcePos pos)
+        : CollectionType(id, base, v, c, pos) {}
 
     /** Resolves the total number of elements in the collection in template instantiation. */
     virtual int ResolveElementCount(TemplateInstantiation &templInst) const = 0;
@@ -681,19 +718,15 @@ class ArrayType : public SequentialType {
     /* Returns true if the number of elements in the array is dependent on a template parameter. */
     virtual bool IsCountDependent() const override { return elementCount.symbolCount != nullptr; }
 
-    bool IsCompleteType() const override;
-    const Type *GetBaseType() const override;
-    const ArrayType *GetAsVaryingType() const override;
-    const ArrayType *GetAsUniformType() const override;
-    const ArrayType *GetAsUnboundVariabilityType() const override;
-    const ArrayType *GetAsSOAType(int width) const override;
-    const ArrayType *ResolveDependence(TemplateInstantiation &templInst) const override;
-    const ArrayType *ResolveUnboundVariability(Variability v) const override;
+    bool IsBoolType() const override;
+    bool IsFloatType() const override;
+    bool IsIntType() const override;
+    bool IsUnsignedType() const override;
+    bool IsSignedType() const override;
 
-    const ArrayType *GetAsUnsignedType() const override;
-    const ArrayType *GetAsSignedType() const override;
-    const ArrayType *GetAsConstType() const override;
-    const ArrayType *GetAsNonConstType() const override;
+    const Type *GetBaseType() const override;
+
+    const ArrayType *ResolveDependence(TemplateInstantiation &templInst) const override;
 
     std::string GetString() const override;
     std::string Mangle() const override;
@@ -725,8 +758,6 @@ class ArrayType : public SequentialType {
     static const Type *SizeUnsizedArrays(const Type *type, Expr *initExpr);
 
   private:
-    /** Type of the elements of the array. */
-    const Type *const child;
     /** Number of elements in the array. */
     ElementCount elementCount;
     /** Resolves the total number of elements in the array in template instantiation. */
@@ -734,7 +765,6 @@ class ArrayType : public SequentialType {
 
     const ArrayType *Clone() const override { return new ArrayType(*this); }
 
-    const ArrayType *CloneWithBaseType(const Type *newBaseType) const;
     const ArrayType *CloneWithElementCount(ElementCount newElementCount) const;
     const ArrayType *CloneWithBaseTypeAndElementCount(const Type *newBaseType, ElementCount newElementCount) const;
 };
@@ -756,28 +786,10 @@ class VectorType : public SequentialType {
     VectorType(const Type *base, Symbol *num);
     VectorType(const Type *base, ElementCount elCount);
 
-    bool IsBoolType() const override;
-    bool IsFloatType() const override;
-    bool IsIntType() const override;
-    bool IsUnsignedType() const override;
-    bool IsSignedType() const override;
-    bool IsCompleteType() const override;
-
     /* Returns true if the number of elements in the vector is dependent on a template parameter. */
     virtual bool IsCountDependent() const override { return elementCount.symbolCount != nullptr; }
 
-    const Type *GetBaseType() const override;
-    const VectorType *GetAsVaryingType() const override;
-    const VectorType *GetAsUniformType() const override;
-    const VectorType *GetAsUnboundVariabilityType() const override;
-    const VectorType *GetAsSOAType(int width) const override;
     const VectorType *ResolveDependence(TemplateInstantiation &templInst) const override;
-    const VectorType *ResolveUnboundVariability(Variability v) const override;
-
-    const VectorType *GetAsUnsignedType() const override;
-    const VectorType *GetAsSignedType() const override;
-    const VectorType *GetAsConstType() const override;
-    const VectorType *GetAsNonConstType() const override;
 
     std::string GetString() const override;
     std::string Mangle() const override;
@@ -794,8 +806,6 @@ class VectorType : public SequentialType {
     std::string GetCountString() const;
 
   private:
-    /** Base type that the vector holds elements of */
-    const Type *const base;
     /** Number of elements in the vector */
     ElementCount elementCount;
     /** Resolves the total number of elements in the vector in template instantiation. */
@@ -803,7 +813,6 @@ class VectorType : public SequentialType {
 
     const VectorType *Clone() const override { return new VectorType(*this); }
 
-    const VectorType *CloneWithBaseType(const Type *newBaseType) const;
     const VectorType *CloneWithElementCount(ElementCount newElementCount) const;
     const VectorType *CloneWithBaseTypeAndElementCount(const Type *newBaseType, ElementCount newElementCount) const;
 
@@ -966,28 +975,21 @@ class UndefinedStructType : public Type {
 
 /** @brief Type representing a reference to another (non-reference) type.
  */
-class ReferenceType : public Type {
+class ReferenceType : public DependentType {
   public:
     ReferenceType(const Type *targetType, AddressSpace as = AddressSpace::ispc_default);
-    ReferenceType(const ReferenceType &other) : ReferenceType(other.targetType, other.addrSpace) {}
+    ReferenceType(const ReferenceType &other) : ReferenceType(other.base, other.addrSpace) {}
 
-    bool IsBoolType() const override;
-    bool IsFloatType() const override;
-    bool IsIntType() const override;
-    bool IsUnsignedType() const override;
-    bool IsSignedType() const override;
+    bool IsCompleteType() const override { return true; }
 
     const Type *GetBaseType() const override;
     const Type *GetReferenceTarget() const override;
-    const ReferenceType *GetAsVaryingType() const override;
-    const ReferenceType *GetAsUniformType() const override;
-    const ReferenceType *GetAsUnboundVariabilityType() const override;
-    const Type *GetAsSOAType(int width) const override;
-    const ReferenceType *ResolveDependence(TemplateInstantiation &templInst) const override;
-    const ReferenceType *ResolveUnboundVariability(Variability v) const override;
 
-    const ReferenceType *GetAsConstType() const override;
-    const ReferenceType *GetAsNonConstType() const override;
+    const ReferenceType *ResolveDependence(TemplateInstantiation &templInst) const override;
+
+    // TODO?
+    // const ReferenceType *GetAsUnsignedType() const override;
+    // const ReferenceType *GetAsSignedType() const override;
 
     std::string GetString() const override;
     std::string Mangle() const override;
@@ -1001,12 +1003,10 @@ class ReferenceType : public Type {
     const ReferenceType *GetWithAddrSpace(AddressSpace as) const;
 
   private:
-    const Type *const targetType;
     const AddressSpace addrSpace;
 
     const ReferenceType *Clone() const override { return new ReferenceType(*this); }
 
-    const ReferenceType *CloneWithBaseType(const Type *newBaseType) const;
     const ReferenceType *CloneWithAddressSpace(AddressSpace newAddrSpace) const;
 };
 

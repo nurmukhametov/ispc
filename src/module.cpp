@@ -2077,7 +2077,7 @@ static void lEmitVectorTypedefs(const std::vector<const VectorType *> &types, FI
 
     for (unsigned int i = 0; i < types.size(); ++i) {
         std::string baseDecl;
-        const VectorType *vt = types[i]->GetAsNonConstType();
+        const VectorType *vt = static_cast<const VectorType *>(types[i]->GetAsNonConstType());
         if (!vt->IsUniformType()) {
             // Varying stuff shouldn't be visibile to / used by the
             // application, so at least make it not simple to access it by
@@ -2750,7 +2750,7 @@ bool Module::writeHeader() {
         } else if (const EnumType *et = CastType<EnumType>(exportedTypes[i].first)) {
             exportedEnumTypes.push_back(static_cast<const EnumType *>(et->GetAsUniformType()));
         } else if (const VectorType *vt = CastType<VectorType>(exportedTypes[i].first)) {
-            exportedVectorTypes.push_back(vt->GetAsUniformType());
+            exportedVectorTypes.push_back(static_cast<const VectorType *>(vt->GetAsUniformType()));
         } else {
             FATAL("Unexpected type in export list");
         }
@@ -2900,7 +2900,7 @@ bool Module::writeDispatchHeader(DispatchHeaderInfo *DHI) {
             } else if (const EnumType *et = CastType<EnumType>(exportedTypes[i].first)) {
                 exportedEnumTypes.push_back(static_cast<const EnumType *>(et->GetAsUniformType()));
             } else if (const VectorType *vt = CastType<VectorType>(exportedTypes[i].first)) {
-                exportedVectorTypes.push_back(vt->GetAsUniformType());
+                exportedVectorTypes.push_back(static_cast<const VectorType *>(vt->GetAsUniformType()));
             } else {
                 FATAL("Unexpected type in export list");
             }

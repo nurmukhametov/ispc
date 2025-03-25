@@ -1265,6 +1265,157 @@ llvm::DIType *PointerType::GetDIType(llvm::DIScope *scope) const {
 }
 
 ///////////////////////////////////////////////////////////////////////////
+// DependentType
+
+DependentType::DependentType(TypeId id, const Type *b, Variability v, ConstID c) : Type(id, v, c), base(b) {
+    if (base) {
+        // Set variability to match base type if not explicitly specified
+        variability = base->GetVariability();
+        isConst = base->IsConstType() ? IS_CONST : NON_CONST;
+    }
+}
+
+DependentType::DependentType(TypeId id, const Type *b, Variability v, ConstID c, SourcePos p)
+    : Type(id, v, c, p), base(b) {
+    if (base) {
+        variability = base->GetVariability();
+        isConst = base->IsConstType() ? IS_CONST : NON_CONST;
+    }
+}
+
+const Type *DependentType::CloneWithBaseType(const Type *newBaseType) const {
+    const DependentType *ins = static_cast<const DependentType *>(Clone());
+    ins->base = newBaseType;
+    return ins;
+}
+
+bool DependentType::IsBoolType() const {
+    if (base == nullptr) {
+        Assert(m->errorCount > 0);
+        return false;
+    }
+    return base->IsBoolType();
+}
+
+bool DependentType::IsFloatType() const {
+    if (base == nullptr) {
+        Assert(m->errorCount > 0);
+        return false;
+    }
+    return base->IsFloatType();
+}
+
+bool DependentType::IsIntType() const {
+    if (base == nullptr) {
+        Assert(m->errorCount > 0);
+        return false;
+    }
+    return base->IsIntType();
+}
+
+bool DependentType::IsUnsignedType() const {
+    if (base == nullptr) {
+        Assert(m->errorCount > 0);
+        return false;
+    }
+    return base->IsUnsignedType();
+}
+
+bool DependentType::IsSignedType() const {
+    if (base == nullptr) {
+        Assert(m->errorCount > 0);
+        return false;
+    }
+    return base->IsSignedType();
+}
+
+bool DependentType::IsCompleteType() const {
+    if (base == nullptr) {
+        Assert(m->errorCount > 0);
+        return false;
+    }
+    return base->IsCompleteType();
+}
+
+const Type *DependentType::ResolveUnboundVariability(Variability v) const {
+    if (base == nullptr) {
+        Assert(m->errorCount > 0);
+        return nullptr;
+    }
+    return CloneWithBaseType(base->ResolveUnboundVariability(v));
+}
+
+const Type *DependentType::GetAsUniformType() const {
+    if (IsUniformType()) {
+        return this;
+    }
+    if (base == nullptr) {
+        Assert(m->errorCount > 0);
+        return nullptr;
+    }
+    return CloneWithBaseType(base->GetAsUniformType());
+}
+
+const Type *DependentType::GetAsVaryingType() const {
+    if (IsVaryingType()) {
+        return this;
+    }
+    if (base == nullptr) {
+        Assert(m->errorCount > 0);
+        return nullptr;
+    }
+    return CloneWithBaseType(base->GetAsVaryingType());
+}
+
+const Type *DependentType::GetAsUnboundVariabilityType() const {
+    if (base == nullptr) {
+        Assert(m->errorCount > 0);
+        return nullptr;
+    }
+    return CloneWithBaseType(base->GetAsUnboundVariabilityType());
+}
+
+const Type *DependentType::GetAsSOAType(int width) const {
+    if (base == nullptr) {
+        Assert(m->errorCount > 0);
+        return nullptr;
+    }
+    return CloneWithBaseType(base->GetAsSOAType(width));
+}
+
+const Type *DependentType::GetAsUnsignedType() const {
+    if (base == nullptr) {
+        Assert(m->errorCount > 0);
+        return nullptr;
+    }
+    return CloneWithBaseType(base->GetAsUnsignedType());
+}
+
+const Type *DependentType::GetAsSignedType() const {
+    if (base == nullptr) {
+        Assert(m->errorCount > 0);
+        return nullptr;
+    }
+    return CloneWithBaseType(base->GetAsSignedType());
+}
+
+const Type *DependentType::GetAsConstType() const {
+    if (base == nullptr) {
+        Assert(m->errorCount > 0);
+        return nullptr;
+    }
+    return CloneWithBaseType(base->GetAsConstType());
+}
+
+const Type *DependentType::GetAsNonConstType() const {
+    if (base == nullptr) {
+        Assert(m->errorCount > 0);
+        return nullptr;
+    }
+    return CloneWithBaseType(base->GetAsNonConstType());
+}
+
+///////////////////////////////////////////////////////////////////////////
 // SequentialType
 
 const Type *SequentialType::GetElementType(int index) const { return GetElementType(); }
@@ -1274,37 +1425,20 @@ const Type *SequentialType::GetElementType(int index) const { return GetElementT
 
 // TODO!: Why ArrayType misses SourcePos??
 ArrayType::ArrayType(const Type *c, int a)
-    : SequentialType(ARRAY_TYPE, Variability::Uniform, NON_CONST), child(c), elementCount(a) {
+    : SequentialType(ARRAY_TYPE, c, Variability::Uniform, NON_CONST), elementCount(a) {
     // 0 -> unsized array.
     Assert(elementCount.fixedCount >= 0);
     Assert(c->IsVoidType() == false);
-    if (child) {
-        variability = child->GetVariability();
-        isConst = child->IsConstType() ? IS_CONST : NON_CONST;
-    }
 }
 
 ArrayType::ArrayType(const Type *c, Symbol *num)
-    : SequentialType(ARRAY_TYPE, Variability::Uniform, NON_CONST), child(c), elementCount(num) {
-    if (child) {
-        variability = child->GetVariability();
-        isConst = child->IsConstType() ? IS_CONST : NON_CONST;
-    }
-}
+    : SequentialType(ARRAY_TYPE, c, Variability::Uniform, NON_CONST), elementCount(num) {}
 
 ArrayType::ArrayType(const Type *c, ElementCount elCount)
-    : SequentialType(ARRAY_TYPE, Variability::Uniform, NON_CONST), child(c), elementCount(elCount) {
-    if (child) {
-        variability = child->GetVariability();
-        isConst = child->IsConstType() ? IS_CONST : NON_CONST;
-    }
-}
+    : SequentialType(ARRAY_TYPE, c, Variability::Uniform, NON_CONST), elementCount(elCount) {}
 
-const ArrayType *ArrayType::CloneWithBaseType(const Type *newBaseType) const {
-    return new ArrayType(newBaseType, elementCount);
-}
 const ArrayType *ArrayType::CloneWithElementCount(ElementCount newElementCount) const {
-    return new ArrayType(child, newElementCount);
+    return new ArrayType(base, newElementCount);
 }
 const ArrayType *ArrayType::CloneWithBaseTypeAndElementCount(const Type *newBaseType,
                                                              ElementCount newElementCount) const {
@@ -1312,12 +1446,12 @@ const ArrayType *ArrayType::CloneWithBaseTypeAndElementCount(const Type *newBase
 }
 
 llvm::ArrayType *ArrayType::LLVMType(llvm::LLVMContext *ctx) const {
-    if (child == nullptr) {
+    if (base == nullptr) {
         Assert(m->errorCount > 0);
         return nullptr;
     }
 
-    llvm::Type *ct = child->LLVMStorageType(ctx);
+    llvm::Type *ct = base->LLVMStorageType(ctx);
     if (ct == nullptr) {
         Assert(m->errorCount > 0);
         return nullptr;
@@ -1325,65 +1459,35 @@ llvm::ArrayType *ArrayType::LLVMType(llvm::LLVMContext *ctx) const {
     return llvm::ArrayType::get(ct, elementCount.fixedCount);
 }
 
-bool ArrayType::IsCompleteType() const { return GetBaseType()->IsCompleteType(); }
+bool ArrayType::IsBoolType() const { return false; }
+
+bool ArrayType::IsFloatType() const { return false; }
+
+bool ArrayType::IsIntType() const { return false; }
+
+bool ArrayType::IsUnsignedType() const { return false; }
+
+bool ArrayType::IsSignedType() const { return false; }
 
 const Type *ArrayType::GetBaseType() const {
-    const Type *type = child;
+    const Type *type = base;
     const ArrayType *at = CastType<ArrayType>(type);
-    // Keep walking until we reach a child that isn't itself an array
+    // Keep walking until we reach a base that isn't itself an array
     while (at) {
-        type = at->child;
+        type = at->base;
         at = CastType<ArrayType>(type);
     }
     return type;
 }
 
-const ArrayType *ArrayType::GetAsVaryingType() const {
-    if (IsVaryingType()) {
-        return this;
-    }
-    if (child == nullptr) {
-        Assert(m->errorCount > 0);
-        return nullptr;
-    }
-    return CloneWithBaseType(child->GetAsVaryingType());
-}
-
-const ArrayType *ArrayType::GetAsUniformType() const {
-    if (IsUniformType()) {
-        return this;
-    }
-    if (child == nullptr) {
-        Assert(m->errorCount > 0);
-        return nullptr;
-    }
-    return CloneWithBaseType(child->GetAsUniformType());
-}
-
-const ArrayType *ArrayType::GetAsUnboundVariabilityType() const {
-    if (child == nullptr) {
-        Assert(m->errorCount > 0);
-        return nullptr;
-    }
-    return CloneWithBaseType(child->GetAsUnboundVariabilityType());
-}
-
-const ArrayType *ArrayType::GetAsSOAType(int width) const {
-    if (child == nullptr) {
-        Assert(m->errorCount > 0);
-        return nullptr;
-    }
-    return CloneWithBaseType(child->GetAsSOAType(width));
-}
-
 const ArrayType *ArrayType::ResolveDependence(TemplateInstantiation &templInst) const {
-    if (child == nullptr) {
+    if (base == nullptr) {
         Assert(m->errorCount > 0);
         return nullptr;
     }
     int resolvedCount = ResolveElementCount(templInst);
-    const Type *resType = child->ResolveDependence(templInst);
-    if (resType == child && resolvedCount == elementCount.fixedCount) {
+    const Type *resType = base->ResolveDependence(templInst);
+    if (resType == base && resolvedCount == elementCount.fixedCount) {
         return this;
     }
     // TODO!: if element.symbolCount is 0 ?
@@ -1391,49 +1495,9 @@ const ArrayType *ArrayType::ResolveDependence(TemplateInstantiation &templInst) 
     return CloneWithBaseTypeAndElementCount(resType, elemCount);
 }
 
-const ArrayType *ArrayType::ResolveUnboundVariability(Variability v) const {
-    if (child == nullptr) {
-        Assert(m->errorCount > 0);
-        return nullptr;
-    }
-    return CloneWithBaseType(child->ResolveUnboundVariability(v));
-}
-
-const ArrayType *ArrayType::GetAsUnsignedType() const {
-    if (child == nullptr) {
-        Assert(m->errorCount > 0);
-        return nullptr;
-    }
-    return CloneWithBaseType(child->GetAsUnsignedType());
-}
-
-const ArrayType *ArrayType::GetAsSignedType() const {
-    if (child == nullptr) {
-        Assert(m->errorCount > 0);
-        return nullptr;
-    }
-    return CloneWithBaseType(child->GetAsSignedType());
-}
-
-const ArrayType *ArrayType::GetAsConstType() const {
-    if (child == nullptr) {
-        Assert(m->errorCount > 0);
-        return nullptr;
-    }
-    return CloneWithBaseType(child->GetAsConstType());
-}
-
-const ArrayType *ArrayType::GetAsNonConstType() const {
-    if (child == nullptr) {
-        Assert(m->errorCount > 0);
-        return nullptr;
-    }
-    return CloneWithBaseType(child->GetAsNonConstType());
-}
-
 int ArrayType::GetElementCount() const { return elementCount.fixedCount; }
 
-const Type *ArrayType::GetElementType() const { return child; }
+const Type *ArrayType::GetElementType() const { return base; }
 
 std::string ArrayType::GetString() const {
     const Type *base = GetBaseType();
@@ -1457,17 +1521,17 @@ std::string ArrayType::GetString() const {
             buf[0] = '\0';
         }
         s += std::string("[") + std::string(buf) + std::string("]");
-        at = CastType<ArrayType>(at->child);
+        at = CastType<ArrayType>(at->base);
     }
     return s;
 }
 
 std::string ArrayType::Mangle() const {
-    if (child == nullptr) {
+    if (base == nullptr) {
         Assert(m->errorCount > 0);
         return "(error)";
     }
-    std::string s = child->Mangle();
+    std::string s = base->Mangle();
     char buf[16];
     if (elementCount.fixedCount > 0) {
         snprintf(buf, sizeof(buf), "%d", elementCount.fixedCount);
@@ -1501,7 +1565,7 @@ std::string ArrayType::GetDeclaration(const std::string &name, DeclarationSyntax
             buf[0] = '\0';
         }
         s += std::string("[") + std::string(buf) + std::string("]");
-        at = CastType<ArrayType>(at->child);
+        at = CastType<ArrayType>(at->base);
     }
 
     if (soaWidth > 0) {
@@ -1520,7 +1584,7 @@ std::string ArrayType::GetDeclaration(const std::string &name, DeclarationSyntax
 }
 
 int ArrayType::TotalElementCount() const {
-    const ArrayType *ct = CastType<ArrayType>(child);
+    const ArrayType *ct = CastType<ArrayType>(base);
     if (ct != nullptr) {
         return elementCount.fixedCount * ct->TotalElementCount();
     } else {
@@ -1529,11 +1593,11 @@ int ArrayType::TotalElementCount() const {
 }
 
 llvm::DIType *ArrayType::GetDIType(llvm::DIScope *scope) const {
-    if (child == nullptr) {
+    if (base == nullptr) {
         Assert(m->errorCount > 0);
         return nullptr;
     }
-    llvm::DIType *eltType = child->GetDIType(scope);
+    llvm::DIType *eltType = base->GetDIType(scope);
     return lCreateDIArray(eltType, elementCount.fixedCount);
 }
 
@@ -1599,7 +1663,7 @@ const Type *ArrayType::SizeUnsizedArrays(const Type *type, Expr *initExpr) {
         }
     }
 
-    // Recursively call SizeUnsizedArrays() to get the child type for the
+    // Recursively call SizeUnsizedArrays() to get the base type for the
     // array that we were able to size here.
     return new ArrayType(SizeUnsizedArrays(at->GetElementType(), nextList), at->GetElementCount());
 }
@@ -1625,30 +1689,21 @@ int ArrayType::ResolveElementCount(TemplateInstantiation &templInst) const {
 // VectorType
 
 VectorType::VectorType(const Type *b, int a)
-    : SequentialType(VECTOR_TYPE, Variability::Unbound, NON_CONST), base(b), elementCount(a) {
+    : SequentialType(VECTOR_TYPE, b, Variability::Unbound, NON_CONST), elementCount(a) {
     Assert(elementCount.fixedCount > 0);
     Assert(base != nullptr);
-    variability = base->GetVariability();
-    isConst = base->IsConstType() ? IS_CONST : NON_CONST;
 }
 
 VectorType::VectorType(const Type *b, Symbol *num)
-    : SequentialType(VECTOR_TYPE, Variability::Unbound, NON_CONST), base(b), elementCount(num) {
+    : SequentialType(VECTOR_TYPE, b, Variability::Unbound, NON_CONST), elementCount(num) {
     Assert(base != nullptr);
-    variability = base->GetVariability();
-    isConst = base->IsConstType() ? IS_CONST : NON_CONST;
 }
 
 VectorType::VectorType(const Type *b, ElementCount elCount)
-    : SequentialType(VECTOR_TYPE, Variability::Unbound, NON_CONST), base(b), elementCount(elCount) {
+    : SequentialType(VECTOR_TYPE, b, Variability::Unbound, NON_CONST), elementCount(elCount) {
     Assert(base != nullptr);
-    variability = base->GetVariability();
-    isConst = base->IsConstType() ? IS_CONST : NON_CONST;
 }
 
-const VectorType *VectorType::CloneWithBaseType(const Type *newBaseType) const {
-    return new VectorType(newBaseType, elementCount);
-}
 const VectorType *VectorType::CloneWithElementCount(ElementCount newElementCount) const {
     return new VectorType(base, newElementCount);
 }
@@ -1657,84 +1712,12 @@ const VectorType *VectorType::CloneWithBaseTypeAndElementCount(const Type *newBa
     return new VectorType(newBaseType, newElementCount);
 }
 
-bool VectorType::IsFloatType() const { return base->IsFloatType(); }
-
-bool VectorType::IsIntType() const { return base->IsIntType(); }
-
-bool VectorType::IsUnsignedType() const { return base->IsUnsignedType(); }
-
-bool VectorType::IsSignedType() const { return base->IsSignedType(); }
-
-bool VectorType::IsBoolType() const { return base->IsBoolType(); }
-
-bool VectorType::IsCompleteType() const { return base->IsCompleteType(); }
-
-const Type *VectorType::GetBaseType() const { return base; }
-
-const VectorType *VectorType::GetAsVaryingType() const {
-    if (IsVaryingType()) {
-        return this;
-    }
-    if (base == nullptr) {
-        Assert(m->errorCount > 0);
-        return nullptr;
-    }
-    return CloneWithBaseType(base->GetAsVaryingType());
-}
-
-const VectorType *VectorType::GetAsUniformType() const {
-    if (IsUniformType()) {
-        return this;
-    }
-    if (base == nullptr) {
-        Assert(m->errorCount > 0);
-        return nullptr;
-    }
-    return CloneWithBaseType(base->GetAsUniformType());
-}
-
-const VectorType *VectorType::GetAsUnboundVariabilityType() const {
-    return CloneWithBaseType(base->GetAsUnboundVariabilityType());
-}
-
-const VectorType *VectorType::GetAsSOAType(int width) const {
-    return CloneWithBaseType(base->GetAsSOAType(width));
-}
-
 const VectorType *VectorType::ResolveDependence(TemplateInstantiation &templInst) const {
     int resolvedCount = ResolveElementCount(templInst);
     const Type *resolvedBase = base->ResolveDependence(templInst);
     ElementCount elemCount =
         (resolvedCount > 0) ? ElementCount(resolvedCount) : ElementCount(elementCount.symbolCount);
     return CloneWithBaseTypeAndElementCount(resolvedBase, elemCount);
-}
-
-const VectorType *VectorType::ResolveUnboundVariability(Variability v) const {
-    return CloneWithBaseType(base->ResolveUnboundVariability(v));
-}
-
-const VectorType *VectorType::GetAsUnsignedType() const {
-    if (base == nullptr) {
-        Assert(m->errorCount > 0);
-        return nullptr;
-    }
-    return CloneWithBaseType(base->GetAsUnsignedType());
-}
-
-const VectorType *VectorType::GetAsSignedType() const {
-    if (base == nullptr) {
-        Assert(m->errorCount > 0);
-        return nullptr;
-    }
-    return CloneWithBaseType(base->GetAsSignedType());
-}
-
-const VectorType *VectorType::GetAsConstType() const {
-    return CloneWithBaseType(base->GetAsConstType());
-}
-
-const VectorType *VectorType::GetAsNonConstType() const {
-    return CloneWithBaseType(base->GetAsNonConstType());
 }
 
 std::string VectorType::GetCountString() const {
@@ -2310,160 +2293,33 @@ llvm::DIType *UndefinedStructType::GetDIType(llvm::DIScope *scope) const {
 // ReferenceType
 
 ReferenceType::ReferenceType(const Type *t, AddressSpace as)
-    : Type(REFERENCE_TYPE, Variability::Unbound, NON_CONST), targetType(t), addrSpace(as) {
-    if (targetType == nullptr) {
-        Assert(m->errorCount > 0);
-    }
-    variability = targetType->GetVariability();
-    isConst = targetType->IsConstType() ? IS_CONST : NON_CONST;
-    asOtherConstType = nullptr;
+    : DependentType(REFERENCE_TYPE, t, Variability::Unbound, NON_CONST), addrSpace(as) {
 }
 
-const ReferenceType *ReferenceType::CloneWithBaseType(const Type *newBaseType) const {
-    return new ReferenceType(newBaseType, addrSpace);
-}
 const ReferenceType *ReferenceType::CloneWithAddressSpace(AddressSpace newAddrSpace) const {
-    return new ReferenceType(targetType, newAddrSpace);
+    return new ReferenceType(base, newAddrSpace);
 }
 
-bool ReferenceType::IsBoolType() const {
-    if (targetType == nullptr) {
-        Assert(m->errorCount > 0);
-        return false;
-    }
-    return targetType->IsBoolType();
-}
-
-bool ReferenceType::IsFloatType() const {
-    if (targetType == nullptr) {
-        Assert(m->errorCount > 0);
-        return false;
-    }
-    return targetType->IsFloatType();
-}
-
-bool ReferenceType::IsIntType() const {
-    if (targetType == nullptr) {
-        Assert(m->errorCount > 0);
-        return false;
-    }
-    return targetType->IsIntType();
-}
-
-bool ReferenceType::IsUnsignedType() const {
-    if (targetType == nullptr) {
-        Assert(m->errorCount > 0);
-        return false;
-    }
-    return targetType->IsUnsignedType();
-}
-
-bool ReferenceType::IsSignedType() const {
-    if (targetType == nullptr) {
-        Assert(m->errorCount > 0);
-        return false;
-    }
-    return targetType->IsSignedType();
-}
-
-const Type *ReferenceType::GetReferenceTarget() const { return targetType; }
+const Type *ReferenceType::GetReferenceTarget() const { return base; }
 
 const Type *ReferenceType::GetBaseType() const {
-    if (targetType == nullptr) {
+    if (base == nullptr) {
         Assert(m->errorCount > 0);
         return nullptr;
     }
-    return targetType->GetBaseType();
-}
-
-const ReferenceType *ReferenceType::GetAsVaryingType() const {
-    if (targetType == nullptr) {
-        Assert(m->errorCount > 0);
-        return nullptr;
-    }
-    if (IsVaryingType()) {
-        return this;
-    }
-    return CloneWithBaseType(targetType->GetAsVaryingType());
-}
-
-const ReferenceType *ReferenceType::GetAsUniformType() const {
-    if (targetType == nullptr) {
-        Assert(m->errorCount > 0);
-        return nullptr;
-    }
-    if (IsUniformType()) {
-        return this;
-    }
-    return CloneWithBaseType(targetType->GetAsUniformType());
-}
-
-const ReferenceType *ReferenceType::GetAsUnboundVariabilityType() const {
-    if (targetType == nullptr) {
-        Assert(m->errorCount > 0);
-        return nullptr;
-    }
-    if (HasUnboundVariability()) {
-        return this;
-    }
-    return CloneWithBaseType(targetType->GetAsUnboundVariabilityType());
-}
-
-const Type *ReferenceType::GetAsSOAType(int width) const {
-    // FIXME: is this right?
-    return new ArrayType(this, width);
+    return base->GetBaseType();
 }
 
 const ReferenceType *ReferenceType::ResolveDependence(TemplateInstantiation &templInst) const {
-    if (targetType == nullptr) {
+    if (base == nullptr) {
         Assert(m->errorCount > 0);
         return nullptr;
     }
-    return CloneWithBaseType(targetType->ResolveDependence(templInst));
-}
-
-const ReferenceType *ReferenceType::ResolveUnboundVariability(Variability v) const {
-    if (targetType == nullptr) {
-        Assert(m->errorCount > 0);
-        return nullptr;
-    }
-    return CloneWithBaseType(targetType->ResolveUnboundVariability(v));
-}
-
-const ReferenceType *ReferenceType::GetAsConstType() const {
-    if (targetType == nullptr) {
-        Assert(m->errorCount > 0);
-        return nullptr;
-    }
-    if (IsConstType()) {
-        return this;
-    }
-
-    if (asOtherConstType == nullptr) {
-        asOtherConstType = CloneWithBaseType(targetType->GetAsConstType());
-        asOtherConstType->asOtherConstType = this;
-    }
-    return static_cast<const ReferenceType *>(asOtherConstType);
-}
-
-const ReferenceType *ReferenceType::GetAsNonConstType() const {
-    if (targetType == nullptr) {
-        Assert(m->errorCount > 0);
-        return nullptr;
-    }
-    if (!IsConstType()) {
-        return this;
-    }
-
-    if (asOtherConstType == nullptr) {
-        asOtherConstType = CloneWithBaseType(targetType->GetAsNonConstType());
-        asOtherConstType->asOtherConstType = this;
-    }
-    return static_cast<const ReferenceType *>(asOtherConstType);
+    return static_cast<const ReferenceType *>(CloneWithBaseType(base->ResolveDependence(templInst)));
 }
 
 const ReferenceType *ReferenceType::GetWithAddrSpace(AddressSpace as) const {
-    if (targetType == nullptr) {
+    if (base == nullptr) {
         Assert(m->errorCount > 0);
         return nullptr;
     }
@@ -2475,12 +2331,12 @@ const ReferenceType *ReferenceType::GetWithAddrSpace(AddressSpace as) const {
 }
 
 std::string ReferenceType::GetString() const {
-    if (targetType == nullptr) {
+    if (base == nullptr) {
         Assert(m->errorCount > 0);
         return "";
     }
 
-    std::string ret = targetType->GetString();
+    std::string ret = base->GetString();
 
     if (addrSpace != AddressSpace::ispc_default) {
         ret += std::string(" addrspace(") + std::to_string((int)addrSpace) + std::string(")");
@@ -2491,22 +2347,22 @@ std::string ReferenceType::GetString() const {
 }
 
 std::string ReferenceType::Mangle() const {
-    if (targetType == nullptr) {
+    if (base == nullptr) {
         Assert(m->errorCount > 0);
         return "";
     }
     std::string ret;
-    ret += std::string("REF") + targetType->Mangle();
+    ret += std::string("REF") + base->Mangle();
     return ret;
 }
 
 std::string ReferenceType::GetDeclaration(const std::string &name, DeclarationSyntax syntax) const {
-    if (targetType == nullptr) {
+    if (base == nullptr) {
         Assert(m->errorCount > 0);
         return "";
     }
 
-    const ArrayType *at = CastType<ArrayType>(targetType);
+    const ArrayType *at = CastType<ArrayType>(base);
     if (at != nullptr) {
         if (at->GetElementCount() == 0) {
             // emit unsized arrays as pointers to the base type..
@@ -2519,11 +2375,11 @@ std::string ReferenceType::GetDeclaration(const std::string &name, DeclarationSy
         } else {
             // otherwise forget about the reference part if it's an
             // array since C already passes arrays by reference...
-            return targetType->GetDeclaration(name, syntax);
+            return base->GetDeclaration(name, syntax);
         }
     } else {
         std::string ret;
-        ret += targetType->GetDeclaration("", syntax);
+        ret += base->GetDeclaration("", syntax);
         ret += syntax == DeclarationSyntax::CPP ? std::string(" &") : std::string(" *");
         if (lShouldPrintName(name)) {
             ret += name;
@@ -2533,12 +2389,12 @@ std::string ReferenceType::GetDeclaration(const std::string &name, DeclarationSy
 }
 
 llvm::Type *ReferenceType::LLVMType(llvm::LLVMContext *ctx) const {
-    if (targetType == nullptr) {
+    if (base == nullptr) {
         Assert(m->errorCount > 0);
         return nullptr;
     }
 
-    llvm::Type *t = targetType->LLVMStorageType(ctx);
+    llvm::Type *t = base->LLVMStorageType(ctx);
     if (t == nullptr) {
         Assert(m->errorCount > 0);
         return nullptr;
@@ -2548,11 +2404,11 @@ llvm::Type *ReferenceType::LLVMType(llvm::LLVMContext *ctx) const {
 }
 
 llvm::DIType *ReferenceType::GetDIType(llvm::DIScope *scope) const {
-    if (targetType == nullptr) {
+    if (base == nullptr) {
         Assert(m->errorCount > 0);
         return nullptr;
     }
-    llvm::DIType *diTargetType = targetType->GetDIType(scope);
+    llvm::DIType *diTargetType = base->GetDIType(scope);
     // Specifying address space for Xe target is necessary for correct work of SPIR-V Translator and other SPIR-V
     // tools like spirv-dis. See more detailed description in PointerType::GetDIType
     return g->target->isXeTarget()
