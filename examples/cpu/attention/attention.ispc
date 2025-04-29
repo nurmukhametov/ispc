@@ -321,22 +321,17 @@ export void single_head_attention(uniform float Q[], uniform float K[], uniform 
     uniform float *uniform attention_scores = memory_pool;
     uniform float *uniform K_transposed = memory_pool + seq_len * seq_len;
 
-    uniform int numTasks = seq_len / programCount;
     // Transpose K for QK^T calculation
-    launch[numTasks] transpose_matrix_task(K, K_transposed, d_model, seq_len);
-    sync;
+    transpose_matrix(K, K_transposed, d_model, seq_len);
 
     // Compute QK^T using matmul: (seq_len x d_model) * (d_model x seq_len) = (seq_len x seq_len)
-    launch[numTasks] matmul_task(Q, K_transposed, attention_scores, seq_len, d_model, seq_len);
-    sync;
+    matmul(Q, K_transposed, attention_scores, seq_len, d_model, seq_len);
 
     // Apply softmax to each row of attention_scores
-    launch[numTasks] softmax_task(attention_scores, scale, seq_len);
-    sync;
+    softmax(attention_scores, scale, seq_len);
 
     // Compute attention_scores * V using matmul: (seq_len x seq_len) * (seq_len x d_model) = (seq_len x d_model)
-    launch[numTasks] matmul_task(attention_scores, V, output, seq_len, seq_len, d_model);
-    sync;
+    matmul(attention_scores, V, output, seq_len, seq_len, d_model);
 
     // Free allocated memory
     delete[] memory_pool;
