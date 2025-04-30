@@ -10,41 +10,41 @@
 #define NEG_INF -1e30f
 #define BLOCK_SIZE 256
 
-void matmul(uniform float matrixA[], uniform float matrixB[], uniform float matrixC[], uniform int M, uniform int N,
-            uniform int K) {
+void matmul(uniform float matrixA[], uniform float matrixB[], uniform float matrixC[], uniform int M, uniform int K,
+            uniform int N) {
     uniform float sumTile[TILE_HEIGHT][TILE_WIDTH];
     uniform float oneAVal[TILE_HEIGHT];
 
     for (uniform unsigned int m = 0; m < M; m += TILE_HEIGHT) {
-        for (uniform unsigned int k0 = 0; k0 < K; k0 += TILE_WIDTH) {
+        for (uniform unsigned int n0 = 0; n0 < N; n0 += TILE_WIDTH) {
             // SPMD "horizontally" over TILE dimension.
-            foreach (ki = 0 ... TILE_WIDTH) {
+            foreach (ni = 0 ... TILE_WIDTH) {
                 for (uniform unsigned int i = 0; i < TILE_HEIGHT; i++) {
                     // No scatter required.
-                    sumTile[i][ki] = 0.0f;
+                    sumTile[i][ni] = 0.0f;
                 }
             }
 
-            // Loop over the the matrix N dimension:
-            for (uniform unsigned int n = 0; n < N; n++) {
+            // Loop over the matrix K dimension:
+            for (uniform unsigned int k = 0; k < K; k++) {
                 for (uniform unsigned int i = 0; i < TILE_HEIGHT; i++)
-                    oneAVal[i] = matrixA[(m + i) * N + n];
+                    oneAVal[i] = matrixA[(m + i) * K + k];
 
                 // SPMD iterate over the TILE dimension, but within for loop nest:
-                foreach (kt = 0 ... TILE_WIDTH) {
+                foreach (nt = 0 ... TILE_WIDTH) {
                     // Note, no gather required.
-                    varying float matB1 = matrixB[n * K + k0 + kt];
+                    varying float matB1 = matrixB[k * N + n0 + nt];
                     for (uniform unsigned int i = 0; i < TILE_HEIGHT; i++) {
                         // Pure SIMD FMAC:
-                        sumTile[i][kt] += oneAVal[i] * matB1;
+                        sumTile[i][nt] += oneAVal[i] * matB1;
                     }
                 }
             }
 
             // SPMD "horizontally" again over TILE dimension:
-            foreach (ki = 0 ... TILE_WIDTH) {
+            foreach (ni = 0 ... TILE_WIDTH) {
                 for (uniform unsigned int i = 0; i < TILE_HEIGHT; i++) {
-                    matrixC[(m + i) * K + k0 + ki] = sumTile[i][ki];
+                    matrixC[(m + i) * N + n0 + ni] = sumTile[i][ni];
                 }
             }
         }
