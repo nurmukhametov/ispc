@@ -4,7 +4,7 @@
 // assume K % K_C == 0
 #define K_C 512
 // assume N % N_C == 0
-#define N_C 1024
+#define N_C 512
 // assume M % M_C == 0
 #define M_C 32
 // assume N_C % N_R == 0
