@@ -1,3 +1,107 @@
+=== v1.27.0 === (14 May 2025)
+
+ISPC release with AVX10.2 support and multiple standard library improvements.
+This release is based on a patched LLVM 20.1.4.
+
+New targets:
+
+New targets have been added for platforms supporting Intel® Advanced Vector
+Extensions 10.2: `avx10.2-x4`, `avx10.2-x8`, `avx10.2-x16`, `avx10.2-x32`, and
+`avx10.2-x64`.
+
+Standard library:
+
+- Cross-lane operations - `broadcast`, `rotate`, `shift`, and `shuffle` - are
+  now supported for unsigned types.
+- ISPC's data handling capabilities have been extended to include signed and
+  unsigned `int8` and `int16` types in the reduction functions.
+- Support for `packed_load` and `packed_store` operations has also been
+  expanded to include: `int8`, `int16` (signed/unsigned), `float16`,
+  `float`, and `double`.
+- The cube root function `cbrt` has been added to the standard library for
+  `float` and `double` types.
+- Dot product functionality has been enhanced with mixed signedness support for
+  16-bit integers. The following input combinations are now supported: u16 x u16
+  (unsigned x unsigned), i16 x i16 (signed x signed), u16 x i16 (mixed
+  signedness). For consistency with other naming conventions, the function
+  `dot2add_i16_packed` has been renamed to `dot2add_i16i16_packed`.
+- The support for short vector types has been added for the following element
+  wise functions: `min`, `max`, `abs`, `round`, `floor`, `ceil`, `trunc`,
+  `rcp`, `rcp_fast`, `sqrt`, `rsqrt`, `sin`, `asin`, `cos`, `acos`, `tan`,
+  `atan`, `exp`, `log`, `atan2`, `pow`, and `cbrt`.
+
+Language changes:
+
+- The ``aligned(N)`` attribute is now available to specify the alignment of
+  variables and struct types.
+- A bug was fixed where unsigned array indices or pointer arithmetic with
+  unsigned offsets could result in overflow due to sign extension when promoting
+  to pointer size. This issue is now resolved, and the compiler correctly
+  handles unsigned integer indexing and pointer arithmetic.
+
+Compiler Switches Behavior:
+
+- The ``-dD`` and ``-dM`` flag have been supported. They are useful to debug the
+  preprocessor and to check the macros defined by the compiler.
+
+Template support bug fixes:
+
+- Supported instantiation of template functions on function pointer
+  assignments.
+- Improved implicit template argument deduction.
+- Fixed a crash when the nested template function doesn't use templated
+  argument.
+
+Performance improvements:
+
+- Improved the performance of masked loads and stores for AVX-512 x32 and x64
+  targets.
+
+Other bug fixes:
+
+- Fixed integer division crash by ensuring that it is performed only for active
+  lanes, improved both stability and performance.
+- crashes caused by incomplete struct types
+- improved compiler warnings about used incomplete types
+- a few more
+
+Ecosystem improvements:
+
+ISPC language is supported now in Linguist that is used by GitHub to highlight
+syntax. It means that ISPC source code now is highlighted in GitHub.
+
+Recommended versions of Runtime Dependencies when targeting GPU:
+
+Linux:
+
+ - Intel(R) Graphics Compute Runtime
+   https://github.com/intel/compute-runtime/releases/tag/25.13.33276.16
+ - Level Zero Loader
+   https://github.com/oneapi-src/level-zero/releases/tag/v1.20.2
+ - Threading Building Blocks (TBB)
+
+Alternatively, you can use a validated gfx driver stack supporting Intel® Arc™
+available at https://dgpu-docs.intel.com/driver/installation.html
+
+Windows:
+
+ - Intel(R) Graphics Windows(R) DCH Drivers 32.0.101.6083
+   https://www.intel.com/content/www/us/en/download/785597/intel-arc-iris-xe-graphics-windows.html
+ - Level Zero Loader
+   https://github.com/oneapi-src/level-zero/releases/tag/v1.20.2
+ - OpenCL™ Offline Compiler (OCLOC)
+   https://www.intel.com/content/www/us/en/developer/articles/tool/oneapi-standalone-components.html
+   (this is needed for AoT compilation on Windows only)
+ - Supported GPU platforms: Intel(R) Arc Graphics, 11th-13th Gen Intel(R) Core
+   processor graphics
+
+Components revisions used in GPU-enabled build:
+ - https://github.com/KhronosGroup/SPIRV-LLVM-Translator/commit/6dd8f2a1
+ - https://github.com/intel/vc-intrinsics/commit/b980474c
+ - https://github.com/oneapi-src/level-zero/commit/d7a44e0 (v1.20.2)
+ - https://github.com/llvm/llvm-project/commit/ec28b8f (llvmorg-20.1.4) +
+   patches from llvm_patches folder
+
 === v1.26.0 === (6 February 2025)
 
 ISPC release featuring improved ARM support, new "generic" targets that simplify
