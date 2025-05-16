@@ -6,21 +6,17 @@
 // assume N % N_C == 0
 #define N_C 512
 // assume M % M_C == 0
-#define M_C 32
+#define M_C 64
 // assume N_C % N_R == 0
-#define N_R 16
-#define M_R 8
+#define N_R 8
+#define M_R 12
 
-// These constants should be picked with the following in mind:
-// N_R x M_R: Register tile size
-// K_C x N_R: Fits in L1 cache
-// K_C x M_C: Fits in L2 cache
-// N_C x K_C: Fits in L3 cache
 
 // A matrix is stored in column-major order
 void loop_0(uniform int M, uniform int N, uniform int K,
                           uniform float A[], uniform int lda, uniform float B[],
                           uniform int ldb, uniform float C[], uniform int ldc) {
+
   // assert(M == M_R);
   // assert(N == N_R);
   // assert(K == K_C);
@@ -48,6 +44,37 @@ void loop_0(uniform int M, uniform int N, uniform int K,
       C[m * ldc + vn] += sumTile[m][vn];
     }
   }
+
+}
+
+// A matrix is stored in column-major order
+// It is different from loop_0 as tile is M x N_R
+void loop_0_r(uniform int M, uniform int N, uniform int K,
+                          uniform float A[], uniform int lda, uniform float B[],
+                          uniform int ldb, uniform float C[], uniform int ldc) {
+
+  uniform float sumTile[M_R][N_R] = { { 0 } };
+  uniform float oneAVal[M_R] = { 0 };
+
+  for (uniform int k = 0; k < K; k++) {
+    for (uniform int m = 0; m < M; m++) {
+      oneAVal[m] = A[m + k * lda];
+    }
+
+    foreach (vn = 0 ... N_R) {
+      varying float matB1 = B[k * ldb + vn];
+      for (uniform int m = 0; m < M; m++) {
+        sumTile[m][vn] += oneAVal[m] * matB1;
+      }
+    }
+  }
+
+  foreach (vn = 0 ... N_R) {
+    for (uniform int m = 0; m < M; m++) {
+      C[m * ldc + vn] += sumTile[m][vn];
+    }
+  }
+
 }
 
 // A matrix is stored in column-major order
@@ -72,22 +99,21 @@ void loop_1(uniform int M, uniform int N, uniform int K,
 
   uniform int R = M % M_R;
   if (R > 0) {
-    loop_0_naive(R, N, K, &A[(M - R) * lda], R, B, ldb, &C[(M - R) * ldc], ldc);
+    loop_0_r(R, N, K, &A[(M - R) * lda], R, B, ldb, &C[(M - R) * ldc], ldc);
   }
 }
 
 void loop_2(uniform int M, uniform int N, uniform int K,
                           uniform float A[], uniform int lda, uniform float B[],
                           uniform int ldb, uniform float C[], uniform int ldc) {
-  assert(N % N_R == 0);
+  // assert(N % N_R == 0);
   for (uniform int jr = 0; jr < N; jr += N_R) {
     loop_1(M, N_R, K, A, lda, &B[jr * K], N_R, &C[jr], ldc);
   }
 }
 
-void pack_A(uniform int M, uniform int K,
-            uniform float A[], uniform int lda,
-            uniform float A_packed[]) {
+void pack_A(uniform int M, uniform int K, uniform float A[],
+                          uniform int lda, uniform float A_packed[]) {
   // assert(M % M_R == 0);
   for (uniform int r = 0; (r < M) && !(r + M_R > M); r += M_R) {
     for (uniform int k = 0; k < K; k++) {
@@ -109,20 +135,19 @@ void pack_A(uniform int M, uniform int K,
 void loop_3(uniform int M, uniform int N, uniform int K,
                           uniform float A[], uniform int lda, uniform float B[],
                           uniform int ldb, uniform float C[], uniform int ldc) {
-  assert(M % M_C == 0);
-  uniform float *uniform A_packed = uniform new uniform float[M_C * K];
+  // assert(M % M_C == 0);
+  uniform float A_data[M_C][K_C] = { { 0 } };
+  uniform float *uniform A_packed = (uniform float *uniform) &A_data[0][0];
   for (uniform int i = 0; i < M; i += M_C) {
     pack_A(M_C, K, &A[i * lda], lda, A_packed);
     // leading dimension of A_packed is somewhat confusing here
     loop_2(M_C, N, K, A_packed, K, B, ldb, &C[i * ldc], ldc);
   }
-  delete[] A_packed;
 }
 
-void pack_B(uniform int K, uniform int N,
-            uniform float B[], uniform int ldb,
-            uniform float B_packed[]) {
-  assert(N % N_R == 0);
+void pack_B(uniform int K, uniform int N, uniform float B[],
+                          uniform int ldb, uniform float B_packed[]) {
+  // assert(N % N_R == 0);
   for (uniform int r = 0; r < N; r += N_R) {
     for (uniform int k = 0; k < K; k++) {
       foreach (nr = 0 ... N_R) {
@@ -135,8 +160,9 @@ void pack_B(uniform int K, uniform int N,
 void loop_4(uniform int M, uniform int N, uniform int K,
                           uniform float A[], uniform int lda, uniform float B[],
                           uniform int ldb, uniform float C[], uniform int ldc) {
-  assert(K % K_C == 0);
-  uniform float *uniform B_packed = uniform new uniform float[K_C * N];
+  // assert(K % K_C == 0);
+  uniform float B_data[K_C][N_C] = { { 0 } };
+  uniform float *uniform B_packed = (uniform float *uniform) &B_data[0][0];
   for (uniform int p = 0; p < K; p += K_C) {
     pack_B(K_C, N, &B[p * ldb], ldb, B_packed);
     // leading dimension of B_packed is somewhat confusing here
@@ -147,7 +173,7 @@ void loop_4(uniform int M, uniform int N, uniform int K,
 void loop_5(uniform int M, uniform int N, uniform int K,
                           uniform float A[], uniform int lda, uniform float B[],
                           uniform int ldb, uniform float C[], uniform int ldc) {
-  assert(N % N_C == 0);
+  // assert(N % N_C == 0);
   for (uniform int j = 0; j < N; j += N_C) {
     loop_4(M, N_C, K, A, lda, &B[j], ldb, &C[j], ldc);
   }
