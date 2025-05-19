@@ -6,10 +6,15 @@
 // assume N % N_C == 0
 #define N_C 512
 // assume M % M_C == 0
-#define M_C 64
 // assume N_C % N_R == 0
-#define N_R 8
-#define M_R 12
+
+// #define M_C 64
+// #define N_R 8
+// #define M_R 12
+
+#define M_C 32
+#define N_R 16
+#define M_R 8
 
 
 // A matrix is stored in column-major order
@@ -90,9 +95,22 @@ void loop_0_naive(uniform int M, uniform int N, uniform int K,
   }
 }
 
+task void loop_1_task(uniform int M, uniform int N, uniform int K,
+                          uniform float A[], uniform int lda, uniform float B[],
+                          uniform int ldb, uniform float C[], uniform int ldc) {
+  uniform int R = M % M_R;
+  if (R > 0) {
+    loop_0_r(R, N, K, &A[(M - R) * lda], R, B, ldb, &C[(M - R) * ldc], ldc);
+  } else {
+    uniform int ir = taskIndex * M_R;
+    loop_0(M_R, N, K, &A[ir * lda], M_R, B, ldb, &C[ir * ldc], ldc);
+  }
+}
+
 void loop_1(uniform int M, uniform int N, uniform int K,
                           uniform float A[], uniform int lda, uniform float B[],
                           uniform int ldb, uniform float C[], uniform int ldc) {
+#ifndef ISPC_TASKED_LOOP1
   for (uniform int ir = 0; (ir < M) && !(ir + M_R > M); ir += M_R) {
     loop_0(M_R, N, K, &A[ir * lda], M_R, B, ldb, &C[ir * ldc], ldc);
   }
@@ -101,15 +119,46 @@ void loop_1(uniform int M, uniform int N, uniform int K,
   if (R > 0) {
     loop_0_r(R, N, K, &A[(M - R) * lda], R, B, ldb, &C[(M - R) * ldc], ldc);
   }
+#else
+  uniform int numTasks = M / M_R;
+  launch[numTasks] loop_1_task(M, N, K, A, lda, B, ldb, C, ldc);
+  sync;
+#endif // ISPC_TASKED_LOOP1
+}
+
+task void loop_2_task(uniform int M, uniform int N, uniform int K,
+                          uniform float A[], uniform int lda, uniform float B[],
+                          uniform int ldb, uniform float C[], uniform int ldc) {
+  uniform int jr = taskIndex * N_R;
+  loop_1(M, N_R, K, A, lda, &B[jr * K], N_R, &C[jr], ldc);
+}
+
+task void loop_2_task_2(uniform int x, uniform int M, uniform int N, uniform int K,
+                          uniform float A[], uniform int lda, uniform float B[],
+                          uniform int ldb, uniform float C[], uniform int ldc) {
+  uniform int jr = (x + taskIndex) * N_R;
+  loop_1(M, N_R, K, A, lda, &B[jr * K], N_R, &C[jr], ldc);
 }
 
 void loop_2(uniform int M, uniform int N, uniform int K,
                           uniform float A[], uniform int lda, uniform float B[],
                           uniform int ldb, uniform float C[], uniform int ldc) {
   // assert(N % N_R == 0);
+#ifndef ISPC_TASKED_LOOP2
   for (uniform int jr = 0; jr < N; jr += N_R) {
     loop_1(M, N_R, K, A, lda, &B[jr * K], N_R, &C[jr], ldc);
   }
+#else
+  // uniform int overallTasks = N / N_R;
+  // uniform int numTasks = 16;
+  // for (uniform int i = 0; i < overallTasks; i += numTasks) {
+  //   launch[numTasks] loop_2_task_2(i, M, N, K, A, lda, B, ldb, C, ldc);
+  //   sync;
+  // }
+  uniform int numTasks = N / N_R;
+  launch[numTasks] loop_2_task(M, N, K, A, lda, B, ldb, C, ldc);
+  sync;
+#endif // ISPC_TASKED
 }
 
 void pack_A(uniform int M, uniform int K, uniform float A[],
@@ -520,7 +569,7 @@ export void single_head_attention(uniform float Q[], uniform float K[], uniform 
     transpose_matrix(K, K_transposed, d_model, seq_len);
 
     // Compute QK^T using matmul: (seq_len x d_model) * (d_model x seq_len) = (seq_len x seq_len)
-#ifdef BB
+#ifdef GOTO_IMPL
     gemm(Q, K_transposed, attention_scores, seq_len, seq_len, d_model);
 #else
     matmul(Q, K_transposed, attention_scores, seq_len, d_model, seq_len);
@@ -530,7 +579,7 @@ export void single_head_attention(uniform float Q[], uniform float K[], uniform 
     softmax(attention_scores, scale, seq_len);
 
     // Compute attention_scores * V using matmul: (seq_len x seq_len) * (seq_len x d_model) = (seq_len x d_model)
-#ifdef BB
+#ifdef GOTO_IMPL
     gemm(attention_scores, V, output, seq_len, d_model, seq_len);
 #else
     matmul(attention_scores, V, output, seq_len, seq_len, d_model);
