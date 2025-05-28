@@ -290,10 +290,10 @@ set(BITCODE2CPP_FLAGS --registration-file=${REG_CPP_FILE} --header-file=${REG_H_
 # First command: write the function opening
 add_custom_command(
     OUTPUT ${REG_CPP_FILE}_part1
-    COMMAND ${CMAKE_COMMAND} -E echo "\\#include \\\"reg.h\\\"" > ${REG_CPP_FILE}
-    COMMAND ${CMAKE_COMMAND} -E echo "\\#include \\\"bitcode_lib.h\\\"" >> ${REG_CPP_FILE}
+    COMMAND ${CMAKE_COMMAND} -E echo "#include \\\"reg.h\\\"" > ${REG_CPP_FILE}
+    COMMAND ${CMAKE_COMMAND} -E echo "#include \\\"bitcode_lib.h\\\"" >> ${REG_CPP_FILE}
     COMMAND ${CMAKE_COMMAND} -E echo \"using namespace ispc\;\" >> ${REG_CPP_FILE}
-    COMMAND ${CMAKE_COMMAND} -E echo "void initializeBitcodeLibs\\(\\) {" >> ${REG_CPP_FILE}
+    COMMAND ${CMAKE_COMMAND} -E echo "void initializeBitcodeLibs() {" >> ${REG_CPP_FILE}
     COMMENT "Writing function opening to reg.cpp"
 )
 
@@ -337,6 +337,7 @@ find_package(Python3 REQUIRED)
     if (NOT Python3_Interpreter_FOUND)
         message(FATAL_ERROR "Python interpreter is not found")
     endif()
+message(STATUS "PYTHON: ${Python3_EXECUTABLE}")
 
 find_package(BISON 3.0 REQUIRED)
     if (BISON_FOUND)

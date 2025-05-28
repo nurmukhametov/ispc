@@ -11,7 +11,7 @@ import re
 import subprocess #nosec
 import platform
 import argparse
-import fcntl
+import portalocker
 from os.path import basename, dirname
 from os import rename, replace
 from tempfile import NamedTemporaryFile
@@ -51,7 +51,7 @@ def write_to_file_safely(file_path, content):
     try:
         with open(file_path, 'a') as file:
             # Acquire exclusive lock to prevent race conditions
-            fcntl.flock(file.fileno(), fcntl.LOCK_EX)
+            portalocker.lock(file, portalocker.LOCK_EX)
             file.write(content + "\n")
             file.flush()
             # Lock is automatically released when file is closed
