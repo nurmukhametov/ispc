@@ -63,7 +63,7 @@ function (stdlib_to_cpp ispc_name target bit os CPP_LIST BC_LIST)
     string(TOUPPER ${os} OS_UP)
     add_custom_command(
         OUTPUT ${cpp}
-        COMMAND ${Python3_EXECUTABLE} ${BITCODE2CPP} ${bc} --type=stdlib --runtime=${bit} --os=${OS_UP} ${cpp}
+        COMMAND ${Python3_EXECUTABLE} ${BITCODE2CPP} ${BITCODE2CPP_FLAGS} ${bc} --type=stdlib --runtime=${bit} --os=${OS_UP} ${cpp}
         DEPENDS ${BITCODE2CPP} ${bc}
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
     )
@@ -91,7 +91,7 @@ function (stdlib_header_cpp name)
 
     add_custom_command(
         OUTPUT ${cpp}
-        COMMAND ${Python3_EXECUTABLE} ${BITCODE2CPP} ${src} --type=header ${cpp}
+        COMMAND ${Python3_EXECUTABLE} ${BITCODE2CPP} ${BITCODE2CPP_FLAGS} ${src} --type=header ${cpp}
         DEPENDS ${BITCODE2CPP} ${src}
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
     )

@@ -283,6 +283,43 @@ if (UNIX)
 endif()
 
 set(BITCODE2CPP "${CMAKE_CURRENT_SOURCE_DIR}/scripts/bitcode2cpp.py")
+set(REG_CPP_FILE ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_CFG_INTDIR}/reg.cpp)
+set(REG_H_FILE ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_CFG_INTDIR}/reg.h)
+set(BITCODE2CPP_FLAGS --registration-file=${REG_CPP_FILE} --header-file=${REG_H_FILE})
+
+# First command: write the function opening
+add_custom_command(
+    OUTPUT ${REG_CPP_FILE}_part1
+    COMMAND ${CMAKE_COMMAND} -E echo "\\#include \\\"reg.h\\\"" > ${REG_CPP_FILE}
+    COMMAND ${CMAKE_COMMAND} -E echo "\\#include \\\"bitcode_lib.h\\\"" >> ${REG_CPP_FILE}
+    COMMAND ${CMAKE_COMMAND} -E echo \"using namespace ispc\;\" >> ${REG_CPP_FILE}
+    COMMAND ${CMAKE_COMMAND} -E echo "void initializeBitcodeLibs\\(\\) {" >> ${REG_CPP_FILE}
+    COMMENT "Writing function opening to reg.cpp"
+)
+
+# Second command: append the closing brace
+add_custom_command(
+    OUTPUT ${REG_CPP_FILE}_part2
+    COMMAND ${CMAKE_COMMAND} -E echo "\"};\"" >> ${REG_CPP_FILE}
+    DEPENDS ${REG_CPP_FILE}_part1
+    COMMENT "Writing function closing to reg.cpp"
+)
+
+# Create a custom command that generates the actual reg.cpp file
+add_custom_command(
+    OUTPUT ${REG_CPP_FILE}
+    DEPENDS ${REG_CPP_FILE}_part2
+    COMMENT "reg.cpp generation complete"
+)
+
+# Create targets for each command
+add_custom_target(write-reg-opening
+    DEPENDS ${REG_CPP_FILE}_part1
+)
+
+add_custom_target(write-reg-closing
+    DEPENDS ${REG_CPP_FILE}_part2
+)
 
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/ispcrt/cmake)
 include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/FixWindowsPath.cmake)
@@ -902,10 +939,16 @@ else()
     add_ispc_slim(ispc-slim)
     configure_ispc_obj(generic-target)
 
-    add_executable(ispc src/main.cpp src/binary_composite.cpp)
+    add_executable(ispc src/main.cpp src/binary_composite.cpp ${REG_CPP_FILE})
     configure_ispc_exe(ispc)
     target_link_libraries(ispc ${LINK_LIBRARIES} builtin stdlib optimization common frontend generic-target)
     add_dependencies(ispc ispc-slim)
+
+    add_dependencies(builtins-cpp write-reg-opening)
+    add_dependencies(write-reg-closing builtin)
+    add_dependencies(write-reg-closing stdlib)
+    add_dependencies(write-reg-closing generic-target)
+    add_dependencies(ispc write-reg-closing)
     message(STATUS "ISPC will be built as a composite binary")
 endif()
 

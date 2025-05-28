@@ -11,6 +11,7 @@ import re
 import subprocess #nosec
 import platform
 import argparse
+import fcntl
 from os.path import basename, dirname
 from os import rename, replace
 from tempfile import NamedTemporaryFile
@@ -44,6 +45,25 @@ def bundle_header(src, output):
             outfile.write("0x00 };\n\n")
             outfile.write(f"int {name}_length = {length};\n")
 
+
+def write_to_file_safely(file_path, content):
+    """Thread-safe write to a file using file locking"""
+    try:
+        with open(file_path, 'a') as file:
+            # Acquire exclusive lock to prevent race conditions
+            fcntl.flock(file.fileno(), fcntl.LOCK_EX)
+            file.write(content + "\n")
+            file.flush()
+            # Lock is automatically released when file is closed
+    except Exception as e:
+        sys.stderr.write(f"Warning: Failed to write to file {file_path}: {e}\n")
+
+
+def write_static_bitcode_lib(registration_file, content):
+    """Thread-safe write to the registration file using file locking"""
+    write_to_file_safely(registration_file, content)
+
+
 ARCH_CHOICES = ['i686', 'x86', 'x86_64', 'arm', 'armv8a', 'arm64', 'aarch64', 'wasm32', 'wasm64', 'xe64']
 
 parser = argparse.ArgumentParser()
@@ -53,10 +73,14 @@ parser.add_argument("--type", help="Type of processed file", choices=['dispatch'
 parser.add_argument("--runtime", help="Runtime", choices=['32', '64'], nargs='?', default='')
 parser.add_argument("--os", help="Target OS", choices=['windows', 'linux', 'macos', 'freebsd', 'android', 'ios', 'ps4', 'web', 'WINDOWS', 'UNIX', 'WEB'], default='')
 parser.add_argument("--arch", help="Target architecture", choices=ARCH_CHOICES, default='')
+parser.add_argument("--registration-file", help="File to write static BitcodeLib registrations", default="")
+parser.add_argument("--header-file", help="File to write extern declarations", default="")
 
 args = parser.parse_known_args()
 src = args[0].src
 output = args[0].output
+registration_file = args[0].registration_file
+header_file = args[0].header_file
 length=0
 
 if args[0].type == 'header':
@@ -133,15 +157,25 @@ with NamedTemporaryFile(mode='w', dir=dirname(output), delete=False) as outfile:
     outfile.write("0x00 };\n\n")
     outfile.write(f"int {name}_length = {length};\n")
 
+    # Write extern declarations to header file if specified
+    if header_file:
+        header_content = f"extern const unsigned char {name}[];\nextern int {name}_length;"
+        write_to_file_safely(header_file, header_content)
+
     # There are 3 types of bitcodes to handle (dispatch module, builtins-c, and target),
     # each needs to be registered differently.
+    static_bitcode_lib_line = ""
     if args[0].type == "dispatch":
         # For dispatch the only parameter is TargetOS.
-        outfile.write(f"static BitcodeLib {name}_lib({name}, {name}_length, TargetOS::{target_os});\n")
+        static_bitcode_lib_line = f"static BitcodeLib {name}_lib({name}, {name}_length, TargetOS::{target_os});"
+        if not registration_file:
+            outfile.write(static_bitcode_lib_line + "\n")
     elif args[0].type == "builtins-c":
         # For builtin-c we care about TargetOS and Arch.
-        outfile.write((f"static BitcodeLib {name}_lib({name}, {name}_length, TargetOS::{target_os}, "
-                       f"Arch::{ispc_arch});\n"))
+        static_bitcode_lib_line = (f"static BitcodeLib {name}_lib({name}, {name}_length, TargetOS::{target_os}, "
+                       f"Arch::{ispc_arch});")
+        if not registration_file:
+            outfile.write(static_bitcode_lib_line + "\n")
     elif args[0].type == 'ispc-target' or args[0].type == 'stdlib':
         # For ISPC target files we care about ISPCTarget id, TargetOS type (Windows/Unix), and runtime type (32/64).
         arch = "error"
@@ -160,13 +194,19 @@ with NamedTemporaryFile(mode='w', dir=dirname(output), delete=False) as outfile:
             sys.stderr.write("Unknown target detected: " + target + "\n")
             sys.exit(1)
         if args[0].type == 'stdlib':
-            outfile.write((f"static BitcodeLib {name}_lib(BitcodeLib::BitcodeLibType::Stdlib, {name}, {name}_length, "
-                           f"ISPCTarget::{target}, TargetOS::{target_os}, Arch::{arch});\n"))
+            static_bitcode_lib_line = (f"static BitcodeLib {name}_lib(BitcodeLib::BitcodeLibType::Stdlib, {name}, {name}_length, "
+                           f"ISPCTarget::{target}, TargetOS::{target_os}, Arch::{arch});")
         else:
-            outfile.write((f"static BitcodeLib {name}_lib({name}, {name}_length, ISPCTarget::{target}, "
-                           f"TargetOS::{target_os}, Arch::{arch});\n"))
+            static_bitcode_lib_line = (f"static BitcodeLib {name}_lib({name}, {name}_length, ISPCTarget::{target}, "
+                           f"TargetOS::{target_os}, Arch::{arch});")
+        if not registration_file:
+            outfile.write(static_bitcode_lib_line + "\n")
     else:
         sys.stderr.write("Unknown argument for --type: " + args[0].type + "\n")
         sys.exit(1)
+
+    # Write the static BitcodeLib line to the registration file if specified
+    if registration_file and static_bitcode_lib_line:
+        write_static_bitcode_lib(registration_file, static_bitcode_lib_line)
 
 replace(temp_file_name, output)

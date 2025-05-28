@@ -30,6 +30,10 @@ void initializeBinaryType(const char *ISPCExecutableAbsPath) {
     g->isSlimBinary = true;
 }
 
+void initializeBitcodeLibs() {
+    // This function is intentionally left empty for slim binaries.
+}
+
 llvm::StringRef getCoreISPHRef() {
     Assert(0 && "getCoreISPHRef() should not be called for slim binaries");
     return llvm::StringRef();

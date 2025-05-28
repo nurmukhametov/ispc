@@ -635,6 +635,9 @@ int main(int Argc, char *Argv[]) {
     const char *devStubFileName = nullptr;
 
     std::vector<std::string> linkFileNames;
+
+    initializeBitcodeLibs();
+
     // Initiailize globals early so that we can set various option values
     // as we're parsing below
     g = new Globals;

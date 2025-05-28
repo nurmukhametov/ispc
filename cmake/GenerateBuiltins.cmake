@@ -81,7 +81,7 @@ function(target_ll_to_cpp target bit os CPP_LIST BC_LIST)
 
     add_custom_command(
         OUTPUT ${cpp}
-        COMMAND ${Python3_EXECUTABLE} ${BITCODE2CPP} ${bc} --type=ispc-target --runtime=${bit} --os=${OS_UP} ${cpp}
+        COMMAND ${Python3_EXECUTABLE} ${BITCODE2CPP} ${BITCODE2CPP_FLAGS} ${bc} --type=ispc-target --runtime=${bit} --os=${OS_UP} ${cpp}
         DEPENDS ${bc} ${BITCODE2CPP}
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
     )
@@ -123,7 +123,7 @@ function(generate_dispatcher os)
 
     add_custom_command(
         OUTPUT ${cpp}
-        COMMAND ${Python3_EXECUTABLE} ${BITCODE2CPP} ${bc} --type=dispatch --os=${os} ${cpp}
+        COMMAND ${Python3_EXECUTABLE} ${BITCODE2CPP} ${BITCODE2CPP_FLAGS} ${bc} --type=dispatch --os=${os} ${cpp}
         DEPENDS ${bc} ${BITCODE2CPP}
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
     )
@@ -166,7 +166,7 @@ function(builtin_wasm_to_cpp bit os arch)
 
     add_custom_command(
         OUTPUT ${cpp}
-        COMMAND ${Python3_EXECUTABLE} ${BITCODE2CPP} ${bc} --type=builtins-c --runtime=${bit} --os=${os} --arch=${arch} ${cpp}
+        COMMAND ${Python3_EXECUTABLE} ${BITCODE2CPP} ${BITCODE2CPP_FLAGS} ${bc} --type=builtins-c --runtime=${bit} --os=${os} --arch=${arch} ${cpp}
         DEPENDS ${bc} ${BITCODE2CPP}
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
     )
@@ -312,7 +312,7 @@ function(builtin_to_cpp bit os generic_arch)
 
     add_custom_command(
         OUTPUT ${cpp}
-        COMMAND ${Python3_EXECUTABLE} ${BITCODE2CPP} ${bc} --type=builtins-c --runtime=${bit} --os=${os} --arch=${arch} ${cpp}
+        COMMAND ${Python3_EXECUTABLE} ${BITCODE2CPP} ${BITCODE2CPP_FLAGS} ${bc} --type=builtins-c --runtime=${bit} --os=${os} --arch=${arch} ${cpp}
         DEPENDS ${bc} ${BITCODE2CPP}
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
     )
@@ -347,7 +347,7 @@ function(builtin_xe_to_cpp os)
 
     add_custom_command(
         OUTPUT ${cpp}
-        COMMAND ${Python3_EXECUTABLE} ${BITCODE2CPP} ${bc} --type=builtins-c --runtime=${bit} --os=${os} --arch=${arch} ${cpp}
+        COMMAND ${Python3_EXECUTABLE} ${BITCODE2CPP} ${BITCODE2CPP_FLAGS} ${bc} --type=builtins-c --runtime=${bit} --os=${os} --arch=${arch} ${cpp}
         DEPENDS ${bc} ${BITCODE2CPP}
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
         )

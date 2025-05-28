@@ -16,6 +16,8 @@ void printBinaryType();
 /** Initializes distribution specific paths based on main executable abspath. */
 void initializeBinaryType(const char *MainExecutableAbsPath);
 
+void initializeBitcodeLibs();
+
 /** Returns the core.isph file content. */
 llvm::StringRef getStdlibISPHRef();
 

@@ -208,7 +208,7 @@ function(generate_generic ispc_name target arch bit os component)
     # Generate CPP wrapper
     add_custom_command(
         OUTPUT ${cpp}
-        COMMAND ${Python3_EXECUTABLE} ${BITCODE2CPP} ${bc} --type=${bitcode_type}
+        COMMAND ${Python3_EXECUTABLE} ${BITCODE2CPP} ${BITCODE2CPP_FLAGS} ${bc} --type=${bitcode_type}
                 --runtime=${bit} --os=${OS_UP} --arch=${arch} ${cpp}
         DEPENDS ${bc} ${BITCODE2CPP}
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
