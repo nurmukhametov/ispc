@@ -1108,9 +1108,13 @@ std::string lGetNanobindType(const Type *type) {
         return type->GetDeclaration("", DeclarationSyntax::CPP);
     } else if (type->IsPointerType()) {
         // Both TYPE a[] and TYPE *uniform are represented as pointer types at
-        // this point. We suppose that they are passed from Python side as
-        // numpy arrays.
-        return "nb::ndarray<" + lGetNanobindType(type->GetBaseType()) + ">";
+        // this point, except structures. We suppose that they are passed from
+        // Python side as numpy arrays.
+        if (const StructType *ST = CastType<StructType>(type->GetBaseType())) {
+            return ST->GetCStructName() + "*";
+        } else {
+            return "nb::ndarray<" + lGetNanobindType(type->GetBaseType()) + ">";
+        }
     } else if (type->IsReferenceType()) {
         return type->GetDeclaration("", DeclarationSyntax::CPP);
     } else if (const StructType *ST = CastType<StructType>(type)) {
@@ -1144,7 +1148,8 @@ std::string lGetCallArguments(const FunctionType *ftype) {
         }
         const std::string paramName = ftype->GetParameterName(i);
         callArgs += paramName;
-        if (ftype->GetParameterType(i)->IsPointerType()) {
+        const Type *PT = ftype->GetParameterType(i);
+        if (PT->IsPointerType() && !CastType<StructType>(PT->GetBaseType())) {
             callArgs += ".data()";
         }
     }
@@ -1167,13 +1172,24 @@ void lEmitNanobindWrapper(FILE *f, const Symbol *sym) {
 }
 
 void lEmitNanobindStruct(FILE *f, const StructType *stType) {
-    std::string stName = stType->GetStructName();
+    std::string stName = stType->GetCStructName();
     fprintf(f, "  nb::class_<%s>(m, \"%s\")\n", stName.c_str(), stName.c_str());
     fprintf(f, "    .def(nb::init())\n");
 
     for (int i = 0; i < stType->GetElementCount(); i++) {
+        const Type *elemType = stType->GetElementType(i);
         const std::string elemName = stType->GetElementName(i);
-        fprintf(f, "    .def_rw(\"%s\", &%s::%s)\n", elemName.c_str(), stName.c_str(), elemName.c_str());
+        printf("Processing struct element '%s' of type '%s'\n", elemName.c_str(), elemType->GetString().c_str());
+        if (elemType->IsArrayType()) {
+            // We need to bind array as numpy arrays
+            fprintf(f,
+                    "    .def_prop_rw(\"%s\",\n"
+                    "      make_array_getter(&%s::%s),\n"
+                    "      make_array_setter(&%s::%s))\n",
+                    elemName.c_str(), stName.c_str(), elemName.c_str(), stName.c_str(), elemName.c_str());
+        } else {
+            fprintf(f, "    .def_rw(\"%s\", &%s::%s)\n", elemName.c_str(), stName.c_str(), elemName.c_str());
+        }
     }
     fprintf(f, "  ;\n");
 }
@@ -1186,6 +1202,172 @@ void lEmitNanobindEnum(FILE *f, const EnumType *etType) {
         fprintf(f, "    .value(\"%s\", %s::%s)\n", val.c_str(), etName.c_str(), val.c_str());
     }
     fprintf(f, "  ;\n");
+}
+
+void lEmitArrayGettersSetters(FILE *f) {
+    fprintf(
+        f,
+        "#include <algorithm>\n"
+        "#include <array>\n"
+        "#include <numeric>\n"
+        "// Type deduction helpers - use recursive template specialization\n"
+        "template<typename T>\n"
+        "struct array_traits;\n"
+        "\n"
+        "// Base case for 1D arrays\n"
+        "template<typename ElementType, size_t Dim>\n"
+        "struct array_traits<ElementType[Dim]> {\n"
+        "    using element_type = ElementType;\n"
+        "    static constexpr size_t ndim = 1;\n"
+        "    static constexpr std::array<size_t, 1> dimensions = {Dim};\n"
+        "    static constexpr size_t total_size = Dim;\n"
+        "\n"
+        "    static auto make_shape_tuple() {\n"
+        "        return nb::make_tuple(Dim);\n"
+        "    }\n"
+        "};\n"
+        "\n"
+        "// Specialization for 2D arrays\n"
+        "template<typename ElementType, size_t Dim1, size_t Dim2>\n"
+        "struct array_traits<ElementType[Dim1][Dim2]> {\n"
+        "    using element_type = ElementType;\n"
+        "    static constexpr size_t ndim = 2;\n"
+        "    static constexpr std::array<size_t, 2> dimensions = {Dim1, Dim2};\n"
+        "    static constexpr size_t total_size = Dim1 * Dim2;\n"
+        "\n"
+        "    static auto make_shape_tuple() {\n"
+        "        return nb::make_tuple(Dim1, Dim2);\n"
+        "    }\n"
+        "};\n"
+        "\n"
+        "// Specialization for 3D arrays (if needed)\n"
+        "template<typename ElementType, size_t Dim1, size_t Dim2, size_t Dim3>\n"
+        "struct array_traits<ElementType[Dim1][Dim2][Dim3]> {\n"
+        "    using element_type = ElementType;\n"
+        "    static constexpr size_t ndim = 3;\n"
+        "    static constexpr std::array<size_t, 3> dimensions = {Dim1, Dim2, Dim3};\n"
+        "    static constexpr size_t total_size = Dim1 * Dim2 * Dim3;\n"
+        "\n"
+        "    static auto make_shape_tuple() {\n"
+        "        return nb::make_tuple(Dim1, Dim2, Dim3);\n"
+        "    }\n"
+        "};\n"
+        "\n"
+        "// Helper function to get numpy dtype string from C++ type\n"
+        "template<typename T>\n"
+        "constexpr const char* get_numpy_dtype() {\n"
+        "    if constexpr (std::is_same_v<T, int8_t>) {\n"
+        "        return \"int8\";\n"
+        "    } else if constexpr (std::is_same_v<T, uint8_t>) {\n"
+        "        return \"uint8\";\n"
+        "    } else if constexpr (std::is_same_v<T, int16_t>) {\n"
+        "        return \"int16\";\n"
+        "    } else if constexpr (std::is_same_v<T, uint16_t>) {\n"
+        "        return \"uint16\";\n"
+        "    } else if constexpr (std::is_same_v<T, int32_t> || std::is_same_v<T, int>) {\n"
+        "        return \"int32\";\n"
+        "    } else if constexpr (std::is_same_v<T, uint32_t>) {\n"
+        "        return \"uint32\";\n"
+        "    } else if constexpr (std::is_same_v<T, int64_t> || std::is_same_v<T, long long>) {\n"
+        "        return \"int64\";\n"
+        "    } else if constexpr (std::is_same_v<T, uint64_t>) {\n"
+        "        return \"uint64\";\n"
+        "    } else if constexpr (std::is_same_v<T, float>) {\n"
+        "        return \"float32\";\n"
+        "    } else if constexpr (std::is_same_v<T, double>) {\n"
+        "        return \"float64\";\n"
+        "    } else if constexpr (std::is_same_v<T, long double>) {\n"
+        "        return \"longdouble\";\n"
+        "    } else {\n"
+        "        static_assert(sizeof(T) == 0, \"Unsupported type for numpy dtype conversion\");\n"
+        "    }\n"
+        "}\n"
+        "\n"
+        "// Simple copy-based approach\n"
+        "template<typename ClassType, typename ArrayType>\n"
+        "auto make_array_getter(ArrayType ClassType::*member_ptr) {\n"
+        "    using traits = array_traits<ArrayType>;\n"
+        "    using element_type = typename traits::element_type;\n"
+        "\n"
+        "    return [member_ptr](const ClassType& self) -> nb::object {\n"
+        "        const auto& arr = self.*member_ptr;\n"
+        "\n"
+        "        // Import numpy\n"
+        "        nb::module_ np = nb::module_::import_(\"numpy\");\n"
+        "\n"
+        "        // Get the appropriate dtype string\n"
+        "        const char* dtype_str = get_numpy_dtype<element_type>();\n"
+        "\n"
+        "        // Create a Python list structure based on dimensions\n"
+        "        if constexpr (traits::ndim == 1) {\n"
+        "            nb::list list;\n"
+        "            for (size_t i = 0; i < traits::dimensions[0]; ++i) {\n"
+        "                list.append(arr[i]);\n"
+        "            }\n"
+        "            return np.attr(\"array\")(list, nb::arg(\"dtype\") = dtype_str);\n"
+        "        } else if constexpr (traits::ndim == 2) {\n"
+        "            nb::list outer_list;\n"
+        "            for (size_t i = 0; i < traits::dimensions[0]; ++i) {\n"
+        "                nb::list inner_list;\n"
+        "                for (size_t j = 0; j < traits::dimensions[1]; ++j) {\n"
+        "                    inner_list.append(arr[i][j]);\n"
+        "                }\n"
+        "                outer_list.append(inner_list);\n"
+        "            }\n"
+        "            return np.attr(\"array\")(outer_list, nb::arg(\"dtype\") = dtype_str);\n"
+        "        } else if constexpr (traits::ndim == 3) {\n"
+        "            nb::list outer_list;\n"
+        "            for (size_t i = 0; i < traits::dimensions[0]; ++i) {\n"
+        "                nb::list middle_list;\n"
+        "                for (size_t j = 0; j < traits::dimensions[1]; ++j) {\n"
+        "                    nb::list inner_list;\n"
+        "                    for (size_t k = 0; k < traits::dimensions[2]; ++k) {\n"
+        "                        inner_list.append(arr[i][j][k]);\n"
+        "                    }\n"
+        "                    middle_list.append(inner_list);\n"
+        "                }\n"
+        "                outer_list.append(middle_list);\n"
+        "            }\n"
+        "            return np.attr(\"array\")(outer_list, nb::arg(\"dtype\") = dtype_str);\n"
+        "        } else {\n"
+        "            throw std::runtime_error(\"Unsupported array dimension for getter\");\n"
+        "        }\n"
+        "    };\n"
+        "}\n"
+        "\n"
+        "template<typename ClassType, typename ArrayType>\n"
+        "auto make_array_setter(ArrayType ClassType::*member_ptr) {\n"
+        "    using traits = array_traits<ArrayType>;\n"
+        "    using element_type = typename traits::element_type;\n"
+        "\n"
+        "    return [member_ptr](ClassType& self, nb::ndarray<nb::numpy, const element_type> arr) {\n"
+        "        // Check dimensions\n"
+        "        if (arr.ndim() != traits::ndim) {\n"
+        "            throw std::runtime_error(\"Array must have \" + std::to_string(traits::ndim) + \" dimensions\");\n"
+        "        }\n"
+        "\n"
+        "        // Check each dimension size\n"
+        "        for (size_t i = 0; i < traits::ndim; ++i) {\n"
+        "            if (arr.shape(i) != traits::dimensions[i]) {\n"
+        "                throw std::runtime_error(\"Dimension \" + std::to_string(i) +\n"
+        "                                       \" must have size \" + std::to_string(traits::dimensions[i]) +\n"
+        "                                       \", got \" + std::to_string(arr.shape(i)));\n"
+        "            }\n"
+        "        }\n"
+        "\n"
+        "        // Copy data - handle different dimensions\n"
+        "        auto& target_arr = self.*member_ptr;\n"
+        "        if constexpr (traits::ndim == 1) {\n"
+        "            std::copy(arr.data(), arr.data() + traits::total_size, &target_arr[0]);\n"
+        "        } else if constexpr (traits::ndim == 2) {\n"
+        "            std::copy(arr.data(), arr.data() + traits::total_size, &target_arr[0][0]);\n"
+        "        } else if constexpr (traits::ndim == 3) {\n"
+        "            std::copy(arr.data(), arr.data() + traits::total_size, &target_arr[0][0][0]);\n"
+        "        } else {\n"
+        "            throw std::runtime_error(\"Unsupported array dimension for setter\");\n"
+        "        }\n"
+        "    };\n"
+        "}\n");
 }
 
 bool Module::writeNanobindWrapper() {
@@ -1226,6 +1408,7 @@ bool Module::writeNanobindWrapper() {
                "#include <nanobind/ndarray.h>\n\n");
 
     fprintf(f, "namespace nb = nanobind;\n");
+    lEmitArrayGettersSetters(f);
 
     std::vector<Symbol *> exportedFuncs;
     m->symbolTable->GetMatchingFunctions(lIsExported, &exportedFuncs);
@@ -1240,7 +1423,7 @@ bool Module::writeNanobindWrapper() {
     fprintf(f, "// Bring exported ISPC structs and enums into the current scope\n");
     fprintf(f, "////////////////////////////////////////////////////////////////////////////\n\n");
     for (const auto &stType : exportedStructTypes) {
-        fprintf(f, "using ispc::%s;\n", stType->GetStructName().c_str());
+        fprintf(f, "using ispc::%s;\n", stType->GetCStructName().c_str());
     }
     for (const auto &etType : exportedEnumTypes) {
         fprintf(f, "using ispc::%s;\n", etType->GetEnumName().c_str());
