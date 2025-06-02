@@ -1,4 +1,45 @@
 #!/bin/bash -e
+
+# Define build related environment variables
+LLVM_VERSION=${LLVM_VERSION:-"20.1"}
+OS=$(uname -s)
+case "$OS" in
+    Linux*)
+      OS=linux
+      LLVM_TAR=${LLVM_TAR:-"llvm-20.1.4-ubuntu22.04-Release+Asserts-x86.arm.wasm.tar.xz"}
+      ;;
+    Darwin*)
+      OS=macos
+      LLVM_TAR=${LLVM_TAR:-"llvm-20.1.4-macos-Release+Asserts-universal-x86.arm.wasm.tar.xz"}
+      ;;
+    *)
+      echo "Unsupported OS: $OS"
+      exit 1
+      ;;
+esac
+
+echo "Installing build dependencies for ISPC on $OS"
+echo "LLVM version: $LLVM_VERSION"
+echo "LLVM tarball: $LLVM_TAR"
+
+if [ "$OS" == "macos" ]; then
+    RUNNER=${1:-"macos-13"}
+    ls -al /Library/Developer/CommandLineTools/SDKs/
+    xcrun --show-sdk-path
+    [ -n "$LLVM_REPO" ] && wget --retry-connrefused --waitretry=5 --read-timeout=20 --timeout=15 -t 5 --no-verbose "$LLVM_REPO/releases/download/llvm-${LLVM_VERSION}-ispc-dev/${LLVM_TAR}"
+    tar xf "$LLVM_TAR"
+    echo "${GITHUB_WORKSPACE}/bin-${LLVM_VERSION}/bin" >> "$GITHUB_PATH"
+    brew install bison flex
+    if [ "$RUNNER" == "macos-14" ]; then
+      echo "/opt/homebrew/opt/bison/bin" >> "$GITHUB_PATH"
+      echo "/opt/homebrew/opt/flex/bin" >> "$GITHUB_PATH"
+    else
+      echo "/usr/local/opt/bison/bin" >> "$GITHUB_PATH"
+      echo "/usr/local/opt/flex/bin" >> "$GITHUB_PATH"
+    fi
+    exit 0
+fi
+
 echo "APT::Acquire::Retries \"3\";" | sudo tee -a /etc/apt/apt.conf.d/80-retries
 
 # Detect system architecture
