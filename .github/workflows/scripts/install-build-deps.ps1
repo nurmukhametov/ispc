@@ -5,6 +5,15 @@ Install-ChocoPackage 7zip
 Install-ChocoPackage gnuwin32-m4
 Install-ChocoPackage ninja
 
+# Define build related environment variables
+if (-not $env:LLVM_VERSION) { $env:LLVM_VERSION = "20.1" }
+if (-not $env:LLVM_TAR) { $env:LLVM_TAR = "llvm-20.1.4-win.vs2019-Release+Asserts-x86.arm.wasm.tar.7z" }
+if (-not $env:LLVM_HOME) { $env:LLVM_HOME = "C:\\projects\\llvm" }
+if (-not $env:CROSS_TOOLS_GNUWIN32) {
+  $env:CROSS_TOOLS_GNUWIN32 = "C:\\projects\\cross\\gnuwin32"
+  echo "CROSS_TOOLS_GNUWIN32=$env:CROSS_TOOLS_GNUWIN32" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+}
+
 # Download and unpack llvm
 if ( !(Test-Path ${env:LLVM_HOME}) ) { mkdir ${env:LLVM_HOME} }
 cd ${env:LLVM_HOME}
