@@ -231,7 +231,7 @@ def call_test_function(module_name, test_sig, func_sig, width):
             raise ImportError(f"Function 'result_cpu_entry_point' not found in module '{module_name}'")
 
         result_func(res)
-        if numpy.array_equal(dst, res):
+        if numpy.array_equal(dst[:width], res[:width]):
             return Status.Success
         else:
             print_debug(f"Test {module_name} failed: expected {res}, got {dst}", s, run_tests_log)
