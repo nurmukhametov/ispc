@@ -1180,7 +1180,7 @@ void lEmitNanobindStruct(FILE *f, const StructType *stType) {
         const Type *elemType = stType->GetElementType(i);
         const std::string elemName = stType->GetElementName(i);
         printf("Processing struct element '%s' of type '%s'\n", elemName.c_str(), elemType->GetString().c_str());
-        if (elemType->IsArrayType()) {
+        if (elemType->IsArrayType() || elemType->IsVaryingAtomic()) {
             // We need to bind array as numpy arrays
             fprintf(f,
                     "    .def_prop_rw(\"%s\",\n"
