@@ -162,7 +162,8 @@ def canonicalize_filename(filename):
 
 def call_test_function(module_name, test_sig, func_sig, width):
     import numpy
-    import importlib
+    import importlib.util
+    import importlib.machinery
 
     # func_sig is 'f_v(', so substitite ( to _cpu_entry_point
     # because f_v_cpu_entry_point is the entry point
@@ -245,77 +246,95 @@ def call_test_function(module_name, test_sig, func_sig, width):
 
 def build_ispc_extension(module_name, ispc_object, nb_wrapper, header, test_sig, width):
     """
-    Build the ispc extension module using setuptools and nanobind.
+    Alternative implementation using direct setuptools calls.
+    Builds extension in-place but uses temporary directory for intermediate files.
     """
-    from setuptools import setup, Extension
-    import nanobind
     import os
+    import sys
     import sysconfig
+    import tempfile
+    import shutil
+    import nanobind
+    from setuptools import setup, Extension
+    from setuptools.dist import Distribution
+    from setuptools.command.build_ext import build_ext
 
+    # Get nanobind paths
     nanobind_dir = os.path.dirname(nanobind.__file__)
     nanobind_src_dir = os.path.join(nanobind_dir, "src")
     robin_map_include = os.path.join(nanobind_dir, "ext/robin_map/include")
-
     nanobind_sources = [
         os.path.join(nanobind_src_dir, "nb_combined.cpp"),
     ]
 
-    ext_modules = [
-        Extension(
-            module_name,
-            [nb_wrapper, 'tests/test_static.cpp'] + nanobind_sources,
-            include_dirs=[
-                nanobind.include_dir(),
-                robin_map_include,
-                'tests',
-            ],
-            extra_objects=[ispc_object],
-            language='c++',
-            extra_compile_args=[
-                "-std=c++17",
-                "-fvisibility=hidden",
-                "-O3",
-                "-fno-strict-aliasing",
-                "-ffunction-sections",
-                "-fdata-sections",
-                f"-DTEST_SIG={test_sig}",
-                f"-DTEST_WIDTH={width}",
-                f"-DTEST_HEADER=\"{header}\"",
-                "-w",
-            ],
-            define_macros=[
-                ("NDEBUG", None),
-                ("NB_COMPACT_ASSERTIONS", None),
-            ],
-        ),
-    ]
+    # Create temporary directory for build files
+    with tempfile.TemporaryDirectory() as temp_dir:
+        ext_modules = [
+            Extension(
+                module_name,
+                [nb_wrapper, 'tests/test_static.cpp'] + nanobind_sources,
+                include_dirs=[
+                    nanobind.include_dir(),
+                    robin_map_include,
+                    'tests',
+                ],
+                extra_objects=[ispc_object],
+                language='c++',
+                extra_compile_args=[
+                    "-std=c++17",
+                    "-fvisibility=hidden",
+                    "-O3",
+                    "-fno-strict-aliasing",
+                    "-ffunction-sections",
+                    "-fdata-sections",
+                    f"-DTEST_SIG={test_sig}",
+                    f"-DTEST_WIDTH={width}",
+                    f"-DTEST_HEADER=\"{header}\"",
+                    "-w",
+                ],
+                define_macros=[
+                    ("NDEBUG", None),
+                    ("NB_COMPACT_ASSERTIONS", None),
+                ],
+            ),
+        ]
 
-    # Save original sys.argv to avoid interference with setuptools argument parsing
-    original_argv = sys.argv[:]
+        # Create distribution and build command directly
+        dist = Distribution({
+            'name': module_name,
+            'ext_modules': ext_modules,
+            'zip_safe': False,
+        })
 
-    try:
-        # Set sys.argv to minimal arguments for setuptools
-        sys.argv = ['setup.py', 'build_ext', '--inplace']
-        if options.verbose:
-            setup(name=module_name, ext_modules=ext_modules, zip_safe=False)
-        else:
-            from contextlib import redirect_stdout, redirect_stderr
-            # Redirect all output to devnull or capture it
+        # Create and configure build_ext command
+        build_ext_cmd = build_ext(dist)
+        build_ext_cmd.inplace = True
+        build_ext_cmd.build_temp = temp_dir
+        build_ext_cmd.finalize_options()
+
+        if not options.verbose:
+            # Suppress output
+            import contextlib
             with open(os.devnull, 'w') as devnull:
-                with redirect_stdout(devnull), redirect_stderr(devnull):
-                    setup(name=module_name, ext_modules=ext_modules, zip_safe=False)
-    finally:
-        # Restore original sys.argv
-        sys.argv = original_argv
+                with contextlib.redirect_stdout(devnull), contextlib.redirect_stderr(devnull):
+                    build_ext_cmd.run()
+        else:
+            build_ext_cmd.run()
 
-    # Get the platform-specific extension suffix
-    ext_suffix = sysconfig.get_config_var('EXT_SUFFIX')
-    if ext_suffix is None:
-        # Fallback for older Python versions
-        ext_suffix = sysconfig.get_config_var('SO')
+        # Get the platform-specific extension suffix
+        ext_suffix = sysconfig.get_config_var('EXT_SUFFIX')
+        if ext_suffix is None:
+            ext_suffix = sysconfig.get_config_var('SO')
+            if ext_suffix is None:
+                ext_suffix = '.so'
 
-    so_filename = f"{module_name}{ext_suffix}"
-    return so_filename
+        so_filename = f"{module_name}{ext_suffix}"
+
+        # Verify the built extension exists
+        if not os.path.exists(so_filename):
+            raise RuntimeError(f"Extension {so_filename} was not created successfully")
+
+        return so_filename
 
 def run_command(cmd, timeout=600, cwd="."):
     if options.verbose:
@@ -1277,10 +1296,5 @@ if __name__ == "__main__":
     parser.add_option("--nanobind", dest='nanobind', help='Enable nanobind compilation mode', default=False, action="store_true")
 
     (options, args) = parser.parse_args()
-    if options.nanobind and options.num_jobs > 1:
-        # This function is not thread-safe, so we exit
-        error("Building ISPC extension with multiple jobs is not supported. Please use single job mode.", 1)
-        exit(1)
-
     L = run_tests(options, args, 1)
     exit(exit_code)
