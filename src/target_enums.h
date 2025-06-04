@@ -26,7 +26,7 @@ std::string OSToString(TargetOS os);
 std::string OSToLowerString(TargetOS os);
 TargetOS GetHostOS();
 
-enum class Arch { none, x86, x86_64, arm, aarch64, wasm32, wasm64, xe64, error };
+enum class Arch { none, x86, x86_64, arm, aarch64, riscv64, wasm32, wasm64, xe64, error };
 Arch operator++(Arch &, int);
 
 Arch ParseArch(std::string arch);
@@ -84,6 +84,7 @@ enum class ISPCTarget {
     neon_i16x16,
     neon_i32x4,
     neon_i32x8,
+    riscv_x4,
     wasm_i32x4,
     gen9_x8,
     gen9_x16,

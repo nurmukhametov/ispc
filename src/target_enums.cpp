@@ -213,8 +213,11 @@ ISPCTarget operator++(ISPCTarget &target, int dummy) {
     static_assert(static_cast<underlying>(ISPCTarget::neon_i32x8) ==
                       static_cast<underlying>(ISPCTarget::neon_i32x4) + 1,
                   "Enum ISPCTarget is not sequential");
-    static_assert(static_cast<underlying>(ISPCTarget::wasm_i32x4) ==
+    static_assert(static_cast<underlying>(ISPCTarget::riscv_x4) ==
                       static_cast<underlying>(ISPCTarget::neon_i32x8) + 1,
+                  "Enum ISPCTarget is not sequential");
+    static_assert(static_cast<underlying>(ISPCTarget::wasm_i32x4) ==
+                      static_cast<underlying>(ISPCTarget::riscv_x4) + 1,
                   "Enum ISPCTarget is not sequential");
     static_assert(static_cast<underlying>(ISPCTarget::gen9_x8) == static_cast<underlying>(ISPCTarget::wasm_i32x4) + 1,
                   "Enum ISPCTarget is not sequential");
@@ -638,6 +641,8 @@ std::string ISPCTargetToString(ISPCTarget target) {
         return "neon-i32x4";
     case ISPCTarget::neon_i32x8:
         return "neon-i32x8";
+    case ISPCTarget::riscv_x4:
+        return "riscv-x4";
     case ISPCTarget::wasm_i32x4:
         return "wasm-i32x4";
     case ISPCTarget::gen9_x8:

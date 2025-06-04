@@ -66,6 +66,8 @@ Module *ispc::m;
 #define ISPC_HOST_IS_AARCH64
 #elif defined(__arm__)
 #define ISPC_HOST_IS_ARM
+#elif defined(__riscv)
+#define ISPC_HOST_IS_RISCV
 #elif defined(__i386__) || defined(__x86_64__) || defined(_M_IX86) || defined(_M_X64)
 #define ISPC_HOST_IS_X86
 #endif
@@ -227,6 +229,8 @@ static ISPCTarget lGetARMSystemISA() {
 static ISPCTarget lGetSystemISA() {
 #if defined(ISPC_HOST_IS_ARM) || defined(ISPC_HOST_IS_AARCH64)
     return lGetARMSystemISA();
+#elif defined(ISPC_HOST_IS_RISCV)
+    return ISPCTarget::riscv_x4;
 #elif defined(ISPC_HOST_IS_X86)
     enum Target::ISA isa = (enum Target::ISA)dispatch::get_x86_isa();
     switch (isa) {
@@ -1811,6 +1815,8 @@ Target::Target(Arch arch, const char *cpu, ISPCTarget ispc_target, PICLevel picL
         break;
     case ISPCTarget::neon_i16x16:
         this->m_isa = Target::NEON;
+        unsupported_target = true;
+        break;
         this->m_nativeVectorWidth = 16;
         this->m_nativeVectorAlignment = 32;
         this->m_dataTypeWidth = 16;
@@ -1848,6 +1854,14 @@ Target::Target(Arch arch, const char *cpu, ISPCTarget ispc_target, PICLevel picL
     case ISPCTarget::neon_i16x16:
     case ISPCTarget::neon_i32x4:
     case ISPCTarget::neon_i32x8:
+        unsupported_target = true;
+        break;
+#endif
+#ifdef ISPC_RISCV_ENABLED
+    case ISPCTarget::riscv64:
+        break;
+#else
+    case ISPCTarget::riscv64:
         unsupported_target = true;
         break;
 #endif
