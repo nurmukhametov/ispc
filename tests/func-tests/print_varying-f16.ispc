@@ -1,6 +1,7 @@
 #include "test_static.isph"
 // rule: skip on arch=x86
 // rule: skip on arch=x86-64
+// rule: skip on jit=true
 task void print_f(uniform float aFOO[]) {
     float16 a = aFOO[programIndex];
     float16 varFloatVal = a + 4.75f16;

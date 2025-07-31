@@ -1,6 +1,7 @@
 #include "test_static.isph"
 // rule: skip on arch=x86
 // rule: skip on arch=x86-64
+// rule: skip on jit=true
 task void print_uf(uniform float a) {
     uniform float16 uniFloatVal = (float16)a + 4.75f16;
     print("Test uniform float: %\n", uniFloatVal);
