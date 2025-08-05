@@ -1576,7 +1576,6 @@ The simplest way to compile ISPC code is using ``CompileFromArgs()``::
     #include <string>
 
     std::vector<std::string> args = {
-        "ispc",                    // Program name (ignored)
         "my_program.ispc",         // Input file
         "--target=host",           // Target specification
         "-O2",                     // Optimization level
@@ -1591,8 +1590,7 @@ The simplest way to compile ISPC code is using ``CompileFromArgs()``::
         std::cerr << "Compilation failed\n";
     }
 
-The first argument should be a program name or dummy string (it will be
-ignored). All standard ISPC command-line options are supported.
+All standard ISPC command-line options are supported.
 
 Advanced Interface with ISPCEngine
 -----------------------------------
@@ -1602,7 +1600,7 @@ For more control over the compilation process, use the ``ISPCEngine`` class::
     #include "ispc/ispc.h"
 
     std::vector<std::string> args = {
-        "ispc", "my_program.ispc", "--target=host", "-O2"
+        "my_program.ispc", "--target=host", "-O2"
     };
 
     auto engine = ispc::ISPCEngine::CreateFromArgs(args);
