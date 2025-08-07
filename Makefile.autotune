@@ -1,0 +1,16 @@
+CXX = g++
+CXXFLAGS = -std=c++17 -O2 -I build-llvm-20-libispc/include
+LDFLAGS = -L build-llvm-20-libispc/lib -lispc
+
+all: autotune_jit
+
+autotune_jit: autotune_jit.cpp autotune_dotproduct.ispc
+	$(CXX) $(CXXFLAGS) -o autotune_jit autotune_jit.cpp $(LDFLAGS)
+
+run: autotune_jit
+	LD_LIBRARY_PATH=build-llvm-20-libispc/lib ./autotune_jit
+
+clean:
+	rm -f autotune_jit
+
+.PHONY: all run clean
