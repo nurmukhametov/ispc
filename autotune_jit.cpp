@@ -12,7 +12,7 @@ using namespace chrono;
 typedef void (*DotProductFunc)(float*, float*, float*, int);
 
 double benchmarkKernel(DotProductFunc func, const vector<float>& a, const vector<float>& b, 
-                      int programCount, int iterations = 100) {
+                      int programCount, int iterations = 1) {
     int n = a.size();
     vector<float> partial_results(programCount);
     
@@ -36,6 +36,11 @@ double benchmarkKernel(DotProductFunc func, const vector<float>& a, const vector
 }
 
 int main() {
+    if (!ispc::Initialize()) {
+        cerr << "Failed to initialize ISPC library" << endl;
+        return 1;
+    }
+    
     const int N = 1000000;
     
     // Initialize test data
@@ -71,55 +76,47 @@ int main() {
                 "-DBLOCK_SIZE=" + to_string(blockSize),
                 "-DUNROLL_FACTOR=" + to_string(unrollFactor)
             };
-
-            if (!ispc::Initialize()) {
-                cerr << "Failed to initialize ISPC library" << endl;
-                return 1;
+            
+            auto engine = ispc::ISPCEngine::CreateFromArgs(args);
+            
+            if (!engine) {
+                cout << "Failed to create ISPC engine\n";
+                continue;
             }
-
-            {
-                auto engine = ispc::ISPCEngine::CreateFromArgs(args);
-
-                if (!engine) {
-                    cout << "Failed to create ISPC engine\n";
-                    continue;
-                }
-
-                // Compile to JIT
-                if (engine->CompileFromFileToJit("autotune_dotproduct.ispc") != 0) {
-                    cout << "Compilation failed\n";
-                    continue;
-                }
-
-                // Get function pointer
-                auto func = (DotProductFunc)engine->GetJitFunction("dot_product");
-                if (!func) {
-                    cout << "Failed to get function pointer\n";
-                    continue;
-                }
-
-                // Warmup
-                benchmarkKernel(func, a, b, 8, 5);
-
-                // Benchmark
-                double avgTime = benchmarkKernel(func, a, b, 8, 50);
-                double gflops = (N * 2.0 / avgTime) / 1000.0;
-
-                cout << avgTime << " μs, " << gflops << " GFLOPS";
-
-                if (avgTime < bestTime) {
-                    bestTime = avgTime;
-                    bestBlock = blockSize;
-                    bestUnroll = unrollFactor;
-                    cout << " (BEST)";
-                }
-
-                cout << "\n";
-
-                engine->ClearJitCode();
+            
+            // Compile to JIT
+            if (engine->CompileFromFileToJit("autotune_dotproduct.ispc") != 0) {
+                cout << "Compilation failed\n";
+                continue;
             }
+            
+            // Get function pointer
+            auto func = (DotProductFunc)engine->GetJitFunction("dot_product");
+            if (!func) {
+                cout << "Failed to get function pointer\n";
+                continue;
+            }
+            
+            // Warmup
+            // benchmarkKernel(func, a, b, 8, 5);
+            
+            // Benchmark
+            // double avgTime = benchmarkKernel(func, a, b, 8, 50);
+            double avgTime = benchmarkKernel(func, a, b, 8, 1);
+            double gflops = (N * 2.0 / avgTime) / 1000.0;
+            
+            cout << avgTime << " μs, " << gflops << " GFLOPS";
+            
+            if (avgTime < bestTime) {
+                bestTime = avgTime;
+                bestBlock = blockSize;
+                bestUnroll = unrollFactor;
+                cout << " (BEST)";
+            }
+            
+            cout << "\n";
 
-            ispc::Shutdown();
+            engine->ClearJitCode();
         }
     }
     
@@ -128,5 +125,6 @@ int main() {
     cout << "Best time: " << bestTime << " μs\n";
     cout << "Best throughput: " << (N * 2.0 / bestTime) / 1000.0 << " GFLOPS\n";
     
+    ispc::Shutdown();
     return 0;
 }
