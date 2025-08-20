@@ -1,0 +1,13 @@
+https://github.com/RenderKit/oidn
+https://github.com/isl-org/Open3D/
+https://github.com/LeelaChessZero/lc0
+https://github.com/GameTechDev/ISPCTextureCompressor
+https://github.com/GPSnoopy/RayTracingInOneWeekend
+https://github.com/proog128/smallpt-ispc
+https://github.com/jakubtomsu/ispc-3d-renderer
+https://gitlab.com/rossinelli/ispc-upwind/
+https://github.com/DensoITLab/Demitasse
+https://github.com/ZipXuan/FlashAttentionGPTonCPU
+https://github.com/chinmaygarde/merle
+https://github.com/re-esper/CPUShadertoy
+https://github.com/ParRes/Kernels/blob/main/C1z/transpose.ispc
