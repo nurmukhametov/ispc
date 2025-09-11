@@ -1237,6 +1237,18 @@ __declspec(safe) inline unmasked int16 avg_down(int16 a, int16 b);
 __declspec(safe) inline void assume(uniform bool test);
 
 ///////////////////////////////////////////////////////////////////////////
+// Pack data into interleaved formats
+
+// Pack two int8 vectors into int16 vector
+varying int16 pack2(varying int8 hi, varying int8 lo);
+
+// Pack two int16 vectors into int32 vector
+varying int32 pack2(varying int16 hi, varying int16 lo);
+
+// Pack four int8 vectors into int32 vector
+varying int32 pack4(varying int8 p1, varying int8 p2, varying int8 p3, varying int8 p4);
+
+///////////////////////////////////////////////////////////////////////////
 // Dot product and accumulate
 // Multiply groups of 4 adjacent pairs of unsigned 8-bit integers in a with corresponding signed
 // 8-bit integers in b, producing 4 intermediate signed 16-bit results.

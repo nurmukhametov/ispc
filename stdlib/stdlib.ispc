@@ -6616,6 +6616,21 @@ __declspec(safe) static inline void assume(uniform bool test) {
 }
 
 ///////////////////////////////////////////////////////////////////////////
+// Pack data into interleaved formats
+
+varying int16 pack2(varying int8 hi, varying int8 lo) {
+    return (int16)(((int16)hi << 8) | ((int16)lo & 0xFF));
+}
+
+varying int32 pack2(varying int16 hi, varying int16 lo) {
+    return (int32)(((int32)hi << 16) | ((int32)lo & 0xFFFF));
+}
+
+varying int32 pack4(varying int8 p1, varying int8 p2, varying int8 p3, varying int8 p4) {
+    return pack2(pack2(p1, p2), pack2(p3, p4));
+}
+
+///////////////////////////////////////////////////////////////////////////
 // Dot product and accumulate
 
 // Multiply groups of 4 adjacent pairs of unsigned 8-bit integers in a with corresponding signed
