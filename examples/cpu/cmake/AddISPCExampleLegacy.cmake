@@ -9,7 +9,7 @@
 function(add_ispc_example)
     set(options USE_COMMON_SETTINGS)
     set(oneValueArgs NAME ISPC_SRC_NAME DATA_DIR)
-    set(multiValueArgs ISPC_IA_TARGETS ISPC_ARM_TARGETS ISPC_FLAGS TARGET_SOURCES LIBRARIES DATA_FILES)
+    set(multiValueArgs ISPC_IA_TARGETS ISPC_ARM_TARGETS ISPC_FLAGS TARGET_SOURCES LIBRARIES DATA_FILES RUN_ARGS)
     cmake_parse_arguments("example" "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN} )
 
     set(ISPC_KNOWN_TARGETS "sse2" "sse4" "avx1-" "avx2" "avx512skx" "neon")
@@ -103,6 +103,28 @@ function(add_ispc_example)
     if(MSVC)
         # Group ISPC files inside Visual Studio
         source_group("ISPC" FILES "${CMAKE_CURRENT_SOURCE_DIR}/${ISPC_SRC_NAME}.ispc")
+    endif()
+
+    # Add run target for this example
+    if(example_RUN_ARGS)
+        add_custom_target(run-${example_NAME}
+            COMMAND $<TARGET_FILE:${example_NAME}> ${example_RUN_ARGS}
+            DEPENDS ${example_NAME}
+            COMMENT "Running ${example_NAME} example"
+            WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+        )
+    else()
+        add_custom_target(run-${example_NAME}
+            COMMAND $<TARGET_FILE:${example_NAME}>
+            DEPENDS ${example_NAME}
+            COMMENT "Running ${example_NAME} example"
+            WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+        )
+    endif()
+
+    # Make run-cpu-examples depend on this example's run target
+    if(TARGET run-cpu-examples)
+        add_dependencies(run-cpu-examples run-${example_NAME})
     endif()
 
     # Install example

@@ -47,6 +47,11 @@ endif()
 
 set (EXAMPLES_ROOT ${CMAKE_CURRENT_SOURCE_DIR}/..)
 
+# Create run-cpu-examples target that runs all CPU examples
+add_custom_target(run-cpu-examples
+    COMMENT "Running all CPU examples"
+)
+
 add_subdirectory(aobench)
 add_subdirectory(aobench_instrumented)
 add_subdirectory(attention)

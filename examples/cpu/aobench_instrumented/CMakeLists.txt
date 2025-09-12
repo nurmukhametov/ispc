@@ -26,4 +26,5 @@ add_ispc_example(NAME "aobench_instrumented"
               ISPC_ARM_TARGETS ${ISPC_ARM_TARGETS}
               ISPC_FLAGS ${ISPC_FLAGS}
               TARGET_SOURCES ${TARGET_SOURCES}
-              LIBRARIES ${LIBRARIES})
+              LIBRARIES ${LIBRARIES}
+              RUN_ARGS "3" "256" "256")
