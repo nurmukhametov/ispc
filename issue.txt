@@ -1,0 +1,54 @@
+$ ./ispc-v1.8.0-linux/examples/stencil/stencil 
+@time of ISPC run:                      [522.559] million cycles
+@time of ISPC run:                      [514.548] million cycles
+@time of ISPC run:                      [516.341] million cycles
+[stencil ispc 1 core]:          [514.548] million cycles
+@time of ISPC + TASKS run:                      [112.188] million cycles
+@time of ISPC + TASKS run:                      [113.715] million cycles
+@time of ISPC + TASKS run:                      [122.735] million cycles
+[stencil ispc + tasks]:         [112.188] million cycles
+@time of serial run:                    [1520.453] million cycles
+@time of serial run:                    [1509.001] million cycles
+@time of serial run:                    [1525.868] million cycles
+[stencil serial]:               [1509.001] million cycles
+                                (2.93x speedup from ISPC, 13.45x speedup from ISPC + tasks)
+[oleshka@arch build-ispc-examples]$ ./ispc-v1.9.0-linux/examples/stencil/stencil &> | head
+bash: syntax error near unexpected token `|'
+[oleshka@arch build-ispc-examples]$ ./ispc-v1.9.0-linux/examples/stencil/stencil 2&>1 | head
+[oleshka@arch build-ispc-examples]$ ./ispc-v1.9.0-linux/examples/stencil/stencil | head
+@time of ISPC run:                      [383.416] million cycles
+@time of ISPC run:                      [383.443] million cycles
+@time of ISPC run:                      [382.680] million cycles
+[stencil ispc 1 core]:          [382.680] million cycles
+@time of ISPC + TASKS run:                      [111.208] million cycles
+@time of ISPC + TASKS run:                      [105.987] million cycles
+@time of ISPC + TASKS run:                      [106.685] million cycles
+[stencil ispc + tasks]:         [105.987] million cycles
+@time of serial run:                    [1645.369] million cycles
+@time of serial run:                    [1643.802] million cycles
+[oleshka@arch build-ispc-examples]$ ./ispc-v1.9.0-linux/examples/stencil/stencil | head -n 40
+@time of ISPC run:                      [371.609] million cycles
+@time of ISPC run:                      [372.865] million cycles
+@time of ISPC run:                      [372.434] million cycles
+[stencil ispc 1 core]:          [371.609] million cycles
+@time of ISPC + TASKS run:                      [110.793] million cycles
+@time of ISPC + TASKS run:                      [105.826] million cycles
+@time of ISPC + TASKS run:                      [106.237] million cycles
+[stencil ispc + tasks]:         [105.826] million cycles
+@time of serial run:                    [1491.783] million cycles
+@time of serial run:                    [1501.199] million cycles
+@time of serial run:                    [1526.792] million cycles
+[stencil serial]:               [1491.783] million cycles
+                                (4.01x speedup from ISPC, 14.10x speedup from ISPC + tasks)
+Error @ (250,236,11): ispc = 0.015617, serial = 0.015626
+Error @ (250,238,11): ispc = -0.076053, serial = -0.076042
+Error @ (234,250,11): ispc = 0.101879, serial = 0.101893
+Error @ (236,250,11): ispc = 0.004595, serial = 0.004592
+Error @ (237,250,11): ispc = -0.043782, serial = -0.043776
+Error @ (248,232,13): ispc = 0.010968, serial = 0.010967
+Error @ (248,234,13): ispc = -0.073887, serial = -0.073897
+Error @ (246,246,13): ispc = -0.007247, serial = -0.007248
+Error @ (232,248,13): ispc = 0.000230, serial = 0.000236
+Error @ (200,250,13): ispc = -0.007642, serial = -0.007641
+Error @ (250,185,14): ispc = 0.036503, serial = 0.036498
+
