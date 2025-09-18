@@ -43,18 +43,14 @@ test_with_ispc() {
     # Compile with this ISPC version
     echo "Compiling ISPC code with $version..."
     "$ispc_bin" --target=avx2-i32x8 \
-         --opt=force-aligned-memory \
          --pic \
-         --wno-perf \
-         --opt=disable-assertions \
-         -O3 \
          -h ispc_exact_repro_ispc_stubs.h \
          -o ispc_exact_repro.o \
          ispc_exact_repro.ispc
     
     # Compile C++
     echo "Compiling C++ code..."
-    g++ -std=c++17 -O3 -I. \
+    g++ -O2 -I. \
         -o ispc_exact_repro_test \
         ispc_exact_repro.cpp \
         ispc_exact_repro.o
