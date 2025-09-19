@@ -3,7 +3,12 @@
 
 #include <stdbool.h>
 
-// New research-based functions for branch misprediction demo
+// Silent versions for pure benchmarking (no printf during timing)
+void generate_training_data_silent(int *data, int size);
+void generate_random_data_silent(int *data, int size);
+void shuffle_training_data_silent(int *data, int size, int seed);
+
+// Regular versions for analysis/debugging
 void generate_training_data(int *data, int size);
 void generate_random_data(int *data, int size);
 void shuffle_training_data(int *data, int size, int seed);
