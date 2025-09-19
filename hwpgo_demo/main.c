@@ -5,118 +5,118 @@
 #include <string.h>
 #include "utils.h"
 
-#define ARRAY_SIZE 50000000
-#define ITERATIONS 20
+#define ARRAY_SIZE 10000000
+#define ITERATIONS 50
 
-// Extremely predictable hot function (99.9% taken)
-static int __attribute__((noinline)) hot_function(int x) {
-    // Complex computation that benefits from being inlined in hot path
-    return x * 17 + 42 * x - 13 + (x >> 2) + (x << 1);
-}
+// Based on research: branch misprediction causes 14-25 cycle penalty
+// We need truly unpredictable patterns for the baseline case
 
-// Rarely called cold function (0.1% taken)  
-static int __attribute__((noinline)) cold_function(int x) {
-    // Complex computation that should NOT be inlined
-    volatile int temp = 0;
-    for (int i = 0; i < 100; i++) {
-        temp += x * i + i * i;
+// Function that's expensive when called (simulates cold cache miss)
+static int __attribute__((noinline)) expensive_cold_function(int x) {
+    volatile int result = 0;
+    // Simulate memory-intensive work that would benefit from being avoided
+    for (int i = 0; i < 50; i++) {
+        result += x * i + i * i * i;
     }
-    return temp + x;
+    return result;
 }
 
-// Very cold function (virtually never called)
-static int __attribute__((noinline)) very_cold_function(int x) {
-    volatile int temp = 0;
-    for (int i = 0; i < 1000; i++) {
-        temp += x * i * i + i * i * i;
+// Cheap hot function that should be inlined/optimized
+static int __attribute__((noinline)) cheap_hot_function(int x) {
+    return x + 42;
+}
+
+// Very expensive function that should almost never be called
+static int __attribute__((noinline)) very_expensive_function(int x) {
+    volatile int result = 0;
+    for (int i = 0; i < 200; i++) {
+        result += x * i * i + i * i * i;
     }
-    return temp;
+    return result;
 }
 
-// Another hot function for call target prediction
-static int __attribute__((noinline)) hot_target_a(int x) {
-    return x + 100;
-}
-
-static int __attribute__((noinline)) hot_target_b(int x) {
-    return x + 200;  
-}
-
-static int __attribute__((noinline)) cold_target(int x) {
-    return x + 1000;
-}
-
-// Function pointer array to create indirect call challenges
-typedef int (*func_ptr_t)(int);
-static func_ptr_t function_table[3] = {hot_target_a, hot_target_b, cold_target};
-
-static int process_data_with_extreme_bias(int *data, int size) {
+// The key insight: create patterns that are predictable during profiling
+// but appear random to the compiler without profile data
+static long long process_biased_branches(int *data, int size, int mode) {
     long long sum = 0;
-    int hot_calls = 0, cold_calls = 0, very_cold_calls = 0;
+    int cold_calls = 0, hot_calls = 0, very_cold_calls = 0;
     
     for (int i = 0; i < size; i++) {
         int value = data[i];
         
-        // Extreme branch bias: 99.9% goes to hot path
-        if (value < 999000) {  // 99.9% of values
-            sum += hot_function(value);
+        // Mode 0: Training pattern (highly predictable - 95% hot path)
+        // Mode 1: Similar pattern for actual benchmark
+        int threshold1 = (mode == 0) ? 950000 : 950000;  // 95% threshold
+        int threshold2 = (mode == 0) ? 995000 : 995000;  // 99.5% threshold
+        
+        if (value < threshold1) {
+            // 95% - hot path: cheap operation
+            sum += cheap_hot_function(value);
             hot_calls++;
             
-            // Nested predictable branch for basic block layout optimization
-            if (value < 500000) {  // 50% of total, 100% predictable given outer condition
-                sum += value * 2;
+            // Nested branch that's also highly predictable
+            if (value < 500000) {  // 50% of hot path
+                sum += value >> 2;  // Cheap bit operation
             } else {
-                sum += value * 3;
+                sum += value >> 1;  // Slightly different cheap operation
             }
             
-            // Indirect call with heavy bias (95% hot_target_a, 4% hot_target_b, 1% cold_target)
-            int func_index;
-            if (value % 100 < 95) {
-                func_index = 0;  // hot_target_a - 95%
-            } else if (value % 100 < 99) {
-                func_index = 1;  // hot_target_b - 4% 
-            } else {
-                func_index = 2;  // cold_target - 1%
-            }
-            sum += function_table[func_index](value);
-            
-        } else if (value < 999900) {  // 0.09% of values
-            sum += cold_function(value);
+        } else if (value < threshold2) {
+            // 4.5% - cold path: expensive operation
+            sum += expensive_cold_function(value);
             cold_calls++;
-        } else {  // 0.01% of values
-            sum += very_cold_function(value);
+            
+        } else {
+            // 0.5% - very cold path: very expensive
+            sum += very_expensive_function(value);
             very_cold_calls++;
         }
         
-        // Another highly biased branch that should be optimized
-        if (i % 1000 < 995) {  // 99.5% taken
+        // Additional unpredictable branch based on position
+        // This creates pattern that profile can optimize but baseline cannot
+        if ((i % 100) < 92) {  // 92% predictable
             sum += 1;
         } else {
-            sum += 1000;  // Expensive cold path
+            sum += expensive_cold_function(i % 1000);  // Expensive cold path
         }
     }
     
-    printf("Call distribution: hot=%d (%.2f%%), cold=%d (%.4f%%), very_cold=%d (%.4f%%)\n",
-           hot_calls, 100.0 * hot_calls / size,
-           cold_calls, 100.0 * cold_calls / size, 
+    printf("Mode %d calls: hot=%d (%.1f%%), cold=%d (%.1f%%), very_cold=%d (%.1f%%)\n",
+           mode, hot_calls, 100.0 * hot_calls / size,
+           cold_calls, 100.0 * cold_calls / size,
            very_cold_calls, 100.0 * very_cold_calls / size);
     
-    return (int)(sum % INT32_MAX);
+    return sum;
 }
 
-// Simple baseline for comparison
-static int process_data_simple(int *data, int size) {
+// Create truly random branches that cause 50% misprediction
+static long long process_random_branches(int *data, int size) {
     long long sum = 0;
+    
     for (int i = 0; i < size; i++) {
-        sum += data[i];
+        // Truly random pattern - should cause ~50% branch misprediction
+        if (data[i] & 1) {  // Random bit - 50/50 chance
+            sum += expensive_cold_function(data[i]);
+        } else {
+            sum += cheap_hot_function(data[i]);
+        }
+        
+        // Another random branch
+        if ((data[i] >> 1) & 1) {
+            sum += data[i] * 3;
+        } else {
+            sum += data[i] * 2;
+        }
     }
-    return (int)(sum % INT32_MAX);
+    
+    return sum;
 }
 
 int main() {
-    printf("EXTREME HWPGO Demo: Highly Biased Execution Patterns\n");
-    printf("====================================================\n");
-    printf("Array size: %d elements, %d iterations\n\n", ARRAY_SIZE, ITERATIONS);
+    printf("HWPGO Branch Misprediction Benchmark\n");
+    printf("====================================\n");
+    printf("Array size: %d elements, %d iterations\n", ARRAY_SIZE, ITERATIONS);
+    printf("Target: Show HWPGO benefits through branch prediction optimization\n\n");
     
     int *data = malloc(ARRAY_SIZE * sizeof(int));
     if (!data) {
@@ -124,42 +124,61 @@ int main() {
         return 1;
     }
     
-    // Generate extremely biased data that creates predictable patterns
-    generate_extreme_bias_data(data, ARRAY_SIZE);
+    // Generate data with extreme bias for profiling
+    generate_training_data(data, ARRAY_SIZE);
     
     struct timespec start, end;
     
-    printf("Running complex branching workload...\n");
+    // Test 1: Biased branches (should benefit from HWPGO)
+    printf("=== Test 1: Highly Biased Branches (95%% hot path) ===\n");
     clock_gettime(CLOCK_MONOTONIC, &start);
     
-    volatile int result1 = 0;
+    volatile long long result1 = 0;
     for (int i = 0; i < ITERATIONS; i++) {
-        result1 += process_data_with_extreme_bias(data, ARRAY_SIZE);
-        // Shuffle slightly to prevent cache effects but maintain bias
-        if (i % 5 == 0) shuffle_preserve_bias(data, ARRAY_SIZE, i);
+        result1 += process_biased_branches(data, ARRAY_SIZE, 0);
+        // Light shuffle to maintain bias but prevent cache effects
+        if (i % 10 == 0) shuffle_training_data(data, ARRAY_SIZE, i);
     }
     
     clock_gettime(CLOCK_MONOTONIC, &end);
-    double elapsed_complex = (end.tv_sec - start.tv_sec) + (end.tv_nsec - start.tv_nsec) / 1e9;
+    double elapsed_biased = (end.tv_sec - start.tv_sec) + (end.tv_nsec - start.tv_nsec) / 1e9;
     
-    printf("\nRunning simple baseline workload...\n");
+    // Test 2: Random branches (high misprediction rate)
+    printf("\n=== Test 2: Random Branches (50%% misprediction expected) ===\n");
+    generate_random_data(data, ARRAY_SIZE);
+    
     clock_gettime(CLOCK_MONOTONIC, &start);
     
-    volatile int result2 = 0;
+    volatile long long result2 = 0;
     for (int i = 0; i < ITERATIONS; i++) {
-        result2 += process_data_simple(data, ARRAY_SIZE);
+        result2 += process_random_branches(data, ARRAY_SIZE);
     }
     
     clock_gettime(CLOCK_MONOTONIC, &end);
-    double elapsed_simple = (end.tv_sec - start.tv_sec) + (end.tv_nsec - start.tv_nsec) / 1e9;
+    double elapsed_random = (end.tv_sec - start.tv_sec) + (end.tv_nsec - start.tv_nsec) / 1e9;
     
     printf("\n=== PERFORMANCE RESULTS ===\n");
-    printf("Complex branching: %.4f seconds (result: %d)\n", elapsed_complex, result1);
-    printf("Simple baseline:   %.4f seconds (result: %d)\n", elapsed_simple, result2);
-    printf("Branch overhead:   %.2fx slower than baseline\n", elapsed_complex / elapsed_simple);
-    printf("Expected HWPGO benefit: 15-30%% improvement on complex workload\n\n");
+    printf("Biased branches:  %.4f seconds (result: %lld)\n", elapsed_biased, result1);
+    printf("Random branches:  %.4f seconds (result: %lld)\n", elapsed_random, result2);
+    printf("Random/Biased ratio: %.2fx\n", elapsed_random / elapsed_biased);
     
-    analyze_extreme_bias_patterns(data, ARRAY_SIZE);
+    printf("\n=== HWPGO EXPECTATIONS ===\n");
+    printf("Without HWPGO: Compiler assumes branches are 50/50\n");
+    printf("  - Suboptimal basic block layout\n");
+    printf("  - Conservative inlining decisions\n");
+    printf("  - No branch probability hints\n");
+    printf("With HWPGO: Compiler knows 95%% bias from profile\n");
+    printf("  - Hot path optimized for instruction cache\n");
+    printf("  - Aggressive inlining of hot functions\n");
+    printf("  - Cold code moved to separate sections\n");
+    printf("  - Branch prediction hints inserted\n");
+    printf("Expected improvement: 10-25%% on biased workload\n");
+    
+    printf("\nTo measure branch mispredictions:\n");
+    printf("perf stat -e branch-misses,branches ./hwpgo_demo_baseline\n");
+    printf("perf stat -e branch-misses,branches ./hwpgo_demo_hwpgo\n");
+    
+    analyze_training_patterns(data, ARRAY_SIZE);
     
     free(data);
     return 0;
