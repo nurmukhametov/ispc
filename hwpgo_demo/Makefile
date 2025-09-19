@@ -6,7 +6,7 @@ PROFILE_FLAGS = -gline-tables-only -fdebug-info-for-profiling -funique-internal-
 HEADERS = utils.h
 TARGET = hwpgo_demo
 
-.PHONY: all clean test baseline profile hwpgo benchmark help
+.PHONY: all clean test baseline profile hwpgo benchmark help asm compare-asm
 
 all: baseline
 
@@ -78,25 +78,88 @@ benchmark: baseline hwpgo
 # Complete workflow
 complete: clean profile hwpgo test
 
+# Assembly generation and comparison
+asm: $(TARGET)_baseline.s $(TARGET)_hwpgo.s
+
+$(TARGET)_baseline.s: main.c utils.c $(HEADERS)
+	$(CC) $(CFLAGS) -S -masm=intel -o $@ main.c -DMAIN_ONLY
+	@echo "Generated baseline assembly (Intel syntax): $(TARGET)_baseline.s"
+
+$(TARGET)_hwpgo.s: main.c utils.c $(HEADERS) profile.prof
+	$(CC) $(CFLAGS) -fprofile-sample-use=profile.prof -S -masm=intel -o $@ main.c -DMAIN_ONLY
+	@echo "Generated HWPGO assembly (Intel syntax): $(TARGET)_hwpgo.s"
+
+# Compare assembly of key functions
+compare-asm: asm
+	@echo "=== Assembly Comparison for Key Functions ==="
+	@echo ""
+	@echo "=== process_biased_branches function ==="
+	@echo "--- Baseline version ---"
+	@grep -A 50 "process_biased_branches:" $(TARGET)_baseline.s | head -50 || echo "Function not found in baseline"
+	@echo ""
+	@echo "--- HWPGO version ---"
+	@grep -A 50 "process_biased_branches:" $(TARGET)_hwpgo.s | head -50 || echo "Function not found in HWPGO"
+	@echo ""
+	@echo "=== cheap_hot_function (should be inlined in HWPGO) ==="
+	@echo "--- Baseline version ---"
+	@grep -A 10 "cheap_hot_function:" $(TARGET)_baseline.s || echo "Function inlined or not found"
+	@echo ""
+	@echo "--- HWPGO version ---"
+	@grep -A 10 "cheap_hot_function:" $(TARGET)_hwpgo.s || echo "Function inlined or not found"
+	@echo ""
+	@echo "=== Branch instruction analysis ==="
+	@echo "Baseline conditional jumps:"
+	@grep -c "\bj[a-z]*\b" $(TARGET)_baseline.s || echo "0"
+	@echo "HWPGO conditional jumps:"
+	@grep -c "\bj[a-z]*\b" $(TARGET)_hwpgo.s || echo "0"
+	@echo "Baseline CMOV instructions:"
+	@grep -c "\bcmov[a-z]*\b" $(TARGET)_baseline.s || echo "0"
+	@echo "HWPGO CMOV instructions:"
+	@grep -c "\bcmov[a-z]*\b" $(TARGET)_hwpgo.s || echo "0"
+	@echo ""
+	@echo "Use 'make asm-diff' for detailed side-by-side comparison"
+
+# Detailed side-by-side diff of assembly
+asm-diff: asm
+	@echo "=== Detailed Assembly Diff ==="
+	@echo "Key function differences (process_biased_branches):"
+	@echo ""
+	@# Extract just the key function for comparison
+	@grep -A 100 "process_biased_branches:" $(TARGET)_baseline.s | head -100 > baseline_func.s 2>/dev/null || echo "baseline function not found"
+	@grep -A 100 "process_biased_branches:" $(TARGET)_hwpgo.s | head -100 > hwpgo_func.s 2>/dev/null || echo "hwpgo function not found"
+	@if [ -f baseline_func.s ] && [ -f hwpgo_func.s ]; then \
+		echo "Side-by-side comparison:"; \
+		diff -y --width=120 baseline_func.s hwpgo_func.s || true; \
+	else \
+		echo "Could not extract functions for comparison"; \
+	fi
+	@rm -f baseline_func.s hwpgo_func.s
+
 clean:
 	rm -f $(TARGET)_baseline $(TARGET)_profile $(TARGET)_hwpgo
+	rm -f $(TARGET)_baseline.s $(TARGET)_hwpgo.s
 	rm -f perf.data* profile.prof
 	rm -f main_profile.o utils_profile.o main_regular_debug.o
+	rm -f baseline_func.s hwpgo_func.s
 
 help:
 	@echo "HWPGO Demo Makefile"
 	@echo "=================="
 	@echo "Targets:"
-	@echo "  baseline   - Build baseline version (no optimization)"
-	@echo "  profile    - Build instrumented version and collect profile"
-	@echo "  hwpgo      - Build HWPGO optimized version"
-	@echo "  test       - Run both versions and compare output"
-	@echo "  benchmark  - Time both versions for performance comparison"
-	@echo "  complete   - Full workflow: clean -> profile -> hwpgo -> test"
-	@echo "  clean      - Remove all generated files"
-	@echo "  help       - Show this help"
+	@echo "  baseline     - Build baseline version (no optimization)"
+	@echo "  profile      - Build instrumented version and collect profile"
+	@echo "  hwpgo        - Build HWPGO optimized version"
+	@echo "  test         - Run both versions and compare output"
+	@echo "  benchmark    - Time both versions for performance comparison"
+	@echo "  complete     - Full workflow: clean -> profile -> hwpgo -> test"
+	@echo "  asm          - Generate assembly for both baseline and HWPGO"
+	@echo "  compare-asm  - Compare assembly of key functions"
+	@echo "  asm-diff     - Detailed side-by-side assembly diff"
+	@echo "  clean        - Remove all generated files"
+	@echo "  help         - Show this help"
 	@echo ""
 	@echo "Usage examples:"
 	@echo "  make complete        # Full HWPGO workflow"
 	@echo "  make baseline test   # Just test baseline"
 	@echo "  make benchmark       # Performance comparison"
+	@echo "  make compare-asm     # See HWPGO assembly optimizations"
