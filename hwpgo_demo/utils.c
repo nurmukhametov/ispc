@@ -1,27 +1,29 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
+#include <string.h>
 #include "utils.h"
 
-void generate_biased_data(int *data, int size) {
-    srand(42);
+void generate_extreme_bias_data(int *data, int size) {
+    srand(12345);  // Fixed seed for reproducible results
     
     for (int i = 0; i < size; i++) {
         int rand_val = rand();
         
-        if (i < size * 0.7) {
-            data[i] = 600000 + (rand_val % 300000);
-        } else if (i < size * 0.9) {
-            data[i] = 200000 + (rand_val % 200000);
+        // Create extreme bias: 99.9% hot, 0.09% cold, 0.01% very cold
+        if (i < size * 0.999) {
+            // 99.9% - hot path values (0 to 998999)
+            data[i] = rand_val % 999000;
+        } else if (i < size * 0.9999) {
+            // 0.09% - cold path values (999000 to 999899)  
+            data[i] = 999000 + (rand_val % 900);
         } else {
-            data[i] = rand_val % 100000;
+            // 0.01% - very cold path values (999900+)
+            data[i] = 999900 + (rand_val % 100);
         }
     }
-}
-
-void shuffle_array(int *data, int size, int seed) {
-    srand(seed + 1000);
     
+    // Shuffle to distribute bias throughout array while preserving ratios
     for (int i = size - 1; i > 0; i--) {
         int j = rand() % (i + 1);
         int temp = data[i];
@@ -30,45 +32,91 @@ void shuffle_array(int *data, int size, int seed) {
     }
 }
 
-void analyze_branch_patterns(int *data, int size) {
-    int high_values = 0;
-    int medium_values = 0;
-    int low_values = 0;
-    int very_high_values = 0;
-    int ultra_high_values = 0;
+void shuffle_preserve_bias(int *data, int size, int seed) {
+    srand(seed + 42);
     
+    // Light shuffle that maintains the bias distribution
+    // Only shuffle within segments to preserve hot/cold ratios
+    int segment_size = size / 100;
+    
+    for (int segment = 0; segment < 100; segment++) {
+        int start = segment * segment_size;
+        int end = (segment == 99) ? size : start + segment_size;
+        
+        // Shuffle within this segment only
+        for (int i = end - 1; i > start; i--) {
+            int j = start + (rand() % (i - start + 1));
+            int temp = data[i];
+            data[i] = data[j];
+            data[j] = temp;
+        }
+    }
+}
+
+void analyze_extreme_bias_patterns(int *data, int size) {
+    int hot_count = 0;
+    int cold_count = 0; 
+    int very_cold_count = 0;
+    int total_transitions = 0;
+    int hot_to_cold_transitions = 0;
+    
+    // Analyze distribution and transition patterns
     for (int i = 0; i < size; i++) {
-        if (data[i] > 900000) {
-            ultra_high_values++;
-            very_high_values++;
-            high_values++;
-        } else if (data[i] > 750000) {
-            very_high_values++;
-            high_values++;
-        } else if (data[i] > 500000) {
-            high_values++;
-        } else if (data[i] > 100000) {
-            medium_values++;
+        if (data[i] < 999000) {
+            hot_count++;
+        } else if (data[i] < 999900) {
+            cold_count++;
         } else {
-            low_values++;
+            very_cold_count++;
+        }
+        
+        // Count hot->cold transitions (expensive for branch predictor)
+        if (i > 0) {
+            total_transitions++;
+            bool prev_hot = (data[i-1] < 999000);
+            bool curr_hot = (data[i] < 999000);
+            if (prev_hot && !curr_hot) {
+                hot_to_cold_transitions++;
+            }
         }
     }
     
-    printf("\nBranch Pattern Analysis:\n");
-    printf("- High values (>500k):      %7d (%.1f%%) - HOT PATH\n", 
-           high_values, 100.0 * high_values / size);
-    printf("- Very high (>750k):        %7d (%.1f%%) - nested branch\n", 
-           very_high_values, 100.0 * very_high_values / size);
-    printf("- Ultra high (>900k):       %7d (%.1f%%) - deep nested\n", 
-           ultra_high_values, 100.0 * ultra_high_values / size);
-    printf("- Medium values (100-500k): %7d (%.1f%%) - cold path\n", 
-           medium_values, 100.0 * medium_values / size);
-    printf("- Low values (<100k):       %7d (%.1f%%) - cold path\n", 
-           low_values, 100.0 * low_values / size);
+    printf("=== EXECUTION PATTERN ANALYSIS ===\n");
+    printf("Data distribution:\n");
+    printf("- Hot path (99.9%% expected):  %7d (%.3f%%) - FREQUENT\n", 
+           hot_count, 100.0 * hot_count / size);
+    printf("- Cold path (0.09%% expected): %7d (%.3f%%) - RARE\n", 
+           cold_count, 100.0 * cold_count / size);
+    printf("- Very cold (0.01%% expected): %7d (%.3f%%) - VERY RARE\n", 
+           very_cold_count, 100.0 * very_cold_count / size);
     
-    printf("\nExpected HWPGO benefits:\n");
-    printf("- Main branch (>500k) is taken %.1f%% of the time\n", 
-           100.0 * high_values / size);
-    printf("- HWPGO should optimize for this hot path\n");
-    printf("- Branch predictor training from real execution patterns\n");
+    printf("\nBranch prediction challenges:\n");
+    printf("- Total transitions: %d\n", total_transitions);
+    printf("- Hot->Cold transitions: %d (%.3f%%)\n", 
+           hot_to_cold_transitions, 100.0 * hot_to_cold_transitions / total_transitions);
+    
+    printf("\nExpected HWPGO optimizations:\n");
+    printf("1. Basic block layout: Hot path kept together, cold moved away\n");
+    printf("2. Function inlining: hot_function() likely inlined in hot path\n");
+    printf("3. Indirect call prediction: hot_target_a preferred over cold_target\n");
+    printf("4. Branch prediction hints: 99.9%% bias enables aggressive optimization\n");
+    printf("5. Code size reduction: Cold functions moved to separate sections\n");
+    
+    printf("\nWhy this shows HWPGO benefits:\n");
+    printf("- Without profile: Compiler assumes 50/50 branch probability\n");
+    printf("- With HWPGO: Compiler knows 99.9%% bias, optimizes accordingly\n");
+    printf("- Result: Better instruction cache usage, fewer branch mispredicts\n");
+}
+
+// Legacy functions for compatibility
+void generate_biased_data(int *data, int size) {
+    generate_extreme_bias_data(data, size);
+}
+
+void shuffle_array(int *data, int size, int seed) {
+    shuffle_preserve_bias(data, size, seed);
+}
+
+void analyze_branch_patterns(int *data, int size) {
+    analyze_extreme_bias_patterns(data, size);
 }
